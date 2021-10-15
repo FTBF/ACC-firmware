@@ -137,7 +137,8 @@ begin
 				when 6 => d4.data := "0110"; d4.disp := '0';
 				when 7 => 	case alt is
 									when '0' => d4.data := "1110"; d4.disp := '1';
-									when '1' => d4.data := "0111"; d4.disp := '1';
+									when '1' => d4.data := "0111"; d4.disp := '1'; 
+									when others => null;
 								end case; 
 							
 			end case;	
@@ -198,7 +199,8 @@ begin
 					when "00" => dout <=  d4.dout & d6.dout;			disp := 0;								
 					when "01" => dout <=  d4.dout & d6.dout;			disp := 2;								
 					when "10" => dout <=  d4.dout & d6.dout;			disp := 2;								
-					when "11" => dout <=  d4.dout & (not d6.dout);	disp := 0;								
+					when "11" => dout <=  d4.dout & (not d6.dout);	disp := 0;
+					when others => null;
 				end case;	
 		
 			else			-- negative disparity required (more zeros than ones) to restore balance
@@ -207,7 +209,8 @@ begin
 					when "00" => dout <=  d4.dout & d6.dout;			disp := 0;							
 					when "01" => dout <=  d4.dout & (not d6.dout);	disp := -2;								
 					when "10" => dout <=  (not d4.dout) & d6.dout;	disp := -2;								
-					when "11" => dout <=  d4.dout & (not d6.dout);	disp := 0;								
+					when "11" => dout <=  d4.dout & (not d6.dout);	disp := 0;
+					when others => null;								
 				end case;
 				
 			end if;

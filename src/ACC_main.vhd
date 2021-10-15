@@ -98,7 +98,8 @@ PPS_SELECT: process(SMA, systemIn, testCmd)
 begin
 	case testCmd.pps_useSMA is
 		when '1' => pps <= SMA(3); 
-		when '0' => pps <= systemIn.in0; 
+		when '0' => pps <= systemIn.in0;  
+		when others => null;
 	end case;
 end process;
 
@@ -107,7 +108,8 @@ BGT_SELECT: process(SMA, systemIn, testCmd)
 begin
 	case testCmd.beamgateTrigger_useSMA is
 		when '1' => beamgate_trig <= SMA(4); 
-		when '0' => beamgate_trig <= systemIn.in1;
+		when '0' => beamgate_trig <= systemIn.in1; 
+		when others => null;
 	end case;
 end process;
 
@@ -143,7 +145,7 @@ variable t: natural := 0;		-- elaspsed time counter
 variable r: std_logic;
 begin
 	if (rising_edge(clock.sys)) then 				
-		if (reset.request = '1' or reset.request2 = '1') then t := 0; end if;   -- restart counter if new reset request					 										
+		if (reset.request = '1' or reset.request2 = '1' or clock.altpllLock = '0') then t := 0; end if;   -- restart counter if new reset request					 										
 		if (t >= 400) then r := '0'; else r := '1'; t := t + 1; end if;
 		reset.global <= r;
 	end if;
@@ -179,6 +181,7 @@ begin
 	for i in N-1 downto 0 loop
 		LVDS_Out(i)(0) <=	serialTx.serial(i);
 		LVDS_Out(i)(1) <=	trig_out(i);
+        LVDS_Out(i)(2) <=	'0';
         -- select low speed LVDS RX pair (slow control line)
         serialRx.serial(i)  <= LVDS_In(i)(0);
         --serialRx.serial(i)  <= LVDS_In(i)(0);
@@ -551,7 +554,8 @@ begin
 		for i in 0 to 2 loop
 			case ledSetup(i)(13) is
 				when '1' =>	led(i) <= not (led_trig(i) and flash_state);			-- flash option
-				when '0' => led(i) <= not led_mono(i);		-- monostable option
+				when '0' => led(i) <= not led_mono(i);		-- monostable option  
+				when others => null;
 			end case;			
 			t_flash := t_flash + 1;
 			if (t_flash >= 20000000) then t_flash := 0; end if;

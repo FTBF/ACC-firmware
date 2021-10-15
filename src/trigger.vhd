@@ -205,7 +205,7 @@ begin
 			windowLen := trig.windowLen + M; 
 		end if;
 		
-		windowStart := trig.windowStart - M;
+		windowStart := trig.windowStart - M when trig.windowStart >= M else 0;
 		
 	
 		case state is 

@@ -280,7 +280,7 @@ begin
 			rxBit_valid_x <= '0'; 
 		end if;
 		
-		t := t + 1; 
+		t := t + 1 when t < 7 else 0; 
 				
 	end if;
 end process;
