@@ -1,0 +1,316 @@
+# -------------------------------------------------------------------------- #
+#
+# Copyright (C) 2018  Intel Corporation. All rights reserved.
+# Your use of Intel Corporation's design tools, logic functions 
+# and other software and tools, and its AMPP partner logic 
+# functions, and any output files from any of the foregoing 
+# (including device programming or simulation files), and any 
+# associated documentation or information are expressly subject 
+# to the terms and conditions of the Intel Program License 
+# Subscription Agreement, the Intel Quartus Prime License Agreement,
+# the Intel FPGA IP License Agreement, or other applicable license
+# agreement, including, without limitation, that your use is for
+# the sole purpose of programming logic devices manufactured by
+# Intel and sold by Intel or its authorized distributors.  Please
+# refer to the applicable agreement for further details.
+#
+# -------------------------------------------------------------------------- #
+#
+# Quartus Prime
+# Version 18.1.0 Build 625 09/12/2018 SJ Standard Edition
+# Date created = 11:40:21  June 03, 2020
+#
+# -------------------------------------------------------------------------- #
+#
+# Notes:
+#
+# 1) The default values for assignments are stored in the file:
+#		AccFirmware_DG_assignment_defaults.qdf
+#    If this file doesn't exist, see file:
+#		assignment_defaults.qdf
+#
+# 2) Altera recommends that you do not modify this file. This
+#    file is updated automatically by the Quartus Prime software
+#    and any changes you make may be lost or overwritten.
+#
+# -------------------------------------------------------------------------- #
+
+
+set_global_assignment -name FAMILY "Arria V"
+set_global_assignment -name DEVICE 5AGXFB5H4F35C4
+set_global_assignment -name TOP_LEVEL_ENTITY ACC_main
+set_global_assignment -name ORIGINAL_QUARTUS_VERSION 18.1.0
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "11:40:20  JUNE 03, 2020"
+set_global_assignment -name LAST_QUARTUS_VERSION "19.1.0 Standard Edition"
+set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
+set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 256
+set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
+set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
+set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
+set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
+set_location_assignment PIN_C14 -to led[0]
+set_location_assignment PIN_E14 -to led[1]
+set_location_assignment PIN_D14 -to led[2]
+set_location_assignment PIN_AG23 -to LVDS_In_p[0][0]
+set_location_assignment PIN_AF23 -to LVDS_In_n[0][0]
+set_location_assignment PIN_AH20 -to LVDS_In_p[0][1]
+set_location_assignment PIN_AG20 -to LVDS_In_n[0][1]
+set_location_assignment PIN_AN21 -to LVDS_In_hs_p[0][0]
+set_location_assignment PIN_AM22 -to LVDS_In_hs_n[0][0]
+set_location_assignment PIN_AN24 -to LVDS_In_hs_p[0][1]
+set_location_assignment PIN_AN23 -to LVDS_In_hs_n[0][1]
+set_location_assignment PIN_AH25 -to LVDS_In_p[1][0]
+set_location_assignment PIN_AH24 -to LVDS_In_n[1][0]
+set_location_assignment PIN_AL22 -to LVDS_In_p[1][1]
+set_location_assignment PIN_AL21 -to LVDS_In_n[1][1]
+set_location_assignment PIN_AK21 -to LVDS_In_hs_p[1][0]
+set_location_assignment PIN_AJ22 -to LVDS_In_hs_n[1][0]
+set_location_assignment PIN_AM20 -to LVDS_In_hs_p[1][1]
+set_location_assignment PIN_AL20 -to LVDS_In_hs_n[1][1]
+set_location_assignment PIN_AK24 -to LVDS_In_p[2][0]
+set_location_assignment PIN_AJ25 -to LVDS_In_n[2][0]
+set_location_assignment PIN_AF20 -to LVDS_In_p[2][1]
+set_location_assignment PIN_AE20 -to LVDS_In_n[2][1]
+set_location_assignment PIN_AH22 -to LVDS_In_hs_p[2][0]
+set_location_assignment PIN_AH21 -to LVDS_In_hs_n[2][0]
+set_location_assignment PIN_AP23 -to LVDS_In_hs_p[2][1]
+set_location_assignment PIN_AP22 -to LVDS_In_hs_n[2][1]
+set_location_assignment PIN_AJ23 -to LVDS_In_p[3][0]
+set_location_assignment PIN_AH23 -to LVDS_In_n[3][0]
+set_location_assignment PIN_AP20 -to LVDS_In_p[3][1]
+set_location_assignment PIN_AN20 -to LVDS_In_n[3][1]
+set_location_assignment PIN_AE25 -to LVDS_In_hs_p[3][0]
+set_location_assignment PIN_AD24 -to LVDS_In_hs_n[3][0]
+set_location_assignment PIN_AC25 -to LVDS_In_hs_p[3][1]
+set_location_assignment PIN_AC24 -to LVDS_In_hs_n[3][1]
+set_location_assignment PIN_D8 -to LVDS_In_p[4][0]
+set_location_assignment PIN_D9 -to LVDS_In_n[4][0]
+set_location_assignment PIN_C3 -to LVDS_In_p[4][1]
+set_location_assignment PIN_D3 -to LVDS_In_n[4][1]
+set_location_assignment PIN_C8 -to LVDS_In_hs_p[4][0]
+set_location_assignment PIN_D7 -to LVDS_In_hs_n[4][0]
+set_location_assignment PIN_A7 -to LVDS_In_hs_p[4][1]
+set_location_assignment PIN_A6 -to LVDS_In_hs_n[4][1]
+set_location_assignment PIN_C16 -to LVDS_In_p[5][0]
+set_location_assignment PIN_D16 -to LVDS_In_n[5][0]
+set_location_assignment PIN_A14 -to LVDS_In_p[5][1]
+set_location_assignment PIN_B15 -to LVDS_In_n[5][1]
+set_location_assignment PIN_B6 -to LVDS_In_hs_p[5][0]
+set_location_assignment PIN_C7 -to LVDS_In_hs_n[5][0]
+set_location_assignment PIN_D1 -to LVDS_In_hs_p[5][1]
+set_location_assignment PIN_E2 -to LVDS_In_hs_n[5][1]
+set_location_assignment PIN_A3 -to LVDS_In_p[6][0]
+set_location_assignment PIN_B3 -to LVDS_In_n[6][0]
+set_location_assignment PIN_C6 -to LVDS_In_p[6][1]
+set_location_assignment PIN_D5 -to LVDS_In_n[6][1]
+set_location_assignment PIN_A10 -to LVDS_In_hs_p[6][0]
+set_location_assignment PIN_B9 -to LVDS_In_hs_n[6][0]
+set_location_assignment PIN_H8 -to LVDS_In_hs_p[6][1]
+set_location_assignment PIN_J8 -to LVDS_In_hs_n[6][1]
+set_location_assignment PIN_E3 -to LVDS_In_p[7][0]
+set_location_assignment PIN_E4 -to LVDS_In_n[7][0]
+set_location_assignment PIN_D6 -to LVDS_In_p[7][1]
+set_location_assignment PIN_E6 -to LVDS_In_n[7][1]
+set_location_assignment PIN_N10 -to LVDS_In_hs_p[7][0]
+set_location_assignment PIN_N11 -to LVDS_In_hs_n[7][0]
+set_location_assignment PIN_K9 -to LVDS_In_hs_p[7][1]
+set_location_assignment PIN_K8 -to LVDS_In_hs_n[7][1]
+set_location_assignment PIN_AG21 -to LVDS_Out[0][0]
+set_location_assignment PIN_AF22 -to "LVDS_Out[0][0](n)"
+set_location_assignment PIN_AK20 -to LVDS_Out[0][1]
+set_location_assignment PIN_AJ20 -to "LVDS_Out[0][1](n)"
+set_location_assignment PIN_AB25 -to LVDS_Out[0][2]
+set_location_assignment PIN_AA25 -to "LVDS_Out[0][2](n)"
+set_location_assignment PIN_AE24 -to LVDS_Out[1][0]
+set_location_assignment PIN_AE23 -to "LVDS_Out[1][0](n)"
+set_location_assignment PIN_AC22 -to LVDS_Out[1][1]
+set_location_assignment PIN_AB22 -to "LVDS_Out[1][1](n)"
+set_location_assignment PIN_AB20 -to LVDS_Out[1][2]
+set_location_assignment PIN_AA20 -to "LVDS_Out[1][2](n)"
+set_location_assignment PIN_AB21 -to LVDS_Out[2][0]
+set_location_assignment PIN_AA21 -to "LVDS_Out[2][0](n)"
+set_location_assignment PIN_AM23 -to LVDS_Out[2][1]
+set_location_assignment PIN_AL23 -to "LVDS_Out[2][1](n)"
+set_location_assignment PIN_AB23 -to LVDS_Out[2][2]
+set_location_assignment PIN_AA23 -to "LVDS_Out[2][2](n)"
+set_location_assignment PIN_AG24 -to LVDS_Out[3][0]
+set_location_assignment PIN_AF25 -to "LVDS_Out[3][0](n)"
+set_location_assignment PIN_AL24 -to LVDS_Out[3][1]
+set_location_assignment PIN_AK23 -to "LVDS_Out[3][1](n)"
+set_location_assignment PIN_AD23 -to LVDS_Out[3][2]
+set_location_assignment PIN_AC23 -to "LVDS_Out[3][2](n)"
+set_location_assignment PIN_J7 -to LVDS_Out[4][0]
+set_location_assignment PIN_K7 -to "LVDS_Out[4][0](n)"
+set_location_assignment PIN_A5 -to LVDS_Out[4][1]
+set_location_assignment PIN_A4 -to "LVDS_Out[4][1](n)"
+set_location_assignment PIN_A2 -to LVDS_Out[4][2]
+set_location_assignment PIN_B2 -to "LVDS_Out[4][2](n)"
+set_location_assignment PIN_E1 -to LVDS_Out[5][0]
+set_location_assignment PIN_F1 -to "LVDS_Out[5][0](n)"
+set_location_assignment PIN_E9 -to LVDS_Out[5][1]
+set_location_assignment PIN_F8 -to "LVDS_Out[5][1](n)"
+set_location_assignment PIN_G9 -to LVDS_Out[5][2]
+set_location_assignment PIN_H9 -to "LVDS_Out[5][2](n)"
+set_location_assignment PIN_J6 -to LVDS_Out[6][0]
+set_location_assignment PIN_K6 -to "LVDS_Out[6][0](n)"
+set_location_assignment PIN_G6 -to LVDS_Out[6][1]
+set_location_assignment PIN_H6 -to "LVDS_Out[6][1](n)"
+set_location_assignment PIN_E5 -to LVDS_Out[6][2]
+set_location_assignment PIN_F6 -to "LVDS_Out[6][2](n)"
+set_location_assignment PIN_L9 -to LVDS_Out[7][0]
+set_location_assignment PIN_M8 -to "LVDS_Out[7][0](n)"
+set_location_assignment PIN_J10 -to LVDS_Out[7][1]
+set_location_assignment PIN_K10 -to "LVDS_Out[7][1](n)"
+set_location_assignment PIN_E8 -to LVDS_Out[7][2]
+set_location_assignment PIN_F7 -to "LVDS_Out[7][2](n)"
+set_location_assignment PIN_AL9 -to SMA[1]
+set_location_assignment PIN_AK9 -to SMA[2]
+set_location_assignment PIN_AL8 -to SMA[3]
+set_location_assignment PIN_AL10 -to SMA[4]
+set_location_assignment PIN_AM10 -to SMA[5]
+set_location_assignment PIN_AM8 -to SMA[6]
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_In_p*
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_In_n*
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_In_hs_p*
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_In_hs_n*
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_Out[7][2]
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_Out[7][1]
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_Out[0][0]
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_Out[0][1]
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_Out[0][2]
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_Out[1][0]
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_Out[1][1]
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_Out[1][2]
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_Out[2][0]
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_Out[2][1]
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_Out[2][2]
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_Out[3][0]
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_Out[3][1]
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_Out[3][2]
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_Out[4][0]
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_Out[4][1]
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_Out[4][2]
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_Out[5][0]
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_Out[5][1]
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_Out[5][2]
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_Out[6][0]
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_Out[6][1]
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_Out[6][2]
+set_instance_assignment -name IO_STANDARD LVDS -to LVDS_Out[7][0]
+set_global_assignment -name PROJECT_IP_REGENERATION_POLICY ALWAYS_REGENERATE_IP
+set_global_assignment -name TIMING_ANALYZER_MULTICORNER_ANALYSIS ON
+set_global_assignment -name AUTO_EXPORT_INCREMENTAL_COMPILATION ON
+set_global_assignment -name INCREMENTAL_COMPILATION_EXPORT_FILE ACC_main.qxp
+set_global_assignment -name INCREMENTAL_COMPILATION_EXPORT_POST_SYNTH ON
+set_global_assignment -name INCREMENTAL_COMPILATION_EXPORT_POST_FIT ON
+set_global_assignment -name INCREMENTAL_COMPILATION_EXPORT_ROUTING ON
+set_global_assignment -name INCREMENTAL_COMPILATION_EXPORT_PARTITION_NAME Top
+set_global_assignment -name INCREMENTAL_COMPILATION_EXPORT_FLATTEN ON
+set_location_assignment PIN_A22 -to DIPswitch[9]
+set_location_assignment PIN_K20 -to DIPswitch[8]
+set_location_assignment PIN_D21 -to DIPswitch[7]
+set_location_assignment PIN_G20 -to DIPswitch[6]
+set_location_assignment PIN_B21 -to DIPswitch[5]
+set_location_assignment PIN_B20 -to DIPswitch[4]
+set_location_assignment PIN_C20 -to DIPswitch[3]
+set_location_assignment PIN_L20 -to DIPswitch[2]
+set_location_assignment PIN_D20 -to DIPswitch[1]
+set_location_assignment PIN_C22 -to DIPswitch[0]
+set_location_assignment PIN_C1 -to clockIn.localOsc
+set_instance_assignment -name IO_STANDARD LVDS -to clockIn.localOsc
+set_location_assignment PIN_C2 -to "clockIn.localOsc(n)"
+set_location_assignment PIN_AH18 -to clockIn.usb_IFCLK
+set_location_assignment PIN_AJ16 -to USB_bus.FD[15]
+set_location_assignment PIN_AC16 -to USB_bus.FD[14]
+set_location_assignment PIN_AM16 -to USB_bus.FD[13]
+set_location_assignment PIN_AH15 -to USB_bus.FD[12]
+set_location_assignment PIN_AL15 -to USB_bus.FD[11]
+set_location_assignment PIN_AK14 -to USB_bus.FD[10]
+set_location_assignment PIN_AP16 -to USB_bus.FD[9]
+set_location_assignment PIN_AH16 -to USB_bus.FD[8]
+set_location_assignment PIN_AM14 -to USB_bus.FD[7]
+set_location_assignment PIN_AF16 -to USB_bus.FD[6]
+set_location_assignment PIN_AL14 -to USB_bus.FD[5]
+set_location_assignment PIN_AN15 -to USB_bus.FD[4]
+set_location_assignment PIN_AB16 -to USB_bus.FD[3]
+set_location_assignment PIN_AE16 -to USB_bus.FD[2]
+set_location_assignment PIN_AK15 -to USB_bus.FD[1]
+set_location_assignment PIN_AL16 -to USB_bus.FD[0]
+set_location_assignment PIN_AJ17 -to USB_bus.PA[7]
+set_location_assignment PIN_AK17 -to USB_bus.PA[6]
+set_location_assignment PIN_AK18 -to USB_bus.PA[5]
+set_location_assignment PIN_AN17 -to USB_bus.PA[4]
+set_location_assignment PIN_AM17 -to USB_bus.PA[3]
+set_location_assignment PIN_AP17 -to USB_bus.PA[2]
+set_location_assignment PIN_AB17 -to USB_bus.PA[1]
+set_location_assignment PIN_AE17 -to USB_bus.PA[0]
+set_location_assignment PIN_AE18 -to USB_in.CLKOUT
+set_location_assignment PIN_AA17 -to USB_in.CTL[2]
+set_location_assignment PIN_AC18 -to USB_in.CTL[1]
+set_location_assignment PIN_AC17 -to USB_in.CTL[0]
+set_location_assignment PIN_AF17 -to USB_in.WAKEUP
+set_location_assignment PIN_AH17 -to USB_out.RDY[1]
+set_location_assignment PIN_AG17 -to USB_out.RDY[0]
+set_location_assignment PIN_E15 -to clockCtrl.clockSourceSelect
+set_global_assignment -name NUM_PARALLEL_PROCESSORS ALL
+set_global_assignment -name OPTIMIZATION_MODE "AGGRESSIVE PERFORMANCE"
+set_location_assignment PIN_AN11 -to systemIn.in0
+set_instance_assignment -name IO_STANDARD LVDS -to systemIn.in0
+set_location_assignment PIN_AM11 -to "systemIn.in0(n)"
+set_instance_assignment -name IO_STANDARD LVDS -to systemIn.in1
+set_instance_assignment -name IO_STANDARD LVDS -to systemOut.out0
+set_location_assignment PIN_AP11 -to systemIn.in1
+set_location_assignment PIN_AP10 -to "systemIn.in1(n)"
+set_location_assignment PIN_AF10 -to systemOut.out0
+set_location_assignment PIN_AE10 -to "systemOut.out0(n)"
+set_global_assignment -name SEED 2
+set_instance_assignment -name INPUT_TERMINATION DIFFERENTIAL -to LVDS_In_p*
+set_instance_assignment -name INPUT_TERMINATION DIFFERENTIAL -to LVDS_In_n*
+set_instance_assignment -name INPUT_TERMINATION DIFFERENTIAL -to LVDS_In_hs_p*
+set_instance_assignment -name INPUT_TERMINATION DIFFERENTIAL -to LVDS_In_hs_n*
+set_global_assignment -name VHDL_INPUT_VERSION VHDL_2008
+set_global_assignment -name VHDL_SHOW_LMF_MAPPING_MESSAGES OFF
+set_global_assignment -name VHDL_FILE src/io_delay_ctrl.vhd
+set_global_assignment -name VHDL_FILE src/serialRX_dataBuffer.vhd
+set_global_assignment -name VHDL_FILE lib/prbsGenerator.vhd
+set_global_assignment -name VHDL_FILE src/prbsChecker.vhd
+set_global_assignment -name VHDL_FILE src/ACC_main.vhd
+set_global_assignment -name VHDL_FILE src/defs.vhd
+set_global_assignment -name VHDL_FILE src/components.vhd
+set_global_assignment -name VHDL_FILE src/ClockGenerator.vhd
+set_global_assignment -name VHDL_FILE src/trigger.vhd
+set_global_assignment -name VHDL_FILE src/serialTx_buffer.vhd
+set_global_assignment -name VHDL_FILE src/serialRx_buffer.vhd
+set_global_assignment -name VHDL_FILE src/usbDriver.vhd
+set_global_assignment -name VHDL_FILE src/iobuf.vhd
+set_global_assignment -name VHDL_FILE src/CommandHandler.vhd
+set_global_assignment -name VHDL_FILE src/DataHandler.vhd
+set_global_assignment -name QIP_FILE src/QIPcomponents/rx_data_ram.qip
+set_global_assignment -name SIP_FILE src/QIPcomponents/pll.sip
+set_global_assignment -name QIP_FILE src/QIPcomponents/pll.qip
+set_global_assignment -name QIP_FILE src/QIPcomponents/txFifo.qip
+set_global_assignment -name SDC_FILE ACC.sdc
+set_global_assignment -name VHDL_FILE lib/LibDG.vhd
+set_global_assignment -name VHDL_FILE lib/encoder_8b10b.vhd
+set_global_assignment -name VHDL_FILE lib/decoder_8b10b.vhd
+set_global_assignment -name VHDL_FILE lib/synchronousTx_8b10b.vhd
+set_global_assignment -name VHDL_FILE lib/synchronousRx_8b10b.vhd
+set_global_assignment -name VHDL_FILE lib/windowGenerator.vhd
+set_global_assignment -name VHDL_FILE lib/uart.vhd
+set_global_assignment -name VHDL_FILE lib/synchronizer.vhd
+set_global_assignment -name VHDL_FILE lib/risingEdgeDetect.vhd
+set_global_assignment -name VHDL_FILE lib/pulseGobbler.vhd
+set_global_assignment -name VHDL_FILE lib/monostable_sync_level.vhd
+set_global_assignment -name VHDL_FILE lib/monostable_sync_edge.vhd
+set_global_assignment -name VHDL_FILE lib/monostable_asyncio_edge.vhd
+set_global_assignment -name VHDL_FILE lib/monostable_async_level.vhd
+set_global_assignment -name VHDL_FILE lib/monostable_async_edge.vhd
+set_global_assignment -name VHDL_FILE lib/fallingEdgeDetect.vhd
+set_global_assignment -name QIP_FILE src/QIPcomponents/serialRX_iobuf.qip
+set_global_assignment -name QIP_FILE src/QIPcomponents/serialRX_ddr.qip
+set_global_assignment -name QIP_FILE src/QIPcomponents/pll_serial.qip
+set_global_assignment -name SIP_FILE src/QIPcomponents/pll_serial.sip
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
