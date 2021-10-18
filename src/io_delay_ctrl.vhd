@@ -42,7 +42,7 @@ begin  -- architecture vhdl
       else
         case state is
           when IDLE =>
-            if delayCommandSet then
+            if delayCommandSet = '1' then
               io_config_clkena <= delayCommandMask;
               io_config_datain <= delayCommand(ibit);
               io_config_update <= '0';

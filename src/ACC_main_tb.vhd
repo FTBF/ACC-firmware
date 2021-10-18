@@ -55,7 +55,11 @@ architecture sim of ACC_main_tb is
   signal USB_in       : USB_in_type;
   signal USB_out      : USB_out_type;
   signal USB_bus      : USB_bus_type;
-  signal DIPswitch    : std_logic_vector (9 downto 0);
+  signal DIPswitch    : std_logic_vector (9 downto 0);		
+  
+  signal fastClk      : std_logic;
+  signal reset        : std_logic;				  
+  signal prbs         : std_logic_vector(15 downto 0);
 
 begin  -- architecture sim
 
@@ -76,6 +80,23 @@ begin  -- architecture sim
       USB_out      => USB_out,
       USB_bus      => USB_bus,
       DIPswitch    => DIPswitch);
+	  
+  prbsGen : prbsGenerator
+  Generic map(
+    ITERATIONS => 1,
+    POLY       => X"6000"
+    )
+  Port map(
+    clk    => fastClk,
+    reset  => reset,
+    input  => prbs,
+    output => prbs
+    );
+	
+  hs_mapping : for i in 0 to 15 generate
+	LVDS_In_hs_p(i/2)(i mod 2) <= prbs(0);  
+	LVDS_In_hs_n(i/2)(i mod 2) <= not prbs(0);
+  end generate;
 
   -- clock generation
   ACC_OSC_GEN_PROC : process 
@@ -89,12 +110,30 @@ begin  -- architecture sim
       wait;
     end if;
   end process;
-
+  			  
+  FAST_CLK_GEN_PROC : process 
+  begin
+    if ENDSIM = false then
+      fastClk <= '0';
+      wait for OSC_PERIOD / 20;
+      fastClk <= '1';
+      wait for OSC_PERIOD / 20;
+    else 
+      wait;
+    end if;
+  end process;
   
   -- waveform generation
   WaveGen_Proc: process
   begin
-    -- insert signal assignments here
+    -- insert signal assignments here 
+	reset <= '0';
+	wait for 200 ns;
+	reset <= '1';
+	wait for 200 ns;
+	reset <= '0';
+	wait for 200 ns;
+	
     
     wait;
   end process WaveGen_Proc;

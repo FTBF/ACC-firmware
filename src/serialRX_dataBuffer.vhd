@@ -31,8 +31,6 @@ end serialRx_dataBuffer;
 architecture vhdl of serialRx_dataBuffer is
   attribute PRESERVE          : boolean;
   signal serialRX_hs        : serialRx_hs_array;
-  signal serialRX_hs_h      : std_logic_vector(2*N-1 downto 0);
-  signal serialRX_hs_l      : std_logic_vector(2*N-1 downto 0);
   signal error_counts_z     : DoubleArray_16bit;
   signal nreset             : std_logic;
   signal reset_sync1       : std_logic;
@@ -88,8 +86,8 @@ begin  -- architecture vhdl
         aclr      => resetFast_ddr,
         datain    => LVDS_In_hs(i downto i),
         inclock   => clock.serial125,
-        dataout_h => serialRX_hs(i)(0 downto 0),
-        dataout_l => serialRX_hs(i)(1 downto 1));
+        dataout_h => serialRX_hs(i)(1 downto 1),
+        dataout_l => serialRX_hs(i)(0 downto 0));
   end generate;
 
 
