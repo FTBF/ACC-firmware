@@ -11,7 +11,8 @@ entity prbsChecker is
     clk   : in std_logic;
     reset : in std_logic;
     data  : in serialRx_hs_array;
-    error_counts   :  out DoubleArray_16bit
+    error_counts   :  out DoubleArray_16bit;
+    count_reset    :  in std_logic
     );
 
 end prbsChecker;
@@ -31,9 +32,8 @@ begin  -- architecture vhdl
   begin
     for i in 0 to 2*N-1 loop
 
-      
       if rising_edge(clk) then
-        if reset = '1' then
+        if reset = '1' or count_reset = '1' then
           error_counts_z(i) <= X"0000";
         else
           data_SR(i) <= data_SR(i)(13 downto 0) & data(i);

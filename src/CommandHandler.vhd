@@ -39,7 +39,8 @@ entity commandHandler is
     testCmd					: 	out	testCmd_type;
     delayCommand            : out std_logic_vector(11 downto 0);
     delayCommandSet         : out std_logic;
-    delayCommandMask        : out std_logic_vector(15 downto 0)
+    delayCommandMask        : out std_logic_vector(15 downto 0);
+    count_reset             : out std_logic
     );
 end commandHandler;
 
@@ -49,6 +50,7 @@ architecture vhdl of commandHandler is
     signal delayCommand_z            : std_logic_vector(11 downto 0);
     signal delayCommandSet_z         : std_logic;
     signal delayCommandMask_z        : std_logic_vector(15 downto 0);
+    signal count_reset_z             : std_logic;
     signal nreset                    : std_logic;
     signal nreset_sync1              : std_logic;
     signal nreset_sync2              : std_logic;
@@ -89,6 +91,15 @@ begin
       dest_pulse   => delayCommandSet,
       dest_aresetn => nreset_sync2);
 
+  pulseSync2_countReset: pulseSync2
+    port map (
+      src_clk      => clock.sys,
+      src_pulse    => count_reset_z,
+      src_aresetn  => nreset,
+      dest_clk     => clock.serial25,
+      dest_pulse   => count_reset,
+      dest_aresetn => nreset_sync2);
+
   param_handshake_delayCmd: param_handshake_sync
     generic map (
       WIDTH => delayCommand_z'length)
@@ -110,7 +121,7 @@ begin
       dest_clk     => clock.serial25,
       dest_params  => delayCommandMask,
       dest_aresetn => nreset_sync2);
-  
+
   
   COMMAND_HANDLER:	process(clock.sys)
     variable acdcBoardMask: 	std_logic_vector(7 downto 0);
@@ -176,6 +187,7 @@ begin
         extCmd.valid <= '0';
         param_readReq <= '0';
         delayCommandSet_z <= '0';
+        count_reset_z <= '0';
         
         
       else     -- new instruction received
@@ -306,6 +318,7 @@ begin
               when x"0" => delayCommandSet_z <= '1';
               when x"1" => delayCommand_z <= cmdValue(11 downto 0);
               when x"2" => delayCommandMask_z <= cmdValue;
+              when x"3" => count_reset_z <= '1';
               when others => null;
             end case;
               

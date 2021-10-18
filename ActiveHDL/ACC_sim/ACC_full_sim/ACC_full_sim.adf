@@ -185,6 +185,6 @@ AdditionalOptions=
 .\..\..\..\src\QIPcomponents\pll_serial_sim\pll_serial.vho=VHDL Source Code
 
 [HierarchyViewer]
-HierarchyInformation=acc_main_tb|sim|0 
+HierarchyInformation=acc_main_tb|sim|0  
 ShowHide=ShowTopLevel
 Selected=

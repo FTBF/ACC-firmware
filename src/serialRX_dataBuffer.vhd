@@ -20,7 +20,8 @@ entity serialRx_dataBuffer is
     LVDS_In_hs   	: in std_logic_vector(2*N-1 downto 0);
 
     error_counts  : out DoubleArray_16bit;
-
+    count_reset   : in std_logic;
+    
     io_config_clkena : out std_logic_vector(2*N-1 downto 0);
     io_config_datain : out std_logic;
     io_config_update : out std_logic
@@ -96,7 +97,8 @@ begin  -- architecture vhdl
       clk           => clock.serial125,
       reset         => resetFast_sync2,
       data          => serialRX_hs,
-      error_counts  => error_counts_z);
+      error_counts  => error_counts_z,
+      count_reset   => count_reset);
 
   io_delay_ctrl_inst: io_delay_ctrl
     port map (

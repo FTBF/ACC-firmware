@@ -73,6 +73,7 @@ architecture vhdl of	ACC_main is
     signal LVDS_In_flat_p	: std_logic_vector(2*N-1 downto 0);
     signal LVDS_In_flat_n	: std_logic_vector(2*N-1 downto 0);
     signal error_counts  : DoubleArray_16bit;
+    signal count_reset   : std_logic;
     signal delayCommand            : std_logic_vector(11 downto 0);
     signal delayCommandSet         : std_logic;
     signal delayCommandMask        : std_logic_vector(15 downto 0);
@@ -218,6 +219,7 @@ serialRx_dataBuffer_inst: serialRx_dataBuffer
     delayCommandMask => delayCommandMask,
     LVDS_In_hs       => LVDS_In_hs,
     error_counts     => error_counts,
+    count_reset      => count_reset,
     io_config_clkena => io_config_clkena,
     io_config_datain => io_config_datain,
     io_config_update => io_config_update);
@@ -246,8 +248,9 @@ CMD_HANDLER_MAP: commandHandler port map (
 		testCmd					=> testCmd,
         delayCommand          => delayCommand,
         delayCommandSet       => delayCommandSet,
-        delayCommandMask      => delayCommandMask
-	);
+        delayCommandMask      => delayCommandMask,
+        count_reset           => count_reset
+      );
 
   
 
