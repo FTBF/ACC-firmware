@@ -270,6 +270,8 @@ begin  -- architecture sim
 	sendword(X"ffA00000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
 	sendword(X"FFB00001", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
 	
+	sendword(X"00530000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
+	
 	sendword(X"00100000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
     
     wait;
