@@ -235,6 +235,9 @@ end component prbsGenerator;
 
 
 component pulseSync2 is
+  Generic(
+    RESET_VAL : std_logic := '0'
+    );
   port (
     src_clk      : in  std_logic;
     src_pulse    : in  std_logic;

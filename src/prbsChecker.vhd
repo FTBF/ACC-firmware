@@ -38,7 +38,7 @@ begin  -- architecture vhdl
         else
           data_SR(i) <= data_SR(i)(13 downto 0) & data(i);
 
-          if data_SR(i)(1 downto 0) = next_pattern(i)(1 downto 0) then
+          if data_SR(i)(1 downto 0) /= next_pattern(i)(1 downto 0) then
             error_counts_z(i) <= std_logic_vector(unsigned(error_counts_z(i)) + 1);
           end if;
         end if;

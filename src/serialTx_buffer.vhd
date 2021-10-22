@@ -132,7 +132,8 @@ begin
 		case state is
 		
 			when CHECK_FIFO =>
-			
+
+                dout_txReq <= '0';
 				if (fifo_empty = '0') then
 			
 					fifo_rdreq <= '1';			-- request a 32 bit word from the fifo

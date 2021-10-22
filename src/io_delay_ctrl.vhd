@@ -47,13 +47,13 @@ begin  -- architecture vhdl
               io_config_datain <= delayCommand(ibit);
               io_config_update <= '0';
               ibit := ibit + 1;
-              state := state;              
+              state := WRITE_DATA;
             else
               io_config_clkena <= X"0000";
               io_config_datain <= '0';
               io_config_update <= '0';
               ibit := 0;
-              state := WRITE_DATA;
+              state := state;
             end if;
 
           when WRITE_DATA =>

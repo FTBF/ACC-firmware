@@ -147,7 +147,7 @@ variable r: std_logic;
 begin
 	if (rising_edge(clock.sys)) then 				
 		if (reset.request = '1' or reset.request2 = '1' or clock.altpllLock = '0') then t := 0; end if;   -- restart counter if new reset request					 										
-		if (t >= 400) then r := '0'; else r := '1'; t := t + 1; end if;
+		if (t >= 40) then r := '0'; else r := '1'; t := t + 1; end if;
 		reset.global <= r;
 	end if;
 end process;

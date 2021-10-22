@@ -5,7 +5,7 @@ version=4
 Current Config=compile
 
 [Configurations]
-compile=ACC_full_sim
+compile=acc_full_sim
 
 [Library]
 ACC_full_sim=.\ACC_full_sim\ACC_full_sim.lib
@@ -20,36 +20,7 @@ LANGUAGE=VHDL
 REFRESH_FLOW=1
 FLOWTOOLS=NONE
 FAMILY=Intel ArriaV
-fileopenfolder=C:\Users\Pastika\Documents\Quartus\ACC-firmware\src\QIPcomponents\pll_serial_sim
-
-[Folders]
-Name0=Event Lists
-Directory0=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension0=lst
-Name1=Logs
-Directory1=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension1=log;htm;xml;txt
-Name2=Waveforms
-Directory2=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension2=asdb;awc;asdbc;asdbe
-Name3=Makefiles
-Directory3=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension3=mak
-Name4=Memory
-Directory4=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension4=mem;mif;hex
-Name5=Dll Libraries
-Directory5=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension5=dll
-Name6=PDF
-Directory6=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension6=pdf
-Name7=HTML
-Directory7=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension7=htm;html
-Name8=ALINT-PRO Workspaces
-Directory8=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension8=alintws
+fileopenfolder=C:\Users\Pastika\Documents\Quartus\ACDC-firmware-master_RevC\ACDC-firmware\src
 
 [SpecTracer]
 WindowVisible=0
@@ -69,6 +40,12 @@ DisableRangeChecks=0
 ProtectLevel=0
 IncrementalCompilation=0
 AdditionalOptions=
+
+[HierarchyViewer]
+HierarchyInformation=acc_main_tb|sim|0
+ShowHide=ShowTopLevel
+Selected=
+
 
 [Files]
 /..\..\..\..\src\ACC_main.vhd=-1
@@ -184,7 +161,31 @@ AdditionalOptions=
 .\..\..\..\src\QIPcomponents\pll_sim\pll.vho=VHDL Source Code
 .\..\..\..\src\QIPcomponents\pll_serial_sim\pll_serial.vho=VHDL Source Code
 
-[HierarchyViewer]
-HierarchyInformation=acc_main_tb|sim|0  
-ShowHide=ShowTopLevel
-Selected=
+[Folders]
+Name0=Event Lists
+Directory0=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension0=lst
+Name1=Logs
+Directory1=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension1=log;htm;xml;txt
+Name2=Waveforms
+Directory2=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension2=asdb;awc;asdbc;asdbe
+Name3=Makefiles
+Directory3=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension3=mak
+Name4=Memory
+Directory4=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension4=mem;mif;hex
+Name5=Dll Libraries
+Directory5=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension5=dll
+Name6=PDF
+Directory6=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension6=pdf
+Name7=HTML
+Directory7=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension7=htm;html
+Name8=ALINT-PRO Workspaces
+Directory8=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension8=alintws

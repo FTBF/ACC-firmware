@@ -87,8 +87,8 @@ begin  -- architecture vhdl
         aclr      => resetFast_ddr,
         datain    => LVDS_In_hs(i downto i),
         inclock   => clock.serial125,
-        dataout_h => serialRX_hs(i)(1 downto 1),
-        dataout_l => serialRX_hs(i)(0 downto 0));
+        dataout_h => serialRX_hs(i)(0 downto 0),
+        dataout_l => serialRX_hs(i)(1 downto 1));
   end generate;
 
 

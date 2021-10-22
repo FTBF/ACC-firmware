@@ -101,6 +101,9 @@ use work.components.all;
 
 
 entity pulseSync2 is
+  Generic(
+    RESET_VAL : std_logic := '0'
+    );
   Port(
     src_clk     : in std_logic;
     src_pulse   : in std_logic;
@@ -157,7 +160,7 @@ begin
   dest_clk_domain : process(dest_clk, dest_aresetn)
   begin
     if dest_aresetn = '0' then
-      dest_pulse_2 <= '0';
+      dest_pulse_2 <= RESET_VAL;
       dest_pulse <= '0';
     else
       if rising_Edge(dest_clk) then
@@ -200,6 +203,9 @@ end entity param_handshake_sync;
 architecture vhdl of param_handshake_sync is
 
   component pulseSync2 is
+    Generic(
+      RESET_VAL : std_logic := '0'
+    );
     port (
       src_clk      : in  std_logic;
       src_pulse    : in  std_logic;
@@ -228,6 +234,9 @@ begin
   );
   
   dest2src_sync : pulseSync2
+  generic map (
+    RESET_VAL => '1'
+    )
   port map (
     src_clk      => dest_clk,
     src_pulse    => dest_latch,
@@ -241,7 +250,7 @@ begin
   begin
     if src_aresetn = '0' then
       src_params_latch <= (others => '0');
-      src_latch <= '1';
+      src_latch <= '0';
     else
       if rising_Edge(src_clk) then
         if dest_latch_sync = '1' then
@@ -258,7 +267,7 @@ begin
   dest_clk_domain : process(dest_clk, dest_aresetn)
   begin
     if dest_aresetn = '0' then
-      dest_latch <= '1';
+      dest_latch <= '0';
       dest_params <= (others => '0');
     else
       if rising_Edge(dest_clk) then
