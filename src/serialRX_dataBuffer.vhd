@@ -38,6 +38,14 @@ architecture vhdl of serialRx_dataBuffer is
   signal reset_sync2       : std_logic;
   signal resetFast_sync1       : std_logic;
   signal resetFast_sync2       : std_logic;
+
+  type serialRx_hs_array_array is array (1 downto 0) of serialRx_hs_array;
+  signal serialRX_hs_z        : serialRx_hs_array;
+  signal serialRX_hs_in        : serialRx_hs_array;
+  signal serialRX_hs_mux_z     : serialRx_hs_array_array;
+  signal serialRX_hs_mux       : serialRx_hs_array_array;
+  signal bitAlignCount        : unsigned(0 downto 0);
+  attribute PRESERVE of serialRX_hs_z  : signal is TRUE;
 begin  -- architecture vhdl
 
   --synchronize signals
@@ -86,17 +94,45 @@ begin  -- architecture vhdl
       port map (
         aclr      => resetFast_ddr,
         datain    => LVDS_In_hs(i downto i),
-        inclock   => clock.serial125,
-        dataout_h => serialRX_hs(i)(0 downto 0),
-        dataout_l => serialRX_hs(i)(1 downto 1));
+        inclock   => clock.serial500,
+        dataout_h => serialRX_hs_z(i)(0 downto 0),
+        dataout_l => serialRX_hs_z(i)(1 downto 1));
+
   end generate;
 
+  serial_hs_mux : process(clock.serial500)
+  begin
+    if rising_edge(clock.serial500) then
+      if resetFast_sync2 = '1' then
+        bitAlignCount <= "0";
+      else
+        serialRX_hs <= serialRX_hs_z;
 
+        bitAlignCount <= bitAlignCount + 1;
+        serialRX_hs_mux_z(to_integer(bitAlignCount)) <= serialRX_hs;
+        
+      end if;
+    end if;
+  end process;
+
+  serial_hs_mux_sync : process(clock.serial125)
+  begin
+    if rising_edge(clock.serial125) then
+      for iLink in 0 to 2*N-1 loop
+        serialRX_hs_mux(0)(iLink)(0) <= serialRX_hs_mux_z(0)(iLink)(0);
+        serialRX_hs_mux(0)(iLink)(1) <= serialRX_hs_mux_z(1)(iLink)(0);
+        serialRX_hs_mux(1)(iLink)(0) <= serialRX_hs_mux_z(0)(iLink)(1);
+        serialRX_hs_mux(1)(iLink)(1) <= serialRX_hs_mux_z(1)(iLink)(1);
+      end loop;
+    end if;
+  end process;
+
+  serialRX_hs_in <= serialRX_hs_mux(to_integer(unsigned(delayCommand(0 downto 0))));
   prbsChecker_inst: prbsChecker
     port map (
       clk           => clock.serial125,
       reset         => resetFast_sync2,
-      data          => serialRX_hs,
+      data          => serialRX_hs_in,
       error_counts  => error_counts_z,
       count_reset   => count_reset);
 

@@ -285,6 +285,7 @@ component pll_serial is
     rst      : in  std_logic := '0';
     outclk_0 : out std_logic;
     outclk_1 : out std_logic;
+    outclk_2 : out std_logic;
     locked   : out std_logic);
 end component pll_serial;
 

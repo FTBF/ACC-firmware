@@ -112,6 +112,7 @@ type clock_type is record
   x8	        :	std_logic;
   serial25      :   std_logic;
   serial125     :   std_logic;
+  serial500     :   std_logic;
 --   usb         :	std_logic;  
 --	timer			:	std_logic;
   altpllLock  :	std_logic;

@@ -65,9 +65,8 @@ pll_serial_inst: pll_serial
     rst      => '0',
     outclk_0 => clock.serial25,
     outclk_1 => clock.serial125,
+    outclk_2 => clock.serial500,
     locked   => clock.serialpllLock);
-  
-	
 	
 ---------------------------------------
 -- EXTERNAL REFERENCE SELECT

@@ -263,9 +263,9 @@ begin  -- architecture sim
 	
 	wait for 4 us;
 	
-	sendword(X"005200ff", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
-	sendword(X"00510007", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
-	sendword(X"00500000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
+	--sendword(X"005200ff", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
+	sendword(X"00510000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
+	--sendword(X"00500000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
 	
 	sendword(X"ffA00000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
 	sendword(X"FFB00001", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
@@ -273,6 +273,9 @@ begin  -- architecture sim
 	sendword(X"00530000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
 	
 	sendword(X"00100000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
+	
+	wait for 10 us;
+	sendword(X"00530000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
     
     wait;
   end process WaveGen_Proc;

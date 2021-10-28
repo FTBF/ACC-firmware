@@ -23,7 +23,7 @@ end io_delay_ctrl;
 
 architecture vhdl of io_delay_ctrl is
 
-  constant NBITS : natural := 40;
+  constant NBITS : natural := 24;
   
 begin  -- architecture vhdl
 
@@ -37,48 +37,48 @@ begin  -- architecture vhdl
         io_config_clkena <= X"0000";
         io_config_datain <= '0';
         io_config_update <= '0';
-        ibit := 0;
+        ibit := NBITS-1;
         state := IDLE;
       else
         case state is
           when IDLE =>
             if delayCommandSet = '1' then
               io_config_clkena <= delayCommandMask;
-              io_config_datain <= delayCommand(ibit);
+              io_config_datain <= '0';
               io_config_update <= '0';
-              ibit := ibit + 1;
-              state := WRITE_DATA;
+              ibit := ibit - 1;
+              state := WRITE_ZEROS;
             else
               io_config_clkena <= X"0000";
               io_config_datain <= '0';
               io_config_update <= '0';
-              ibit := 0;
+              ibit := NBITS-1;
               state := state;
-            end if;
-
-          when WRITE_DATA =>
-            io_config_clkena <= io_config_clkena;
-            io_config_datain <= delayCommand(ibit);
-            io_config_update <= '0';
-            ibit := ibit + 1;
-            if ibit < 12 then
-              state := state;
-            else
-              state := WRITE_ZEROS;
             end if;
 
           when WRITE_ZEROS =>
+            io_config_clkena <= io_config_clkena;
             io_config_datain <= '0';
             io_config_update <= '0';
-            ibit := ibit + 1;
-            if ibit < NBITS then
-              io_config_clkena <= io_config_clkena;
+            ibit := ibit - 1;
+            if ibit >= 12 then
+              state := state;
+            else
+              state := WRITE_DATA;
+            end if;
+
+          when WRITE_DATA =>
+            io_config_datain <= delayCommand(ibit);
+            io_config_update <= '0';
+            ibit := ibit - 1;
+            if ibit > 0 then
+            io_config_clkena <= io_config_clkena;
               state := state;
             else
               io_config_clkena <= X"0000";
               state := UPDATE;
             end if;
-            
+
           when UPDATE =>
             io_config_clkena <= X"0000";
             io_config_datain <= '0';

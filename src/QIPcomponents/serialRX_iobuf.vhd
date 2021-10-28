@@ -115,7 +115,7 @@
 	 COMPONENT  arriav_io_config
 	 GENERIC 
 	 (
-		enhanced_mode	:	STRING := "false";
+--		enhanced_mode	:	STRING := "false";
 		lpm_type	:	STRING := "arriav_io_config"
 	 );
 	 PORT
@@ -123,17 +123,17 @@
 		clk	:	IN STD_LOGIC := '0';
 		datain	:	IN STD_LOGIC := '0';
 		dataout	:	OUT STD_LOGIC;
-		dutycycledelaysettings	:	OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
+--		dutycycledelaysettings	:	OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
 		ena	:	IN STD_LOGIC := '0';
 		outputenabledelaysetting	:	OUT STD_LOGIC_VECTOR(4 DOWNTO 0);
-		outputfinedelaysetting1	:	OUT STD_LOGIC;
-		outputfinedelaysetting2	:	OUT STD_LOGIC;
+--		outputfinedelaysetting1	:	OUT STD_LOGIC;
+--		outputfinedelaysetting2	:	OUT STD_LOGIC;
 		outputhalfratebypass	:	OUT STD_LOGIC;
-		outputonlydelaysetting2	:	OUT STD_LOGIC_VECTOR(2 DOWNTO 0);
-		outputonlyfinedelaysetting2	:	OUT STD_LOGIC;
-		outputregdelaysetting	:	OUT STD_LOGIC_VECTOR(4 DOWNTO 0);
+--		outputonlydelaysetting2	:	OUT STD_LOGIC_VECTOR(2 DOWNTO 0);
+--		outputonlyfinedelaysetting2	:	OUT STD_LOGIC;
+--		outputregdelaysetting	:	OUT STD_LOGIC_VECTOR(4 DOWNTO 0);
 		padtoinputregisterdelaysetting	:	OUT STD_LOGIC_VECTOR(4 DOWNTO 0);
-		padtoinputregisterfinedelaysetting	:	OUT STD_LOGIC;
+--		padtoinputregisterfinedelaysetting	:	OUT STD_LOGIC;
 		readfifomode	:	OUT STD_LOGIC_VECTOR(2 DOWNTO 0);
 		readfiforeadclockselect	:	OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
 		update	:	IN STD_LOGIC := '0'
