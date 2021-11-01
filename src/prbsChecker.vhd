@@ -10,7 +10,7 @@ entity prbsChecker is
   port(
     clk   : in std_logic;
     reset : in std_logic;
-    data  : in serialRx_hs_array;
+    data  : in serialRx_hs_8bit_array;
     error_counts   :  out DoubleArray_16bit;
     count_reset    :  in std_logic
     );
@@ -36,9 +36,9 @@ begin  -- architecture vhdl
         if reset = '1' or count_reset = '1' then
           error_counts_z(i) <= X"0000";
         else
-          data_SR(i) <= data_SR(i)(13 downto 0) & data(i);
+          data_SR(i) <= data_SR(i)(7 downto 0) & data(i);
 
-          if data_SR(i)(1 downto 0) /= next_pattern(i)(1 downto 0) and unsigned(error_counts_z(i)) < x"FFFF" then
+          if data_SR(i)(7 downto 0) /= next_pattern(i)(7 downto 0) and unsigned(error_counts_z(i)) < x"FFFF" then
             error_counts_z(i) <= std_logic_vector(unsigned(error_counts_z(i)) + 1);
           end if;
         end if;
@@ -50,7 +50,7 @@ begin  -- architecture vhdl
   prbsGen_loop : for i in 0 to 15 generate
     prbsGen: prbsGenerator
       generic map (
-        ITERATIONS => 2,
+        ITERATIONS => 8,
         POLY       => X"6000")
       port map (
         clk    => clk,

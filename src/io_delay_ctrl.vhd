@@ -23,7 +23,7 @@ end io_delay_ctrl;
 
 architecture vhdl of io_delay_ctrl is
 
-  constant NBITS : natural := 24;
+  constant NBITS : natural := 25;
   
 begin  -- architecture vhdl
 

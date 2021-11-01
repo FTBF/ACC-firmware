@@ -294,10 +294,6 @@ end process;
 BIT_CLOCK_SYNC: pulseSync port map (clock_x8, clock_x4, rxBit_valid_x, rxBit_valid_y);
 
 
-
-
-
-
 end vhdl;
 
 

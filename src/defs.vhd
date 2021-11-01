@@ -87,6 +87,9 @@ type natArray2 is array(N-1 downto 0) of natural range 0 to 3;	-- 2 bit natural 
 type natArray3 is array(N-1 downto 0) of natural range 0 to 7; -- 3 bit natural array
 type DoubleArray_16bit is array(2*N-1 downto 0) of std_logic_vector(15 downto 0);
 type serialRx_hs_array is array(2*N-1 downto 0) of std_logic_vector(1 downto 0);
+type serialRx_hs_23bit_array is array(2*N-1 downto 0) of std_logic_vector(22 downto 0);
+type serialRx_hs_10bit_array is array(2*N-1 downto 0) of std_logic_vector(9 downto 0);
+type serialRx_hs_8bit_array is array(2*N-1 downto 0) of std_logic_vector(7 downto 0);
 
 	
 	

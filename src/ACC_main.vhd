@@ -72,11 +72,13 @@ architecture vhdl of	ACC_main is
     signal LVDS_In_hs   	: std_logic_vector(2*N-1 downto 0);
     signal LVDS_In_flat_p	: std_logic_vector(2*N-1 downto 0);
     signal LVDS_In_flat_n	: std_logic_vector(2*N-1 downto 0);
-    signal error_counts  : DoubleArray_16bit;
+    signal prbs_error_counts  : DoubleArray_16bit;
+    signal symbol_error_counts  : DoubleArray_16bit;
     signal count_reset   : std_logic;
     signal delayCommand            : std_logic_vector(11 downto 0);
     signal delayCommandSet         : std_logic;
     signal delayCommandMask        : std_logic_vector(15 downto 0);
+    signal samplingPhase           : std_logic_vector(15 downto 0);
     signal io_config_clkena : std_logic_vector(15 downto 0);
     signal io_config_datain : std_logic;
     signal io_config_update : std_logic;
@@ -217,8 +219,10 @@ serialRx_dataBuffer_inst: serialRx_dataBuffer
     delayCommand     => delayCommand,
     delayCommandSet  => delayCommandSet,
     delayCommandMask => delayCommandMask,
+    samplingPhase    => samplingPhase,
     LVDS_In_hs       => LVDS_In_hs,
-    error_counts     => error_counts,
+    prbs_error_counts     => prbs_error_counts,
+    symbol_error_counts   => symbol_error_counts,
     count_reset      => count_reset,
     io_config_clkena => io_config_clkena,
     io_config_datain => io_config_datain,
@@ -249,6 +253,7 @@ CMD_HANDLER_MAP: commandHandler port map (
         delayCommand          => delayCommand,
         delayCommandSet       => delayCommandSet,
         delayCommandMask      => delayCommandMask,
+        samplingPhase         => samplingPhase,
         count_reset           => count_reset
       );
 
@@ -284,7 +289,8 @@ DATA_HANDLER_MAP: dataHandler port map (
 		localInfo_readRequest=> localInfo_readReq,    
       acdcBoardDetect     	=> acdcBoardDetect,
 		useExtRef		=> useExtRef,
-        error_counts    => error_counts
+        prbs_error_counts    => prbs_error_counts,
+        symbol_error_counts  => symbol_error_counts
 );
 	
 

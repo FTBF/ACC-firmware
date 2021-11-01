@@ -40,6 +40,7 @@ entity commandHandler is
     delayCommand            : out std_logic_vector(11 downto 0);
     delayCommandSet         : out std_logic;
     delayCommandMask        : out std_logic_vector(15 downto 0);
+    samplingPhase          : out std_logic_Vector(15 downto 0);
     count_reset             : out std_logic
     );
 end commandHandler;
@@ -54,6 +55,7 @@ architecture vhdl of commandHandler is
     signal nreset                    : std_logic;
     signal nreset_sync1              : std_logic;
     signal nreset_sync2              : std_logic;
+    signal samplingPhase_z           : std_logic_Vector(15 downto 0);
 begin	
   
 -- note
@@ -122,6 +124,17 @@ begin
       dest_params  => delayCommandMask,
       dest_aresetn => nreset_sync2);
 
+  param_handshake_samplingPhase: param_handshake_sync
+    generic map (
+      WIDTH => delayCommandMask_z'length)
+    port map (
+      src_clk      => clock.sys,
+      src_params   => samplingPhase_z,
+      src_aresetn  => nreset,
+      dest_clk     => clock.serial25,
+      dest_params  => samplingPhase,
+      dest_aresetn => nreset_sync2);
+
   
   COMMAND_HANDLER:	process(clock.sys)
     variable acdcBoardMask: 	std_logic_vector(7 downto 0);
@@ -170,6 +183,7 @@ begin
           testCmd.channel <= 1;
           delayCommand_z <= X"000";
           delayCommandMask_z <= X"0000";
+          samplingPhase_z <= X"0000";
 
           
         end if;
@@ -319,6 +333,7 @@ begin
               when x"1" => delayCommand_z <= cmdValue(11 downto 0);
               when x"2" => delayCommandMask_z <= cmdValue;
               when x"3" => count_reset_z <= '1';
+              when x"4" => samplingPhase_z <= cmdValue;
               when others => null;
             end case;
               

@@ -54,7 +54,8 @@ entity dataHandler is
       useExtRef				:	in std_logic;
 
       -- data bit error monitors
-      error_counts  : in DoubleArray_16bit;
+      prbs_error_counts  : in DoubleArray_16bit;
+      symbol_error_counts  : in DoubleArray_16bit;
       
       -- error
       timeoutError  			:	out	std_logic);
@@ -299,7 +300,8 @@ localData(31) <= x"4321";
 error_mapping : process(all)
 begin
   for i in 0 to 15 loop
-    paramMap(i) <= error_counts(i);
+    paramMap(i)      <= prbs_error_counts(i);
+    paramMap(16 + i) <= symbol_error_counts(i);
   end loop;
 end process;
                

@@ -124,7 +124,7 @@ begin
 		-- sync generator
 		-- raise a flag indicating a sync word should be sent (every 1ms)
 		t := t + 1;
-		if (t >= 40000) then sync_flag := '1';	sync_count := 0; t := 0; end if;
+		if (t >= 400) then sync_flag := '1';	sync_count := 0; t := 0; end if;
 		
 			
 		-- input data tx request 
@@ -164,7 +164,14 @@ begin
 				enc_din_valid <= '1';		
 				serial_tx_ack_flag := '0';
 				
-				if (sync_flag = '1') then
+				if (tx_req_flag = '1') then
+					
+					tx_req_flag := '0';
+					enc_din <= data_reg;
+					enc_kin <= '0';
+					txAck_req <= '1';
+
+				elsif (sync_flag = '1') then
 						
 					case sync_count is
 						when 0 => enc_din <= K28_7;		-- send sync code byte 0
@@ -176,13 +183,6 @@ begin
 					enc_kin <= '1';
 					txAck_req <= '0';
 	
-				elsif (tx_req_flag = '1') then
-					
-					tx_req_flag := '0';
-					enc_din <= data_reg;
-					enc_kin <= '0';
-					txAck_req <= '1';
-
 				else
 					
 					txAck_req <= '0';
