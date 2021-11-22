@@ -31,52 +31,73 @@
  LIBRARY ieee;
  USE ieee.std_logic_1164.all;
 
- ENTITY  pll_serial IS 
+ ENTITY  pll_dpa IS 
 	 PORT 
 	 ( 
+		 cntsel	:	IN  STD_LOGIC_VECTOR (4 DOWNTO 0);
 		 locked	:	OUT  STD_LOGIC;
 		 outclk_0	:	OUT  STD_LOGIC;
 		 outclk_1	:	OUT  STD_LOGIC;
+		 outclk_2	:	OUT  STD_LOGIC;
+		 outclk_3	:	OUT  STD_LOGIC;
+		 outclk_4	:	OUT  STD_LOGIC;
+		 outclk_5	:	OUT  STD_LOGIC;
+		 outclk_6	:	OUT  STD_LOGIC;
+		 outclk_7	:	OUT  STD_LOGIC;
+		 phase_done	:	OUT  STD_LOGIC;
+		 phase_en	:	IN  STD_LOGIC;
 		 refclk	:	IN  STD_LOGIC;
-		 rst	:	IN  STD_LOGIC
+		 rst	:	IN  STD_LOGIC;
+		 scanclk	:	IN  STD_LOGIC;
+		 updn	:	IN  STD_LOGIC
 	 ); 
- END pll_serial;
+ END pll_dpa;
 
- ARCHITECTURE RTL OF pll_serial IS
+ ARCHITECTURE RTL OF pll_dpa IS
 
 	 ATTRIBUTE synthesis_clearbox : natural;
 	 ATTRIBUTE synthesis_clearbox OF RTL : ARCHITECTURE IS 1;
+	 SIGNAL  wire_pll_dpa_altera_pll_altera_pll_i_389_cntsel	:	STD_LOGIC_VECTOR (4 DOWNTO 0);
 	 SIGNAL  wire_gnd	:	STD_LOGIC;
-	 SIGNAL  wire_pll_serial_altera_pll_altera_pll_i_1098_locked	:	STD_LOGIC;
-	 SIGNAL  wire_pll_serial_altera_pll_altera_pll_i_1098_outclk	:	STD_LOGIC_VECTOR (1 DOWNTO 0);
+	 SIGNAL  wire_pll_dpa_altera_pll_altera_pll_i_389_locked	:	STD_LOGIC;
+	 SIGNAL  wire_pll_dpa_altera_pll_altera_pll_i_389_outclk	:	STD_LOGIC_VECTOR (7 DOWNTO 0);
+	 SIGNAL  wire_pll_dpa_altera_pll_altera_pll_i_389_phase_done	:	STD_LOGIC;
  BEGIN
 
 	wire_gnd <= '0';
-	locked <= wire_pll_serial_altera_pll_altera_pll_i_1098_locked;
-	outclk_0 <= wire_pll_serial_altera_pll_altera_pll_i_1098_outclk(0);
-	outclk_1 <= wire_pll_serial_altera_pll_altera_pll_i_1098_outclk(1);
-	pll_serial_altera_pll_altera_pll_i_1098 :  altera_pll
+	locked <= wire_pll_dpa_altera_pll_altera_pll_i_389_locked;
+	outclk_0 <= wire_pll_dpa_altera_pll_altera_pll_i_389_outclk(0);
+	outclk_1 <= wire_pll_dpa_altera_pll_altera_pll_i_389_outclk(1);
+	outclk_2 <= wire_pll_dpa_altera_pll_altera_pll_i_389_outclk(2);
+	outclk_3 <= wire_pll_dpa_altera_pll_altera_pll_i_389_outclk(3);
+	outclk_4 <= wire_pll_dpa_altera_pll_altera_pll_i_389_outclk(4);
+	outclk_5 <= wire_pll_dpa_altera_pll_altera_pll_i_389_outclk(5);
+	outclk_6 <= wire_pll_dpa_altera_pll_altera_pll_i_389_outclk(6);
+	outclk_7 <= wire_pll_dpa_altera_pll_altera_pll_i_389_outclk(7);
+	phase_done <= wire_pll_dpa_altera_pll_altera_pll_i_389_phase_done;
+	wire_pll_dpa_altera_pll_altera_pll_i_389_cntsel <= ( cntsel(4 DOWNTO 0));
+	pll_dpa_altera_pll_altera_pll_i_389 :  altera_pll
 	  GENERIC MAP (
 		c_cnt_bypass_en0 => "false",
 		c_cnt_bypass_en1 => "false",
-		c_cnt_bypass_en10 => "false",
-		c_cnt_bypass_en11 => "false",
-		c_cnt_bypass_en12 => "false",
-		c_cnt_bypass_en13 => "false",
-		c_cnt_bypass_en14 => "false",
-		c_cnt_bypass_en15 => "false",
-		c_cnt_bypass_en16 => "false",
-		c_cnt_bypass_en17 => "false",
+		c_cnt_bypass_en10 => "true",
+		c_cnt_bypass_en11 => "true",
+		c_cnt_bypass_en12 => "true",
+		c_cnt_bypass_en13 => "true",
+		c_cnt_bypass_en14 => "true",
+		c_cnt_bypass_en15 => "true",
+		c_cnt_bypass_en16 => "true",
+		c_cnt_bypass_en17 => "true",
 		c_cnt_bypass_en2 => "false",
 		c_cnt_bypass_en3 => "false",
 		c_cnt_bypass_en4 => "false",
 		c_cnt_bypass_en5 => "false",
 		c_cnt_bypass_en6 => "false",
 		c_cnt_bypass_en7 => "false",
-		c_cnt_bypass_en8 => "false",
-		c_cnt_bypass_en9 => "false",
-		c_cnt_hi_div0 => 1,
-		c_cnt_hi_div1 => 1,
+		c_cnt_bypass_en8 => "true",
+		c_cnt_bypass_en9 => "true",
+		c_cnt_hi_div0 => 2,
+		c_cnt_hi_div1 => 2,
 		c_cnt_hi_div10 => 1,
 		c_cnt_hi_div11 => 1,
 		c_cnt_hi_div12 => 1,
@@ -85,12 +106,12 @@
 		c_cnt_hi_div15 => 1,
 		c_cnt_hi_div16 => 1,
 		c_cnt_hi_div17 => 1,
-		c_cnt_hi_div2 => 1,
-		c_cnt_hi_div3 => 1,
-		c_cnt_hi_div4 => 1,
-		c_cnt_hi_div5 => 1,
-		c_cnt_hi_div6 => 1,
-		c_cnt_hi_div7 => 1,
+		c_cnt_hi_div2 => 2,
+		c_cnt_hi_div3 => 2,
+		c_cnt_hi_div4 => 2,
+		c_cnt_hi_div5 => 2,
+		c_cnt_hi_div6 => 2,
+		c_cnt_hi_div7 => 2,
 		c_cnt_hi_div8 => 1,
 		c_cnt_hi_div9 => 1,
 		c_cnt_in_src0 => "ph_mux_clk",
@@ -129,8 +150,8 @@
 		c_cnt_lo_div7 => 1,
 		c_cnt_lo_div8 => 1,
 		c_cnt_lo_div9 => 1,
-		c_cnt_odd_div_duty_en0 => "false",
-		c_cnt_odd_div_duty_en1 => "false",
+		c_cnt_odd_div_duty_en0 => "true",
+		c_cnt_odd_div_duty_en1 => "true",
 		c_cnt_odd_div_duty_en10 => "false",
 		c_cnt_odd_div_duty_en11 => "false",
 		c_cnt_odd_div_duty_en12 => "false",
@@ -139,12 +160,12 @@
 		c_cnt_odd_div_duty_en15 => "false",
 		c_cnt_odd_div_duty_en16 => "false",
 		c_cnt_odd_div_duty_en17 => "false",
-		c_cnt_odd_div_duty_en2 => "false",
-		c_cnt_odd_div_duty_en3 => "false",
-		c_cnt_odd_div_duty_en4 => "false",
-		c_cnt_odd_div_duty_en5 => "false",
-		c_cnt_odd_div_duty_en6 => "false",
-		c_cnt_odd_div_duty_en7 => "false",
+		c_cnt_odd_div_duty_en2 => "true",
+		c_cnt_odd_div_duty_en3 => "true",
+		c_cnt_odd_div_duty_en4 => "true",
+		c_cnt_odd_div_duty_en5 => "true",
+		c_cnt_odd_div_duty_en6 => "true",
+		c_cnt_odd_div_duty_en7 => "true",
 		c_cnt_odd_div_duty_en8 => "false",
 		c_cnt_odd_div_duty_en9 => "false",
 		c_cnt_ph_mux_prst0 => 0,
@@ -223,17 +244,17 @@
 		duty_cycle9 => 50,
 		fractional_vco_multiplier => "false",
 		m_cnt_bypass_en => "false",
-		m_cnt_hi_div => 1,
+		m_cnt_hi_div => 2,
 		m_cnt_lo_div => 1,
-		m_cnt_odd_div_duty_en => "false",
-		mimic_fbclk_type => "gclk",
-		n_cnt_bypass_en => "false",
-		n_cnt_hi_div => 1,
-		n_cnt_lo_div => 1,
+		m_cnt_odd_div_duty_en => "true",
+		mimic_fbclk_type => "none",
+		n_cnt_bypass_en => "true",
+		n_cnt_hi_div => 256,
+		n_cnt_lo_div => 256,
 		n_cnt_odd_div_duty_en => "false",
-		number_of_clocks => 2,
+		number_of_clocks => 8,
 		operation_mode => "direct",
-		output_clock_frequency0 => "25.000000 MHz",
+		output_clock_frequency0 => "125.000000 MHz",
 		output_clock_frequency1 => "125.000000 MHz",
 		output_clock_frequency10 => "0 MHz",
 		output_clock_frequency11 => "0 MHz",
@@ -243,12 +264,12 @@
 		output_clock_frequency15 => "0 MHz",
 		output_clock_frequency16 => "0 MHz",
 		output_clock_frequency17 => "0 MHz",
-		output_clock_frequency2 => "0 MHz",
-		output_clock_frequency3 => "0 MHz",
-		output_clock_frequency4 => "0 MHz",
-		output_clock_frequency5 => "0 MHz",
-		output_clock_frequency6 => "0 MHz",
-		output_clock_frequency7 => "0 MHz",
+		output_clock_frequency2 => "125.000000 MHz",
+		output_clock_frequency3 => "125.000000 MHz",
+		output_clock_frequency4 => "125.000000 MHz",
+		output_clock_frequency5 => "125.000000 MHz",
+		output_clock_frequency6 => "125.000000 MHz",
+		output_clock_frequency7 => "125.000000 MHz",
 		output_clock_frequency8 => "0 MHz",
 		output_clock_frequency9 => "0 MHz",
 		phase_shift0 => "0 ps",
@@ -271,39 +292,44 @@
 		phase_shift9 => "0 ps",
 		pll_auto_clk_sw_en => "false",
 		pll_bw_sel => "low",
-		pll_bwctrl => 0,
+		pll_bwctrl => 2000,
 		pll_clk_loss_sw_en => "false",
 		pll_clk_sw_dly => 0,
 		pll_clkin_0_src => "clk_0",
 		pll_clkin_1_src => "clk_0",
-		pll_cp_current => 0,
+		pll_cp_current => 20,
 		pll_dsm_out_sel => "1st_order",
 		pll_extclk_0_cnt_src => "pll_extclk_cnt_src_vss",
 		pll_extclk_1_cnt_src => "pll_extclk_cnt_src_vss",
 		pll_fbclk_mux_1 => "glb",
-		pll_fbclk_mux_2 => "fb_1",
-		pll_fractional_cout => 24,
+		pll_fbclk_mux_2 => "m_cnt",
+		pll_fractional_cout => 32,
 		pll_fractional_division => 1,
 		pll_m_cnt_in_src => "ph_mux_clk",
 		pll_manu_clk_sw_en => "false",
-		pll_output_clk_frequency => "0 MHz",
+		pll_output_clk_frequency => "375.0 MHz",
 		pll_slf_rst => "false",
-		pll_subtype => "General",
-		pll_type => "General",
-		pll_vco_div => 1,
+		pll_subtype => "DPS",
+		pll_type => "Arria V",
+		pll_vco_div => 2,
 		pll_vcoph_div => 1,
 		refclk1_frequency => "0 MHz",
-		reference_clock_frequency => "25.0 MHz",
+		reference_clock_frequency => "125.0 MHz",
 		sim_additional_refclk_cycles_to_lock => 0
 	  )
 	  PORT MAP ( 
+		cntsel => wire_pll_dpa_altera_pll_altera_pll_i_389_cntsel,
 		fbclk => wire_gnd,
-		locked => wire_pll_serial_altera_pll_altera_pll_i_1098_locked,
-		outclk => wire_pll_serial_altera_pll_altera_pll_i_1098_outclk,
+		locked => wire_pll_dpa_altera_pll_altera_pll_i_389_locked,
+		outclk => wire_pll_dpa_altera_pll_altera_pll_i_389_outclk,
+		phase_done => wire_pll_dpa_altera_pll_altera_pll_i_389_phase_done,
+		phase_en => phase_en,
 		refclk => refclk,
-		rst => rst
+		rst => rst,
+		scanclk => scanclk,
+		updn => updn
 	  );
 
- END RTL; --pll_serial
+ END RTL; --pll_dpa
 --synopsys translate_on
 --VALID FILE

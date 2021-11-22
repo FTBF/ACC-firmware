@@ -14,3 +14,5 @@ create_clock -period "25.0 MHz" [get_ports clockIn.localOsc]
 #create_generated_clock -name   -source [get_nets {inst134|pll_new_inst|altera_pll_i|arriav_pll|divclk[0]}] -divide_by 1 -multiply_by 1 -duty_cycle 50 -phase 0 -offset 0 
 
 set_max_delay -from [get_registers *param_handshake_sync*src_params_latch*] -to [get_registers *param_handshake_sync*dest_params*] 25
+
+#set_multicycle_path -setup -end -from [get_registers {*serialRx_dataBuffer_inst*dataout_*}] -to [get_registers {*serialRx_dataBuffer_inst*serialRX_hs_z2*}] 2

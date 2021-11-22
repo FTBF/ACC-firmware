@@ -12,13 +12,13 @@
 # or its authorized distributors. Please refer to the applicable 
 # agreement for further details.
 
-# ACDS 19.1 670 win32 2021.11.12.15:56:45
+# ACDS 19.1 670 win32 2021.11.12.15:55:25
 # ----------------------------------------
 # Auto-generated simulation script rivierapro_setup.tcl
 # ----------------------------------------
 # This script provides commands to simulate the following IP detected in
 # your Quartus project:
-#     pll_serial
+#     pll_dpa
 # 
 # Altera recommends that you source this Quartus-generated IP simulation
 # script from your own customized top-level script, and avoid editing this
@@ -84,7 +84,7 @@
 # 
 # IP SIMULATION SCRIPT
 # ----------------------------------------
-# If pll_serial is one of several IP cores in your
+# If pll_dpa is one of several IP cores in your
 # Quartus project, you can generate a simulation script
 # suitable for inclusion in your top-level simulation
 # script by running the following command line:
@@ -105,7 +105,7 @@ if ![info exists SYSTEM_INSTANCE_NAME] {
 }
 
 if ![info exists TOP_LEVEL_NAME] { 
-  set TOP_LEVEL_NAME "pll_serial"
+  set TOP_LEVEL_NAME "pll_dpa"
 }
 
 if ![info exists QSYS_SIMDIR] { 
@@ -201,7 +201,7 @@ alias dev_com {
 # Compile the design files in correct order
 alias com {
   echo "\[exec\] com"
-  eval  vcom $USER_DEFINED_VHDL_COMPILE_OPTIONS $USER_DEFINED_COMPILE_OPTIONS "$QSYS_SIMDIR/pll_serial.vho"
+  eval  vcom $USER_DEFINED_VHDL_COMPILE_OPTIONS $USER_DEFINED_COMPILE_OPTIONS "$QSYS_SIMDIR/pll_dpa.vho"
 }
 
 # ----------------------------------------

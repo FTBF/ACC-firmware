@@ -26,6 +26,7 @@
 
 LIBRARY ieee;
 USE ieee.std_logic_1164.all; 
+USE ieee.numeric_std.ALL;
 LIBRARY work;
 use work.defs.all;
 use work.LibDG.all;
@@ -260,14 +261,19 @@ SYMBOL_CLOCK_SYNC: pulseSync port map (clock_x4, clock_sys, symbol_valid_y, symb
 -- This is the only process that needs to run on the fastest clock (320MHz)
 --
 BIT_RECOVERY: process(clock_x8)
-variable t: natural range 0 to 7;
+variable t: unsigned(2 downto 0);
 begin
 	if (rising_edge(clock_x8)) then
 		
         serialIn_z <= din;
 		serialIn_z2 <= serialIn_z;
-		
-		if (serialIn_z /= serialIn_z2) then t := 0; end if;		-- input transition
+
+        -- input transition
+		if (serialIn_z /= serialIn_z2) then
+          t := "000";
+        else
+          t := t + 1;
+        end if;		
 			
 		-- processing clock = 320MHz
 		-- input bit rate = 40Mbps
@@ -279,13 +285,6 @@ begin
 		else 
 			rxBit_valid_x <= '0'; 
 		end if;
-		
-		if t < 7 then
-          t := t + 1;
-        else
-          t := 0;
-        end if;
-				
 	end if;
 end process;
 

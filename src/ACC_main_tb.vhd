@@ -174,7 +174,7 @@ begin  -- architecture sim
 	);
 	
   LVDS_in_ACDC <= LVDS_out(0);
-  LVDS_in(0) <= LVDS_out_ACDC(1 downto 0);
+  LVDS_in(0) <= transport LVDS_out_ACDC(1 downto 0) after 1 ns;
   LVDS_In_hs_p(0) <= LVDS_out_ACDC(3) & not LVDS_out_ACDC(2);
   LVDS_In_hs_n(0) <= not LVDS_out_ACDC(3) & LVDS_out_ACDC(2);
 	  
@@ -266,18 +266,37 @@ begin  -- architecture sim
 	sendword(X"005200ff", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
 	sendword(X"0051001f", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
 	sendword(X"00500000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
+	sendword(X"0054ffff", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
 	
 	sendword(X"ffA00000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
 	sendword(X"FFB00001", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
 	
 	wait for 10 us;
 	
+	sendword(X"fff60000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) ); 
+	
+	wait for 5 us;
+	
 	sendword(X"fff60001", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) ); 
 	
 	sendword(X"00100000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
 	
 	wait for 5 us;
-	sendword(X"00530000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
+	sendword(X"00530000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) ); 
+	sendword(X"00540000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
+	
+	for j in 0 to 15 loop
+		sendword(std_logic_vector(unsigned(X"00550002") + j), USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
+		for i in 0 to j loop
+			sendword(X"00560000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) ); 
+		end loop;
+	end loop;	 
+	
+	sendword(X"00000000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
+	
+	wait for 10 us;
+	
+	sendword(X"FFD00000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) ); 
     
     wait;
   end process WaveGen_Proc;

@@ -12,7 +12,7 @@
 # or its authorized distributors. Please refer to the applicable 
 # agreement for further details.
 
-# ACDS 19.1 670 win32 2021.11.12.15:56:45
+# ACDS 19.1 670 win32 2021.11.12.15:55:25
 
 # ----------------------------------------
 # vcsmx - auto-generated simulation script
@@ -20,7 +20,7 @@
 # ----------------------------------------
 # This script provides commands to simulate the following IP detected in
 # your Quartus project:
-#     pll_serial
+#     pll_dpa
 # 
 # Altera recommends that you source this Quartus-generated IP simulation
 # script from your own customized top-level script, and avoid editing this
@@ -96,7 +96,7 @@
 # 
 # IP SIMULATION SCRIPT
 # ----------------------------------------
-# If pll_serial is one of several IP cores in your
+# If pll_dpa is one of several IP cores in your
 # Quartus project, you can generate a simulation script
 # suitable for inclusion in your top-level simulation
 # script by running the following command line:
@@ -107,10 +107,10 @@
 # within the Quartus project, and generate a unified
 # script which supports all the Altera IP within the design.
 # ----------------------------------------
-# ACDS 19.1 670 win32 2021.11.12.15:56:45
+# ACDS 19.1 670 win32 2021.11.12.15:55:25
 # ----------------------------------------
 # initialize variables
-TOP_LEVEL_NAME="pll_serial"
+TOP_LEVEL_NAME="pll_dpa"
 QSYS_SIMDIR="./../../"
 QUARTUS_INSTALL_DIR="C:/intelfpga/19.1/quartus/"
 SKIP_FILE_COPY=0
@@ -182,7 +182,7 @@ fi
 # ----------------------------------------
 # compile design files in correct order
 if [ $SKIP_COM -eq 0 ]; then
-  vhdlan -xlrm $USER_DEFINED_VHDL_COMPILE_OPTIONS $USER_DEFINED_COMPILE_OPTIONS "$QSYS_SIMDIR/pll_serial.vho"
+  vhdlan -xlrm $USER_DEFINED_VHDL_COMPILE_OPTIONS $USER_DEFINED_COMPILE_OPTIONS "$QSYS_SIMDIR/pll_dpa.vho"
 fi
 
 # ----------------------------------------

@@ -40,8 +40,11 @@ entity commandHandler is
     delayCommand            : out std_logic_vector(11 downto 0);
     delayCommandSet         : out std_logic;
     delayCommandMask        : out std_logic_vector(15 downto 0);
-    samplingPhase          : out std_logic_Vector(15 downto 0);
-    count_reset             : out std_logic
+    count_reset             : out std_logic;
+    phaseUpdate            : out std_logic;
+    updn                   : out std_logic;
+    cntsel                 : out std_logic_vector(4 downto 0)
+
     );
 end commandHandler;
 
@@ -55,7 +58,10 @@ architecture vhdl of commandHandler is
     signal nreset                    : std_logic;
     signal nreset_sync1              : std_logic;
     signal nreset_sync2              : std_logic;
-    signal samplingPhase_z           : std_logic_Vector(15 downto 0);
+    signal phaseUpdate_z               : std_logic;
+    signal updn_z                      : std_logic;
+    signal cntsel_z                    : std_logic_vector(4 downto 0);
+    signal cntsel_and_updn             : std_logic_vector(5 downto 0);
 begin	
   
 -- note
@@ -102,6 +108,16 @@ begin
       dest_pulse   => count_reset,
       dest_aresetn => nreset_sync2);
 
+  phaseUpdate <= phaseUpdate_z;
+  --pulseSync2_phaseUpdate: pulseSync2
+  --  port map (
+  --    src_clk      => clock.sys,
+  --    src_pulse    => phaseUpdate_z,
+  --    src_aresetn  => nreset,
+  --    dest_clk     => clock.serial25,
+  --    dest_pulse   => phaseUpdate,
+  --    dest_aresetn => nreset_sync2);
+
   param_handshake_delayCmd: param_handshake_sync
     generic map (
       WIDTH => delayCommand_z'length)
@@ -124,16 +140,19 @@ begin
       dest_params  => delayCommandMask,
       dest_aresetn => nreset_sync2);
 
-  param_handshake_samplingPhase: param_handshake_sync
-    generic map (
-      WIDTH => delayCommandMask_z'length)
-    port map (
-      src_clk      => clock.sys,
-      src_params   => samplingPhase_z,
-      src_aresetn  => nreset,
-      dest_clk     => clock.serial25,
-      dest_params  => samplingPhase,
-      dest_aresetn => nreset_sync2);
+  cntsel <= cntsel_and_updn(5 downto 1);
+  updn   <= cntsel_and_updn(0);
+  cntsel_and_updn <= cntsel_z & updn_z;
+  --param_handshake_dpa: param_handshake_sync
+  --  generic map (
+  --    WIDTH => cntsel_z'length + 1)
+  --  port map (
+  --    src_clk      => clock.sys,
+  --    src_params   => cntsel_z & updn_z,
+  --    src_aresetn  => nreset,
+  --    dest_clk     => clock.serial25,
+  --    dest_params  => cntsel_and_updn,
+  --    dest_aresetn => nreset_sync2);
 
   
   COMMAND_HANDLER:	process(clock.sys)
@@ -183,11 +202,10 @@ begin
           testCmd.channel <= 1;
           delayCommand_z <= X"000";
           delayCommandMask_z <= X"0000";
-          samplingPhase_z <= X"0000";
-
+          updn_z    <= '0';
+          cntsel_z  <= "00000";
           
         end if;
-        
         
         -----------------------------------
         -- clear the single-pulse signals
@@ -202,7 +220,7 @@ begin
         param_readReq <= '0';
         delayCommandSet_z <= '0';
         count_reset_z <= '0';
-        
+        phaseUpdate_z <= '0';        
         
       else     -- new instruction received
         
@@ -333,7 +351,9 @@ begin
               when x"1" => delayCommand_z <= cmdValue(11 downto 0);
               when x"2" => delayCommandMask_z <= cmdValue;
               when x"3" => count_reset_z <= '1';
-              when x"4" => samplingPhase_z <= cmdValue;
+              when x"4" => updn_z <= cmdValue(0);
+              when x"5" => cntsel_z <= cmdValue(4 downto 0);
+              when x"6" => phaseUpdate_z <= '1';
               when others => null;
             end case;
               

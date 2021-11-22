@@ -261,6 +261,17 @@ component param_handshake_sync is
 end component param_handshake_sync;
 
 
+component sync_Bits_Altera is
+  generic (
+    BITS       : positive;
+    INIT       : std_logic_vector;
+    SYNC_DEPTH : natural range 2 to 5);
+  port (
+    Clock  : in  std_logic;
+    Input  : in  std_logic_vector(BITS - 1 downto 0);
+    Output : out std_logic_vector(BITS - 1 downto 0));
+end component sync_Bits_Altera;
+
 end LibDG;
 
 

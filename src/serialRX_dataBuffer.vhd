@@ -17,8 +17,6 @@ entity serialRx_dataBuffer is
     delayCommandSet    : in std_logic;
     delayCommandMask   : in std_logic_vector(2*N-1 downto 0);
 
-    samplingPhase     : in  std_logic_Vector(15 downto 0);
-    
     LVDS_In_hs   	: in std_logic_vector(2*N-1 downto 0);
 
     prbs_error_counts   : out DoubleArray_16bit;
@@ -45,14 +43,11 @@ architecture vhdl of serialRx_dataBuffer is
   signal reset_sync2       : std_logic;
   signal resetFast_sync1       : std_logic;
   signal resetFast_sync2       : std_logic;
-  signal samplingPhase_z     : std_logic_Vector(15 downto 0);
 
-  type serialRx_hs_array_array is array (1 downto 0) of serialRx_hs_array;
+  type serialRx_hs_array_array is array (3 downto 0) of serialRx_hs_array;
   signal serialRX_hs_z        : serialRx_hs_array;
   signal serialRX_hs_z2       : serialRx_hs_array;
   signal serialRX_hs_in        : serialRx_hs_array;
-  signal serialRX_hs_mux_z     : serialRx_hs_array_array;
-  signal serialRX_hs_mux       : serialRx_hs_array_array;
   signal bitAlignCount        : unsigned(0 downto 0);
   attribute PRESERVE of serialRX_hs_z  : signal is TRUE;
 
@@ -111,50 +106,48 @@ begin  -- architecture vhdl
   end generate;
   
   serial_remapping: for i in 2*N-1 downto 0 generate
-    signal resetFast_ddr : std_logic;
-    attribute PRESERVE of resetFast_ddr            : signal is TRUE;
+    signal resetFast_ddr   : std_logic;
+    signal resetFast_ddr_vhdlIsDumb   : std_logic_vector(0 downto 0);
+    signal fifoEmpty       : std_logic;
   begin
-    resetExtender : process(clock.serial125)
-    begin
-      if rising_edge(clock.serial125) then
-        resetFast_ddr <= resetFast_sync2;
-      end if;
-    end process;
+    resetFast_ddr <= resetFast_ddr_vhdlIsDumb(0);
+    syncReset: sync_Bits_Altera
+      generic map (
+        BITS       => 1,
+        INIT       => "0",
+        SYNC_DEPTH => 2)
+      port map (
+        Clock  => clock.serial125_ps(i),
+        Input  => ""&resetFast_sync2,
+        Output => resetFast_ddr_vhdlIsDumb);
       
     serialRX_ddr_inst: serialRX_ddr
       port map (
         aclr      => resetFast_ddr,
         datain    => LVDS_In_hs(i downto i),
-        inclock   => clock.serial500,
+        inclock   => clock.serial125_ps(i),
         dataout_h => serialRX_hs_z(i)(0 downto 0),
         dataout_l => serialRX_hs_z(i)(1 downto 1));
 
+    serialRX_dpa_fifo_inst: serialRX_dpa_fifo
+      port map (
+        data    => serialRX_hs_z(i),
+        rdclk   => clock.serial125,
+        rdreq   => not fifoEmpty,
+        wrclk   => clock.serial125_ps(i),
+        wrreq   => '1',
+        q       => serialRX_hs_z2(i),
+        rdempty => fifoEmpty,
+        wrfull  => open);
+    
   end generate;
-
-  serial_hs_mux : process(clock.serial500)
-  begin
-    if rising_edge(clock.serial500) then
-      serialRX_hs_z2 <= serialRX_hs_z;
-      serialRX_hs <= serialRX_hs_z2;
-
-      serialRX_hs_mux_z(0) <= serialRX_hs;
-      serialRX_hs_mux_z(1) <= serialRX_hs_mux_z(0);
-    end if;
-  end process;
 
   serial_hs_deserialization : process(clock.serial125)
   begin
     if rising_edge(clock.serial125) then
       for iLink in 0 to 2*N-1 loop
-        --demangle bits
-        serialRX_hs_mux(0)(iLink)(0) <= serialRX_hs_mux_z(0)(iLink)(0);
-        serialRX_hs_mux(0)(iLink)(1) <= serialRX_hs_mux_z(1)(iLink)(0);
-        serialRX_hs_mux(1)(iLink)(0) <= serialRX_hs_mux_z(0)(iLink)(1);
-        serialRX_hs_mux(1)(iLink)(1) <= serialRX_hs_mux_z(1)(iLink)(1);
-
         --deserialize links
-        samplingPhase_z(iLink) <= samplingPhase(iLink);
-        serialRX_hs_in(iLink) <= serialRX_hs_mux(to_integer(unsigned(samplingPhase_z(iLink downto iLink))))(iLink);
+        serialRX_hs_in(iLink) <= serialRX_hs_z2(iLink);
         serialRX_deser_23bit(iLink) <= serialRX_deser_23bit(iLink)(20 downto 0) & serialRX_hs_in(iLink);
         if resetFast_sync2 = '1' then
           wordAlignCount(iLink) <= "000";

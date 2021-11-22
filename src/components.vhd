@@ -99,11 +99,15 @@ end component;
 		
 component ClockGenerator is
 	Port(
-		clockIn		: in	clockSource_type;
+        clockIn		: in	clockSource_type;
+        reset       : in reset_type;
 		clock			: buffer clock_type;
 		pps			: in std_logic;
 		resetRequest: out std_logic;
-		useExtRef	: buffer std_logic
+		useExtRef	: buffer std_logic;
+        phaseUpdate : in std_logic;
+        updn     : in std_logic;
+        cntsel   : in std_logic_vector(4 downto 0)
 	);
 end component;
 		
@@ -150,8 +154,11 @@ component commandHandler is
     delayCommand            : out std_logic_vector(11 downto 0);
     delayCommandSet         : out std_logic;
     delayCommandMask        : out std_logic_vector(15 downto 0);
-    samplingPhase          : out std_logic_Vector(15 downto 0);
-    count_reset             : out std_logic
+    count_reset             : out std_logic;
+    phaseUpdate            : out std_logic;
+    updn                   : out std_logic;
+    cntsel                 : out std_logic_vector(4 downto 0)
+
 );
 end component;
 
@@ -189,12 +196,6 @@ component dataHandler is
 );
 end component;
 		
-		
-		
-      
-      
- 
-
 
 component rx_data_ram
 	port (
@@ -206,11 +207,6 @@ component rx_data_ram
 		wren		: IN STD_LOGIC  := '0';
 		q		: OUT STD_LOGIC_VECTOR (15 DOWNTO 0));
 end component;
-
-
-
-
-
 
 
 component usbDriver is
@@ -236,8 +232,6 @@ component usbDriver is
 		test						: out		std_logic_vector(15 downto 0)
 );
 end component;
-
-
 
 
 component iobuf
@@ -287,9 +281,29 @@ component pll_serial is
     rst      : in  std_logic := '0';
     outclk_0 : out std_logic;
     outclk_1 : out std_logic;
-    outclk_2 : out std_logic;
-    locked   : out std_logic);
+    locked   : out std_logic); 
 end component pll_serial;
+
+
+component pll_dpa is
+  port (
+    refclk     : in  std_logic                    := '0';
+    rst        : in  std_logic                    := '0';
+    outclk_0   : out std_logic;
+    outclk_1   : out std_logic;
+    outclk_2   : out std_logic;
+    outclk_3   : out std_logic;
+    outclk_4   : out std_logic;
+    outclk_5   : out std_logic;
+    outclk_6   : out std_logic;
+    outclk_7   : out std_logic;
+    locked     : out std_logic;
+    phase_en   : in  std_logic                    := '0';
+    scanclk    : in  std_logic                    := '0';
+    updn       : in  std_logic                    := '0';
+    cntsel     : in  std_logic_vector(4 downto 0) := (others => '0');
+    phase_done : out std_logic);
+end component pll_dpa;
 
 
 component io_delay_ctrl is
@@ -312,7 +326,6 @@ component serialRx_dataBuffer is
     delayCommand         : in  std_logic_vector(11 downto 0);
     delayCommandSet      : in  std_logic;
     delayCommandMask     : in  std_logic_vector(15 downto 0);
-    samplingPhase        : in  std_logic_Vector(15 downto 0);
     LVDS_In_hs           : in  std_logic_vector(2*N-1 downto 0);
     prbs_error_counts    : out DoubleArray_16bit;
     symbol_error_counts  : out DoubleArray_16bit;
@@ -321,7 +334,29 @@ component serialRx_dataBuffer is
     io_config_datain     : out std_logic;
     io_config_update     : out std_logic);
 end component serialRx_dataBuffer;
-   
+
+
+component serialRX_dpa_fifo is
+  port (
+    data    : IN  STD_LOGIC_VECTOR (1 DOWNTO 0);
+    rdclk   : IN  STD_LOGIC;
+    rdreq   : IN  STD_LOGIC;
+    wrclk   : IN  STD_LOGIC;
+    wrreq   : IN  STD_LOGIC;
+    q       : OUT STD_LOGIC_VECTOR (1 DOWNTO 0);
+    rdempty : OUT STD_LOGIC;
+    wrfull  : OUT STD_LOGIC);
+end component serialRX_dpa_fifo;
+
+
+component clkBuf is
+  port (
+    inclk  : in  std_logic := 'X'; -- inclk
+    outclk : out std_logic         -- outclk
+    );
+end component clkBuf;
+
+
 end components;
 
 

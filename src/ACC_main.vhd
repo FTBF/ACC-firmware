@@ -78,15 +78,14 @@ architecture vhdl of	ACC_main is
     signal delayCommand            : std_logic_vector(11 downto 0);
     signal delayCommandSet         : std_logic;
     signal delayCommandMask        : std_logic_vector(15 downto 0);
-    signal samplingPhase           : std_logic_vector(15 downto 0);
     signal io_config_clkena : std_logic_vector(15 downto 0);
     signal io_config_datain : std_logic;
     signal io_config_update : std_logic;
-	
+    signal phaseUpdate      : std_logic;
+    signal updn             : std_logic;
+    signal cntsel           : std_logic_vector(4 downto 0);
 	
 begin
-
-
 
 
 
@@ -168,9 +167,13 @@ clockCtrl.clockSourceSelect <= not useExtRef;		-- clock source multiplexer contr
 clockGen_map: ClockGenerator Port map(
 		clockIn			=> clockIn,		-- clock sources into the fpga
 		clock				=> clock,			-- the generated clocks for use by the rest of the firmware
+        reset           => reset,
 		pps				=> pps,
 		resetRequest	=> reset.request2,
-		useExtRef 		=> useExtRef
+		useExtRef 		=> useExtRef,
+        phaseUpdate      => phaseUpdate,
+        updn             => updn,
+        cntsel           => cntsel
 );
 
 
@@ -219,14 +222,14 @@ serialRx_dataBuffer_inst: serialRx_dataBuffer
     delayCommand     => delayCommand,
     delayCommandSet  => delayCommandSet,
     delayCommandMask => delayCommandMask,
-    samplingPhase    => samplingPhase,
     LVDS_In_hs       => LVDS_In_hs,
     prbs_error_counts     => prbs_error_counts,
     symbol_error_counts   => symbol_error_counts,
     count_reset      => count_reset,
     io_config_clkena => io_config_clkena,
     io_config_datain => io_config_datain,
-    io_config_update => io_config_update);
+    io_config_update => io_config_update
+);
 
 ------------------------------------
 --	COMMAND HANDLER
@@ -253,8 +256,10 @@ CMD_HANDLER_MAP: commandHandler port map (
         delayCommand          => delayCommand,
         delayCommandSet       => delayCommandSet,
         delayCommandMask      => delayCommandMask,
-        samplingPhase         => samplingPhase,
-        count_reset           => count_reset
+        count_reset           => count_reset,
+        phaseUpdate      => phaseUpdate,
+        updn             => updn,
+        cntsel           => cntsel
       );
 
   

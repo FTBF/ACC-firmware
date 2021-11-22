@@ -104,10 +104,9 @@ end record;
 
 
 type clockSource_type is record
-	localOsc		:	std_logic;
+  localOsc		:	std_logic;
 	usb_IFCLK	:	std_logic;	-- 48MHz
 end record;
-
 
 type clock_type is record
   sys			:	std_logic;
@@ -115,11 +114,13 @@ type clock_type is record
   x8	        :	std_logic;
   serial25      :   std_logic;
   serial125     :   std_logic;
-  serial500     :   std_logic;
+  serial125_ps  :   std_logic_vector(2*N-1 downto 0);
 --   usb         :	std_logic;  
 --	timer			:	std_logic;
   altpllLock  :	std_logic;
-  serialpllLock : Std_logic;    
+  serialpllLock : Std_logic;
+  dpa1pllLock : std_logic;
+  dpa2pllLock : std_logic;
 end record;
 
 
