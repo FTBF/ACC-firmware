@@ -28,6 +28,7 @@ entity commandHandler is
     localInfo_readReq    :  out   std_logic;
     rxBuffer_resetReq    :  out   std_logic_vector(7 downto 0);
     rxBuffer_readReq		:	out	std_logic;
+    dataFIFO_readReq     : out std_logic;
     param_readReq        : out std_logic;
     param_num            : out natural range 0 to 255;
     globalResetReq       :  out   std_logic;
@@ -216,6 +217,7 @@ begin
         trig.sw <= '0';
         localInfo_readReq <= '0';
         rxBuffer_readReq <= '0';
+        dataFIFO_readReq <= '0';
         extCmd.valid <= '0';
         param_readReq <= '0';
         delayCommandSet_z <= '0';
@@ -273,7 +275,11 @@ begin
                 rxBuffer_readReq <= '1'; 
                 readChannel <= to_integer(unsigned(cmdValue(3 downto 0))); 
 
-              when x"2" => 		-- request parameter read
+              when x"2" => 		-- request to read uart rx data buffer of the specified channel
+                dataFIFO_readReq <= '1'; 
+                readChannel <= to_integer(unsigned(cmdValue(3 downto 0))); 
+                
+              when x"3" => 		-- request parameter read
                 param_readReq <= '1';
                 param_num <= to_integer(unsigned(cmdValue(7 downto 0))); 
 

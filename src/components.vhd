@@ -142,6 +142,7 @@ component commandHandler is
 		localInfo_readReq    :  out   std_logic;
 		rxBuffer_resetReq    :  out   std_logic_vector(7 downto 0);
 		rxBuffer_readReq		:	out	std_logic;
+        dataFIFO_readReq     : out std_logic;
         param_readReq        : out std_logic;
         param_num            : out natural range 0 to 255;
 		globalResetReq       :  out   std_logic;
@@ -177,6 +178,10 @@ component dataHandler is
       rxDataLen				:  in  	naturalArray_16bit;
 		frame_received    	:  in   std_logic_vector(7 downto 0);
       bufferReadoutDone    :  buffer  std_logic_vector(7 downto 0);
+      dataFIFO_readReq : in std_logic;
+      data_out        : in  Array_16bit;
+      data_occ        : in  Array_16bit;
+      data_re         : out std_logic_vector(N-1 downto 0);
       param_readReq        : in std_logic;
       param_num            : in natural range 0 to 255;
         dout 		            : 	out	std_logic_vector(15 downto 0);
@@ -190,6 +195,7 @@ component dataHandler is
 		useExtRef				: in std_logic;   
         prbs_error_counts  : in DoubleArray_16bit;
         symbol_error_counts  : in DoubleArray_16bit;
+      byte_fifo_occ       : out DoubleArray_16bit;
         
       -- error
       timeoutError  			:	out	std_logic 
@@ -327,9 +333,13 @@ component serialRx_dataBuffer is
     delayCommandSet      : in  std_logic;
     delayCommandMask     : in  std_logic_vector(15 downto 0);
     LVDS_In_hs           : in  std_logic_vector(2*N-1 downto 0);
+    data_out             : out Array_16bit;
+    data_occ             : out Array_16bit;
+    data_re              : in  std_logic_vector(N-1 downto 0);
+    byte_fifo_occ        : out DoubleArray_16bit;
     prbs_error_counts    : out DoubleArray_16bit;
     symbol_error_counts  : out DoubleArray_16bit;
-    count_reset          : in std_logic;
+    count_reset          : in  std_logic;
     io_config_clkena     : out std_logic_vector(15 downto 0);
     io_config_datain     : out std_logic;
     io_config_update     : out std_logic);
@@ -356,6 +366,34 @@ component clkBuf is
     );
 end component clkBuf;
 
+
+component serialRX_InterByteAlign_fifo is
+  port (
+    clock : IN  STD_LOGIC;
+    data  : IN  STD_LOGIC_VECTOR (7 DOWNTO 0);
+    rdreq : IN  STD_LOGIC;
+    sclr  : IN  STD_LOGIC;
+    wrreq : IN  STD_LOGIC;
+    empty : OUT STD_LOGIC;
+    full  : OUT STD_LOGIC;
+    q     : OUT STD_LOGIC_VECTOR (7 DOWNTO 0);
+    usedw : OUT STD_LOGIC_VECTOR (3 DOWNTO 0));
+end component serialRX_InterByteAlign_fifo;
+
+
+component serialRX_data_fifo is
+  port (
+    aclr    : IN  STD_LOGIC := '0';
+    data    : IN  STD_LOGIC_VECTOR (15 DOWNTO 0);
+    rdclk   : IN  STD_LOGIC;
+    rdreq   : IN  STD_LOGIC;
+    wrclk   : IN  STD_LOGIC;
+    wrreq   : IN  STD_LOGIC;
+    q       : OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
+    rdempty : OUT STD_LOGIC;
+    rdusedw : OUT STD_LOGIC_VECTOR (14 DOWNTO 0);
+    wrfull  : OUT STD_LOGIC);
+end component serialRX_data_fifo;
 
 end components;
 

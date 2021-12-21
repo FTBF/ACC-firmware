@@ -37,6 +37,13 @@ entity dataHandler is
 		bufferReadoutDone    :  buffer   std_logic_vector(7 downto 0);
 		
 
+      -- Highspeed data FIFO controls
+
+      dataFIFO_readReq : in std_logic;
+      data_out         : in  Array_16bit;
+      data_occ         : in  Array_16bit;
+      data_re          : out std_logic_vector(N-1 downto 0);
+        
       -- parameter signals
       param_readReq        : in std_logic;
       param_num            : in natural range 0 to 255;
@@ -56,7 +63,10 @@ entity dataHandler is
       -- data bit error monitors
       prbs_error_counts  : in DoubleArray_16bit;
       symbol_error_counts  : in DoubleArray_16bit;
-      
+
+      -- high speed input byte FIFO occupancy
+      byte_fifo_occ       : out DoubleArray_16bit;
+
       -- error
       timeoutError  			:	out	std_logic);
 end dataHandler;
@@ -100,152 +110,153 @@ ramAddress <= std_logic_vector(to_unsigned(address,15));
    
    
 DATA_HANDLER: process(clock)
-variable getRamData: boolean;
-variable getLocalData: boolean;
-variable getParameter: boolean;
-variable state: state_type;
-variable t: natural; -- timeout value 
-variable i: natural;  -- the index of the current data word within the frame = number of words done
-variable frameLen: natural;
-variable holdoff: natural; -- a delay between successive frames to give chance for rxPacketReceived to go low
+  variable getRamData: boolean;
+  variable getFIFOData: boolean;
+  variable getLocalData: boolean;
+  variable getParameter: boolean;
+  variable state: state_type;
+  variable t: natural; -- timeout value 
+  variable i: natural;  -- the index of the current data word within the frame = number of words done
+  variable frameLen: natural;
+  variable holdoff: natural; -- a delay between successive frames to give chance for rxPacketReceived to go low
+  variable data_re_v : std_logic_vector(N-1 downto 0);
 
 begin
-	if (rising_edge(clock)) then
+  if (rising_edge(clock)) then
 	
-		if (reset = '1') then
-			
-         bufferReadoutDone <= x"00";
-			state := CHECK_IF_SEND_DATA;
-         ramReadEnable <= X"FF"; 
-         timeoutError <= '0';
-         txReq <= '0';
-         txLockReq <= '0';
-			holdoff := 0;
-         t := 0;
-         
-			
-		else
-		
-			
-         -- tx data acknowledge - rising edge detect
-         
-         txAck_z <= txAck;
-         
-         
-			if (holdoff > 0) then holdoff := holdoff -  1; end if;
-         
-         
-         
-         case state is
-         
-         
-         
-				when CHECK_IF_SEND_DATA => -- check for rx buffer full, or request to send local info
-			             
-               i := 0;
-               t := 0;
-               address <= 0;
-               
-					bufferReadoutDone <= x"00";		
-					
-               timeoutError <= '0';
-               
-               getRamData := false;    -- flags used to indicate frame type required
-               getLocalData := false;
-               getParameter := false;
-               
-					if (rxBuffer_readReq = '1' and holdoff = 0) then
-						if (rxDataLen(channel) > 0) then 
-							frameLen :=  rxDataLen(channel);
-							getRamData := true; 
-							state := BUS_REQUEST;
-						end if;				
-					end if;
-					
-					if (localInfo_readRequest = '1' and holdoff = 0) then 
-						frameLen := 32;
-						getLocalData := true; 
-						state := BUS_REQUEST;						
-					end if;
-                             
-					if (param_readReq = '1' and holdoff = 0) then 
-						frameLen := 1;
-						getParameter := true; 
-						state := BUS_REQUEST;						
-					end if;
-                             
-               
-			   
-            when BUS_REQUEST =>               
-               txLockReq <= '1';  -- request locking the usb bus in tx mode
-               if (txLockAck = '1') then state := DATA_SEND; end if;  -- usb bus acknowledge, bus is now locked for tx use
-               
-               
+    if (reset = '1') then
+      
+      bufferReadoutDone <= x"00";
+      state := CHECK_IF_SEND_DATA;
+      ramReadEnable <= X"FF"; 
+      timeoutError <= '0';
+      txReq <= '0';
+      txLockReq <= '0';
+      holdoff := 0;
+      t := 0;
+      data_re <= X"00";
+      
+    else
+      
+      -- tx data acknowledge - rising edge detect
+      txAck_z <= txAck;
+      
+      if (holdoff > 0) then holdoff := holdoff -  1; end if;
+      
+      case state is
+        
+        when CHECK_IF_SEND_DATA => -- check for rx buffer full, or request to send local info
+          
+          i := 0;
+          t := 0;
+          address <= 0;
+          data_re <= X"00";
+          
+          bufferReadoutDone <= x"00";		
+          
+          timeoutError <= '0';
+          
+          getRamData := false;    -- flags used to indicate frame type required
+          getLocalData := false;
+          getParameter := false;
+          
+          if (dataFIFO_readReq = '1' and holdoff = 0) then
+              frameLen :=  to_integer(signed(data_occ(channel)));
+              getFIFOData := true; 
+              state := BUS_REQUEST;
+          end if;
 
-            when DATA_SEND =>
-               -- choose the correct data depending on the frame type and index pos within the frame
-               if (getLocalData) then   
-                 dout <= localData(i);
-               elsif getParameter then
-                 dout <= paramMap(param_num);
-               else
-						dout <= ramData(channel); --ram data                     
-						address <= address + 1; 
-               end if;
-               txReq <= '1';   -- initiate the usb tx process
-               i := i + 1; -- increment the index   (= number of words done)            
-               t := 40000000;  -- set timeout delay 1s for data acknowledge
-               state := DATA_ACK;
-               
-                  
-                  
-            when DATA_ACK =>
-               txReq <= '0';
-               if (txAck_z = '0' and txAck = '1') then  -- rising edge detect means the new data was acked
-                  t := 0; -- clear timeout
-                  if (i >= frameLen) then
-                     state := DONE;
-                  else
-                     state := DATA_SEND;
-                  end if;
-               end if;
-               
- 
+          if (rxBuffer_readReq = '1' and holdoff = 0) then
+            if (rxDataLen(channel) > 0) then 
+              frameLen :=  rxDataLen(channel);
+              getRamData := true; 
+              state := BUS_REQUEST;
+            end if;				
+          end if;
 
- 
-            when DONE => 
-               txLockReq <= '0';    -- this going low causes the packet end signal to be sent and gives chance for the read module to operate if necessary
-               if (txLockAck = '0') then                
-                  if (getRamData) then bufferReadoutDone(channel) <= '1'; end if; -- flag that the buffer was read. This is used to reset the corresponding buffer write process
-                  holdoff := 5;
-						state := CHECK_IF_SEND_DATA;
-               end if;
-               
-               
-               
-         end case;
-         
-         
-         
-         
-         -- timeout error
-         
-         if (t > 0) then
-            t := t - 1;
-            if (t = 0) then 
-               timeoutError <= '1';   -- generate an output pulse to indicate the error
-               state := DONE; 
-            end if;     
-         else
-            timeoutError <= '0';
-         end if;
-         
-         
-         
-         
+          if (localInfo_readRequest = '1' and holdoff = 0) then 
+            frameLen := 32;
+            getLocalData := true; 
+            state := BUS_REQUEST;						
+          end if;
+          
+          if (param_readReq = '1' and holdoff = 0) then 
+            frameLen := 1;
+            getParameter := true; 
+            state := BUS_REQUEST;						
+          end if;
+          
+        when BUS_REQUEST =>               
+          txLockReq <= '1';  -- request locking the usb bus in tx mode
+          if (txLockAck = '1') then
+            if getRamData then
+              data_re_v := X"00";
+              data_re_v(channel) := '1';
+              data_re <= data_re_v;
+            end if;
+            state := DATA_SEND; -- usb bus acknowledge, bus is now locked for tx use
+          end if;  
+
+        when DATA_SEND =>
+          -- choose the correct data depending on the frame type and index pos within the frame
+          data_re <= X"00";
+          if (getLocalData) then   
+            dout <= localData(i);
+          elsif getParameter then
+            dout <= paramMap(param_num);
+          elsif getRamData then
+            dout <= ramData(channel); --ram data                     
+            address <= address + 1; 
+          else
+            dout <= data_out(channel); --ram data                     
+            address <= address + 1; 
+          end if;
+          txReq <= '1';   -- initiate the usb tx process
+          i := i + 1; -- increment the index   (= number of words done)            
+          t := 40000000;  -- set timeout delay 1s for data acknowledge
+          state := DATA_ACK;
+          
+        when DATA_ACK =>
+          txReq <= '0';
+          if (txAck_z = '0' and txAck = '1') then  -- rising edge detect means the new data was acked
+            t := 0; -- clear timeout
+            if (i >= frameLen) then
+              state := DONE;
+            else
+              if getFIFOData then
+                data_re_v := X"00";
+                data_re_v(channel) := '1';
+                data_re <= data_re_v;
+              end if;
+              state := DATA_SEND;
+            end if;
+          end if;
+          
+        when DONE => 
+          txLockReq <= '0';    -- this going low causes the packet end signal to be sent and gives chance for the read module to operate if necessary
+          if (txLockAck = '0') then                
+            if (getRamData) then bufferReadoutDone(channel) <= '1'; end if; -- flag that the buffer was read. This is used to reset the corresponding buffer write process
+            holdoff := 5;
+            state := CHECK_IF_SEND_DATA;
+          end if;
+          
+      end case;
+      
+      -- timeout error
+      
+      if (t > 0) then
+        t := t - 1;
+        if (t = 0) then 
+          timeoutError <= '1';   -- generate an output pulse to indicate the error
+          state := DONE; 
+        end if;     
+      else
+        timeoutError <= '0';
       end if;
       
-   end if;
+    end if;
+    
+  end if;
    
    
 end process;
@@ -302,8 +313,15 @@ begin
   for i in 0 to 15 loop
     paramMap(i)      <= prbs_error_counts(i);
     paramMap(16 + i) <= symbol_error_counts(i);
+    paramMap(32 + 1) <= byte_fifo_occ(i);
   end loop;
+  for i in 0 to 7 loop
+    paramMap(48 + i) <= data_occ(i);
+  end loop;
+
+
 end process;
+
                
 -- serial rx status       
 SERIAL_RX_STATUS: process(clock)

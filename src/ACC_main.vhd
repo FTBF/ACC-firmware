@@ -58,7 +58,8 @@ architecture vhdl of	ACC_main is
 	signal	trig					:	trigSetup_type;
    signal   localInfo_readReq : std_logic;
    signal   trig_out : std_logic_vector(7 downto 0);
-   signal   readChannel : natural range 0 to 15;
+    signal   readChannel : natural range 0 to 15;
+    signal  dataFIFO_readReq : std_logic;
 	signal	acdcBoardDetect: std_logic_vector(7 downto 0);
 	signal	useExtRef: std_logic;
 	signal	pps: std_logic;
@@ -84,6 +85,10 @@ architecture vhdl of	ACC_main is
     signal phaseUpdate      : std_logic;
     signal updn             : std_logic;
     signal cntsel           : std_logic_vector(4 downto 0);
+    signal data_out        : Array_16bit;
+    signal data_occ        : Array_16bit;
+    signal data_re         : std_logic_vector(N-1 downto 0);
+    signal byte_fifo_occ   : DoubleArray_16bit;
 	
 begin
 
@@ -115,7 +120,7 @@ begin
 	end case;
 end process;
 
-
+SMA(5) <= trig_out(3);
 
 
 
@@ -223,6 +228,10 @@ serialRx_dataBuffer_inst: serialRx_dataBuffer
     delayCommandSet  => delayCommandSet,
     delayCommandMask => delayCommandMask,
     LVDS_In_hs       => LVDS_In_hs,
+    data_out         => data_out,
+    data_occ         => data_occ,
+    data_re          => data_re,
+    byte_fifo_occ    => byte_fifo_occ,
     prbs_error_counts     => prbs_error_counts,
     symbol_error_counts   => symbol_error_counts,
     count_reset      => count_reset,
@@ -240,6 +249,7 @@ CMD_HANDLER_MAP: commandHandler port map (
       din		      	   => usb.rxData_out,
       din_valid				=> usb.rxData_valid,
       localInfo_readReq    => localInfo_readReq,
+      dataFIFO_readReq => dataFIFO_readReq,
 		rxBuffer_resetReq    => rxBuffer.resetReq,
 		rxBuffer_readReq    	=> rxBuffer.readReq,
         param_readReq      => param_readReq,
@@ -282,7 +292,12 @@ DATA_HANDLER_MAP: dataHandler port map (
       ramData        => rxBuffer.ramDataOut,
       rxDataLen		=> rxBuffer.dataLen,
 		frame_received	=> rxBuffer.frame_received,
-      bufferReadoutDone => rxBuffer.ramReadDone,  -- byte wide, one bit for each channel
+        bufferReadoutDone => rxBuffer.ramReadDone,  -- byte wide, one bit for each channel
+        dataFIFO_readReq => dataFIFO_readReq,
+      data_out         => data_out,
+      data_occ         => data_occ,
+      data_re          => data_re,
+
         param_readReq      => param_readReq,
         param_num          => param_num,
 		dout 		         => usb.txData_in,
@@ -295,6 +310,7 @@ DATA_HANDLER_MAP: dataHandler port map (
       acdcBoardDetect     	=> acdcBoardDetect,
 		useExtRef		=> useExtRef,
         prbs_error_counts    => prbs_error_counts,
+      byte_fifo_occ       => byte_fifo_occ,
         symbol_error_counts  => symbol_error_counts
 );
 	

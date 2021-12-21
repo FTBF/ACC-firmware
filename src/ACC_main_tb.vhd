@@ -247,11 +247,24 @@ begin  -- architecture sim
     end if;
   end process;
   
+  PSEC4_process : process(PSEC4_out(0).readClock, reset)
+  begin
+	  if reset = '1' then
+		  PSEC4_in(0).data <= X"000";
+	  else 
+	      if rising_edge(PSEC4_out(0).readClock) then
+		     if PSEC4_out(0).TokDecode /= "101" and PSEC4_out(0).TokIn = "00" then 
+		         PSEC4_in(0).data <= std_logic_vector(unsigned(PSEC4_in(0).data) + 1);
+			 end if;
+	      end if;
+	  end if;
+  end process;	 
+  
   -- waveform generation
   WaveGen_Proc: process
   begin
     -- insert signal assignments here  
-	USB_in.CTL <= "000";
+	USB_in.CTL <= "100";
 	USB_bus.FD <= X"0000";
 	
 	reset <= '0';
@@ -271,32 +284,45 @@ begin  -- architecture sim
 	sendword(X"ffA00000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
 	sendword(X"FFB00001", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
 	
-	wait for 10 us;
+	--wait for 10 us;
 	
-	sendword(X"fff60000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) ); 
+	--sendword(X"fff60000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) ); 
 	
 	wait for 5 us;
+
+	sendword(X"fff60003", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
+	wait for 5 us;
+	sendword(X"00300ff1", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
+	wait for 5 us;
+	sendword(X"00100000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );	
 	
-	sendword(X"fff60001", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) ); 
+	wait for 5 us;
+	sendword(X"FFD00000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );	  
+	
+	wait for 10 us;
+	sendword(X"00210000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );	
+	
+	wait for 400 us;
+	sendword(X"00220000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );	
 	
 	sendword(X"00100000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
+--	
+--	wait for 5 us;
+--	sendword(X"00530000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) ); 
+--	sendword(X"00540000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
+--	
+--	for j in 0 to 15 loop
+--		sendword(std_logic_vector(unsigned(X"00550002") + j), USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
+--		for i in 0 to j loop
+--			sendword(X"00560000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) ); 
+--		end loop;
+--	end loop;	 
+--	
+--	sendword(X"00000000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
+--	
+--	wait for 10 us;
 	
-	wait for 5 us;
-	sendword(X"00530000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) ); 
-	sendword(X"00540000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
-	
-	for j in 0 to 15 loop
-		sendword(std_logic_vector(unsigned(X"00550002") + j), USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
-		for i in 0 to j loop
-			sendword(X"00560000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) ); 
-		end loop;
-	end loop;	 
-	
-	sendword(X"00000000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
-	
-	wait for 10 us;
-	
-	sendword(X"FFD00000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) ); 
+	--sendword(X"FFD00000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) ); 
     
     wait;
   end process WaveGen_Proc;

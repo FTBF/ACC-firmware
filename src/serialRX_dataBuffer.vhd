@@ -19,6 +19,11 @@ entity serialRx_dataBuffer is
 
     LVDS_In_hs   	: in std_logic_vector(2*N-1 downto 0);
 
+    data_out        : out Array_16bit;
+    data_occ        : out Array_16bit;
+    data_re         : in  std_logic_vector(N-1 downto 0);
+
+    byte_fifo_occ       : out DoubleArray_16bit;
     prbs_error_counts   : out DoubleArray_16bit;
     symbol_error_counts : out DoubleArray_16bit;
     count_reset   : in std_logic;
@@ -58,6 +63,8 @@ architecture vhdl of serialRx_dataBuffer is
   signal serialRX_deser_10bit_z : serialRx_hs_10bit_array;
   signal serialRX_deser_10bit : serialRx_hs_10bit_array;
   signal serialRX_deser_8bit : serialRx_hs_8bit_array;
+  signal serialRX_deser_8bit_kout : std_logic_vector(2*N-1 downto 0);
+  signal serialRX_deser_8bit_valid : std_logic_vector(2*N-1 downto 0);
 
 begin  -- architecture vhdl
 
@@ -199,9 +206,9 @@ begin  -- architecture vhdl
         rd_reset     => '0',
         din          => serialRX_deser_10bit(iLink),
         din_valid    => '1',
-        kout         => open,
+        kout         => serialRX_deser_8bit_kout(iLink),
         dout         => serialRX_deser_8bit(iLink),
-        dout_valid   => open,
+        dout_valid   => serialRX_deser_8bit_valid(iLink),
         rd_out       => open,
         symbol_error => symbol_error);
 
@@ -227,6 +234,140 @@ begin  -- architecture vhdl
       data          => serialRX_deser_8bit,
       error_counts  => prbs_error_counts_z,
       count_reset   => count_reset);
+
+  -- data buffer
+  -- first stage FIFO, shallow FIFO to ensure bytes are aligned
+  link_buffers : for iACDC in 0 to 7 generate
+    signal data_in_lsb : std_logic_vector(7 downto 0);
+    signal data_in_msb : std_logic_vector(7 downto 0);
+    signal data_in_lsb_kout : std_logic;
+    signal data_in_msb_kout : std_logic;
+    signal data_in_lsb_valid : std_logic;
+    signal data_in_msb_valid : std_logic;
+--    signal data_in_lsb_dly : std_logic_vector(7 downto 0);
+--    signal data_in_msb_dly : std_logic_vector(7 downto 0);
+    signal data_in_lsb_write : std_logic;
+    signal data_in_msb_write : std_logic; 
+    signal empty_lsb : std_logic;
+    signal empty_msb : std_logic;
+    signal full_lsb : std_logic;
+    signal full_msb : std_logic;
+    signal reset_local : std_logic;
+    signal data_out_lsb : std_logic_vector(7 downto 0);
+    signal data_out_msb : std_logic_vector(7 downto 0);
+    signal readFifo : std_logic;
+    signal writeBuffer : std_logic;
+  begin
+
+    -- map links into pairs for each ACDC 
+    data_in_lsb <= serialRX_deser_8bit(iACDC*2 + 0);
+    data_in_msb(7) <= serialRX_deser_8bit_valid(iACDC*2 + 0) and serialRX_deser_8bit_valid(iACDC*2 + 1);
+    data_in_msb(6 downto 0) <= serialRX_deser_8bit(iACDC*2 + 1)(6 downto 0);
+    data_in_lsb_kout <= serialRX_deser_8bit_kout(iACDC*2 + 0);
+    data_in_msb_kout <= serialRX_deser_8bit_kout(iACDC*2 + 1);
+    data_in_lsb_valid <= serialRX_deser_8bit_valid(iACDC*2 + 0);
+    data_in_msb_valid <= serialRX_deser_8bit_valid(iACDC*2 + 1);
+
+    -- determine when valid data is being sent
+    data_in_delay : process(clock.serial25)
+    begin
+      if rising_edge(clock.serial25) then
+--        data_in_msb_dly(6 downto 0) <= data_in_msb(6 downto 0);
+--        -- replace an unused bit with an error bit 
+--        data_in_msb_dly(7) <= data_in_msb_valid and data_in_lsb_valid;
+--        data_in_lsb_dly <= data_in_lsb;
+
+        if reset_sync2 = '1' or reset_local = '1' then
+          data_in_lsb_write <= '0';
+          data_in_msb_write <= '0';
+          writeBuffer <= '0';
+        else
+          if data_in_lsb_kout = '1' and data_in_lsb_valid = '1' and data_in_lsb = X"F7" then
+            data_in_lsb_write <= '1';
+          elsif data_in_lsb_kout = '1' and data_in_lsb_valid = '1' and data_in_lsb = X"FB" then
+            data_in_lsb_write <= '0';
+          elsif data_in_lsb_kout = '1' and data_in_lsb_valid = '1' and data_in_lsb = X"1C" then
+            data_in_lsb_write <= '0';
+          else
+            data_in_lsb_write <= data_in_lsb_write;
+          end if;
+
+          if data_in_msb_kout = '1' and data_in_msb_valid = '1' and data_in_msb = X"F7" then
+            data_in_msb_write <= '1';
+          elsif data_in_msb_kout = '1' and data_in_msb_valid = '1' and data_in_msb = X"FB" then
+            data_in_msb_write <= '0';
+          elsif data_in_msb_kout = '1' and data_in_msb_valid = '1' and data_in_msb = X"1C" then
+            data_in_msb_write <= '0';
+          else
+            data_in_msb_write <= data_in_msb_write;
+          end if;
+
+          -- delay buffer write to wait until data from byte FIFOs are ready 
+          writeBuffer <= readFifo;
+        end if;
+      end if;
+    end process;
+    
+    readFifo <= not (empty_lsb or empty_msb);
+    byte_fifo_occ(2*iACDC + 0)(15 downto 4) <= "000000000000";
+    byte_fifo_occ(2*iACDC + 1)(15 downto 4) <= "000000000000";
+    
+    serialRX_InterByteAlign_lsb: serialRX_InterByteAlign_fifo
+      port map (
+        clock => clock.serial25,
+        data  => data_in_lsb,
+        rdreq => readFifo,
+        sclr  => reset_sync2 or reset_local,
+        wrreq => data_in_lsb_write,
+        empty => empty_lsb,
+        full  => full_lsb,
+        q     => data_out_lsb,
+        usedw => byte_fifo_occ(2*iACDC + 0)(3 downto 0));
+
+    serialRX_InterByteAlign_msb: serialRX_InterByteAlign_fifo
+      port map (
+        clock => clock.serial25,
+        data  => data_in_msb,
+        rdreq => readFifo,
+        sclr  => reset_sync2 or reset_local,
+        wrreq => data_in_msb_write,
+        empty => empty_msb,
+        full  => full_msb,
+        q     => data_out_msb,
+        usedw => byte_fifo_occ(2*iACDC + 1)(3 downto 0));
+
+    -- error detector circuit - reset interByteAlignment if FIFO overflow
+    -- occurs
+    oveflow_detector : process(clock.serial25)
+    begin
+      if rising_edge(clock.serial25) then
+        if reset_sync2 = '1' then
+          reset_local <= '0';
+        else
+          if full_lsb = '1' or full_msb = '1' then
+            reset_local <= '1';
+          else
+            reset_local <= '0';
+          end if;
+        end if;
+      end if;
+    end process;
+
+    data_occ(iACDC)(15) <= '0';
+    serialRX_data_buffer: serialRX_data_fifo
+      port map (
+        aclr    => reset_sync2,
+        data    => data_out_msb & data_out_lsb,
+        rdclk   => clock.sys,
+        rdreq   => data_re(iACDC),
+        wrclk   => clock.serial25,
+        wrreq   => writeBuffer,
+        q       => data_out(iACDC),
+        rdempty => open,
+        rdusedw => data_occ(iACDC)(14 downto 0),
+        wrfull  => open);
+    
+  end generate;
 
   io_delay_ctrl_inst: io_delay_ctrl
     port map (
