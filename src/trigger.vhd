@@ -45,7 +45,7 @@ use work.LibDG.all;
 
 entity trigger is
 	Port(
-		clock		: in	std_logic;
+		clock		: in clock_type;
 		reset		: in std_logic;
 		trig	 	: in trigSetup_type;		
 		pps		: in std_logic;
@@ -58,33 +58,17 @@ end trigger;
 
 architecture vhdl of trigger is
 
-	
+  signal pps_pwCtrl: std_logic;
+  signal pps_divided: std_logic;
+  signal pps_gate: std_logic;
+  signal pps_risingEdge: std_logic;
+  signal pps_z: std_logic;
+  signal safeToEnable_pps: std_logic;
+  signal beamGate: std_logic;
+  signal beamGate_pps_mux: std_logic;
+  signal beamGate_trig_risingEdge: std_logic;
 
-	
-
-
-	
-
-signal pps_pwCtrl: std_logic;
-signal pps_divided: std_logic;
-signal pps_gate: std_logic;
-signal pps_risingEdge: std_logic;
-signal pps_z: std_logic;
-signal safeToEnable_pps: std_logic;
-signal beamGate: std_logic;
-signal beamGate_pps_mux: std_logic;
-signal beamGate_trig_risingEdge: std_logic;
-
-
-
-
-
-
-
-	
 begin
-
-
 
 
 ------------------------------------
@@ -105,16 +89,14 @@ begin
 	for i in 0 to 7 loop
 		case trig.source(i) is
 			when 0 => trig_out(i) <= '0';				-- off
-			when 1 => trig_out(i) <= trig.sw;		-- software trigger
-			when 2 => trig_out(i) <= hw_trig;		-- hardware trigger
-			when 3 => trig_out(i) <= pps_divided;				-- divided down version of pulse per second trigger 
+			when 1 => trig_out(i) <= trig.sw(i);		-- software trigger
+			when 2 => trig_out(i) <= hw_trig;		    -- hardware trigger
+			when 3 => trig_out(i) <= pps_divided;		-- divided down version of pulse per second trigger 
 			when 4 => trig_out(i) <= beamGate_pps_mux;		-- beam gate / pps
 			when others => trig_out(i) <= '0';
 		end case;
 	end loop;
 end process;
-
-
 
 
 
@@ -134,7 +116,7 @@ end process;
 --
 -- The pulse width is made short deliberately so it can be distinguished from other longer pulses which will be later multilexed onto the same signal line
 -- The rising edge must not be clocked as it contains the timing info for the pps pulse
-PW_CTRL: monostable_asyncio_edge port map(clock, 1, pps, pps_pwCtrl);	
+PW_CTRL: monostable_asyncio_edge port map(clock.sys, 1, pps, pps_pwCtrl);	
   
 
 
@@ -145,7 +127,7 @@ PW_CTRL: monostable_asyncio_edge port map(clock, 1, pps, pps_pwCtrl);
 -- not every pps pulse needs to be timestamped
 -- this module removes all pulses except for every Nth pulse [N = ppsDivRatio]
 -- output pulses are identical width to input pulses and are asynchronous, i.e. not clocked by the system clock
-PULSE_GOBBLER: pulseGobbler port map(clock, pps_pwCtrl, trig.ppsDivRatio, pps_divided);
+PULSE_GOBBLER: pulseGobbler port map(clock.sys, pps_pwCtrl, trig.ppsDivRatio, pps_divided);
 
 
 
@@ -178,10 +160,10 @@ beamGate_pps_mux <= (pps_divided and pps_gate) or beamGate;
 
 
 
-BEAMGATE_EDGE: risingEdgeDetect port map(clock, beamGate_trig, beamGate_trig_risingEdge);        
+BEAMGATE_EDGE: risingEdgeDetect port map(clock.sys, beamGate_trig, beamGate_trig_risingEdge);        
 
 
-PPS_MUX: process(clock)
+PPS_MUX: process(clock.sys)
 variable state: natural:= 0;
 variable t: natural:= 0;
 
@@ -192,7 +174,7 @@ variable windowStart: natural;
 variable windowLen: natural;
 
 begin
-	if (rising_edge(clock)) then
+	if (rising_edge(clock.sys)) then
 
 	
 		pps_z <= pps_divided;
@@ -316,14 +298,14 @@ end process;
 
 
 
-PPS_EDGE: risingEdgeDetect port map(clock, pps, pps_risingEdge);        
+PPS_EDGE: risingEdgeDetect port map(clock.sys, pps, pps_risingEdge);        
 
 
 
-SAFE_TO_SWITCH: process(clock)
+SAFE_TO_SWITCH: process(clock.sys)
 variable t: natural:= 0;
 begin
-	if (rising_edge(clock)) then
+	if (rising_edge(clock.sys)) then
 		
 		if (pps_risingEdge = '1') then		-- rising edge of pps
 		

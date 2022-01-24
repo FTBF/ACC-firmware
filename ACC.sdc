@@ -15,4 +15,7 @@ create_clock -period "25.0 MHz" [get_ports clockIn.localOsc]
 
 set_max_delay -from [get_registers *param_handshake_sync*src_params_latch*] -to [get_registers *param_handshake_sync*dest_params*] 25
 
+#trig slow control prameters 
+set_false_path -from [get_registers {commandHandler:CMD_HANDLER_MAP|trig.SMA_invert commandHandler:CMD_HANDLER_MAP|trig.source*}] -to [get_registers {serialTx_ddr:serialTx_ddr_trigger|altddio_out:ALTDDIO_OUT_component|ddio_out_m9j:auto_generated|ddio_outa*}]
+
 #set_multicycle_path -setup -end -from [get_registers {*serialRx_dataBuffer_inst*dataout_*}] -to [get_registers {*serialRx_dataBuffer_inst*serialRX_hs_z2*}] 2

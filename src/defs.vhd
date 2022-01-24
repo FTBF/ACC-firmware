@@ -193,7 +193,7 @@ type trigSetup_type is record
 	windowStart: natural;
 	windowLen: natural;
 	SMA_invert: std_logic;
-	sw:		std_logic;
+	sw:		std_logic_vector(N-1 downto 0);
 end record;
 
 

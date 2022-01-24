@@ -56,8 +56,9 @@ architecture vhdl of	ACC_main is
 	signal	serialRx				:	serialRx_type;
 	signal	rxBuffer				:	rxBuffer_type;
 	signal	trig					:	trigSetup_type;
-   signal   localInfo_readReq : std_logic;
-   signal   trig_out : std_logic_vector(7 downto 0);
+    signal   localInfo_readReq : std_logic;
+    signal   trig_out : std_logic_vector(7 downto 0);
+    signal   trig_out_manchester : std_logic_vector(7 downto 0);
     signal   readChannel : natural range 0 to 15;
     signal  dataFIFO_readReq : std_logic;
 	signal	acdcBoardDetect: std_logic_vector(7 downto 0);
@@ -130,7 +131,7 @@ SMA(5) <= trig_out(3);
 ------------------------------------
 
 TRIG_MAP: trigger Port map(
-		clock		=> clock.sys,
+		clock		=> clock,
 		reset		=> reset.global,
 		trig	 	=> trig,
 		pps		=> pps,
@@ -191,7 +192,7 @@ LVDS_GEN: process(all)
 begin
 	for i in N-1 downto 0 loop
 		LVDS_Out(i)(0) <=	serialTx.serial(i);
-		LVDS_Out(i)(1) <=	trig_out(i);
+		LVDS_Out(i)(1) <=	trig_out_manchester(i);
         LVDS_Out(i)(2) <=	'0';
         -- select low speed LVDS RX pair (slow control line)
         serialRx.serial(i)  <= LVDS_In(i)(0);
@@ -206,6 +207,40 @@ begin
 	end loop;
 end process;
 
+-- add layer of manchster encoding to pass trigger through the AC coupled path
+manchesterEncoders : for i in 0 to N-1 generate
+  signal toggle : std_logic;
+  signal out_z : std_logic;
+begin
+  manchesterEncoding : process (clock.x4)
+  begin
+    if rising_edge(clock.x4) then
+      if reset.global then
+        toggle <= '0';
+        out_z <= '0';
+      else
+        if toggle = '0' then
+          trig_out_manchester(i) <= trig_out(i);
+          out_z <= not trig_out(i);
+        else
+          trig_out_manchester(i) <= out_z;
+        end if;
+        toggle <= not toggle;
+      end if;
+    end if;
+  end process;
+end generate;
+
+--
+--
+--serialTx_ddr_trigger: serialTx_ddr
+--  port map (
+--    aclr     => reset.global,
+--    datain_h => trig_out,
+--    datain_l => not trig_out,
+--    outclock => clock.x4,
+--    dataout  => trig_out_manchester);
+--
 serialRX_iobuf_inst: serialRX_iobuf
   port map (
     datain           => LVDS_In_flat_p,
@@ -557,7 +592,7 @@ begin
 			when x"48" => sig := rxBuffer.readReq;			
 -- trig
 			when x"50" => sig := trig_out(ch);
-			when x"51" => sig := trig.sw;			
+			when x"51" => sig := trig.sw(0);			
 -- input
 			when x"60" => sig := pps;
 			when x"61" => sig := SMA(ch);

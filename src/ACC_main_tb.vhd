@@ -173,7 +173,7 @@ begin  -- architecture sim
 		debug3 => debug3
 	);
 	
-  LVDS_in_ACDC <= LVDS_out(0);
+  LVDS_in_ACDC <= transport LVDS_out(0) after 4 ns;
   LVDS_in(0) <= transport LVDS_out_ACDC(1 downto 0) after 1 ns;
   LVDS_In_hs_p(0) <= LVDS_out_ACDC(3) & not LVDS_out_ACDC(2);
   LVDS_In_hs_n(0) <= not LVDS_out_ACDC(3) & LVDS_out_ACDC(2);
@@ -247,18 +247,20 @@ begin  -- architecture sim
     end if;
   end process;
   
-  PSEC4_process : process(PSEC4_out(0).readClock, reset)
-  begin
-	  if reset = '1' then
-		  PSEC4_in(0).data <= X"000";
-	  else 
-	      if rising_edge(PSEC4_out(0).readClock) then
-		     if PSEC4_out(0).TokDecode /= "101" and PSEC4_out(0).TokIn = "00" then 
-		         PSEC4_in(0).data <= std_logic_vector(unsigned(PSEC4_in(0).data) + 1);
-			 end if;
-	      end if;
-	  end if;
-  end process;	 
+  fakeData : for i in 0 to 4 generate
+  	PSEC4_process : process(PSEC4_out(0).readClock, reset)
+  	begin
+		if reset = '1' then
+			PSEC4_in(i).data <= X"000";
+		else 
+		    if rising_edge(PSEC4_out(i).readClock) then
+			   if PSEC4_out(i).TokDecode /= "101" and PSEC4_out(i).TokIn = "00" then 
+			       PSEC4_in(i).data <= std_logic_vector(unsigned(PSEC4_in(i).data) + 1);
+			    end if;
+		     end if;
+		  end if;
+	  end process;
+  end generate;
   
   -- waveform generation
   WaveGen_Proc: process
@@ -293,19 +295,25 @@ begin  -- architecture sim
 	sendword(X"fff60003", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
 	wait for 5 us;
 	sendword(X"00300ff1", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
+	--wait for 5 us;
+	--sendword(X"00100000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );	
+	
+	--wait for 5 us;
+	--sendword(X"FFD00000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );	  
+	
+	--wait for 10 us;
+	--sendword(X"00230000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );	
+	
+	sendword(X"00100000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
 	wait for 5 us;
 	sendword(X"00100000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );	
-	
 	wait for 5 us;
-	sendword(X"FFD00000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );	  
-	
-	wait for 10 us;
-	sendword(X"00210000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );	
+	sendword(X"00100000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
 	
 	wait for 400 us;
 	sendword(X"00220000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );	
 	
-	sendword(X"00100000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
+	
 --	
 --	wait for 5 us;
 --	sendword(X"00530000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) ); 

@@ -72,7 +72,7 @@ END component;
 		
 component trigger is
 	Port(
-		clock		: in	std_logic;
+		clock		: in clock_type;
 		reset		: in std_logic;
 		trig	 	: in trigSetup_type;		
 		pps		: in std_logic;
@@ -396,26 +396,4 @@ component serialRX_data_fifo is
 end component serialRX_data_fifo;
 
 end components;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

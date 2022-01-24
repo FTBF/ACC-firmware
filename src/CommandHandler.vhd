@@ -214,7 +214,7 @@ begin
         
         globalResetReq <= '0';
         rxBuffer_resetReq <= x"00";
-        trig.sw <= '0';
+        trig.sw <= (others => '0');
         localInfo_readReq <= '0';
         rxBuffer_readReq <= '0';
         dataFIFO_readReq <= '0';
@@ -260,7 +260,7 @@ begin
             
           when x"1" =>	-- generate software trigger
             
-            trig.sw <= '1'; 			 
+            trig.sw <= (others => '1'); 			 
             
 
             
