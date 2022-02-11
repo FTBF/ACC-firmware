@@ -157,12 +157,17 @@ begin
           timeoutError <= '0';
           
           getRamData := false;    -- flags used to indicate frame type required
+          getFIFOData := false;
           getLocalData := false;
           getParameter := false;
           
           if (dataFIFO_readReq = '1' and holdoff = 0) then
               frameLen :=  to_integer(signed(data_occ(channel)));
-              getFIFOData := true; 
+              getFIFOData := true;
+              -- advance to the first data word 
+              data_re_v := X"00";
+              data_re_v(channel) := '1';
+              data_re <= data_re_v;
               state := BUS_REQUEST;
           end if;
 
@@ -188,12 +193,8 @@ begin
           
         when BUS_REQUEST =>               
           txLockReq <= '1';  -- request locking the usb bus in tx mode
+          data_re <= X"00";
           if (txLockAck = '1') then
-            if getRamData then
-              data_re_v := X"00";
-              data_re_v(channel) := '1';
-              data_re <= data_re_v;
-            end if;
             state := DATA_SEND; -- usb bus acknowledge, bus is now locked for tx use
           end if;  
 
@@ -207,9 +208,11 @@ begin
           elsif getRamData then
             dout <= ramData(channel); --ram data                     
             address <= address + 1; 
-          else
+          else -- getFIFOData
             dout <= data_out(channel); --ram data                     
-            address <= address + 1; 
+            data_re_v := X"00";
+            data_re_v(channel) := '1';
+            data_re <= data_re_v;
           end if;
           txReq <= '1';   -- initiate the usb tx process
           i := i + 1; -- increment the index   (= number of words done)            
@@ -218,16 +221,12 @@ begin
           
         when DATA_ACK =>
           txReq <= '0';
+          data_re <= X"00";
           if (txAck_z = '0' and txAck = '1') then  -- rising edge detect means the new data was acked
             t := 0; -- clear timeout
             if (i >= frameLen) then
               state := DONE;
             else
-              if getFIFOData then
-                data_re_v := X"00";
-                data_re_v(channel) := '1';
-                data_re <= data_re_v;
-              end if;
               state := DATA_SEND;
             end if;
           end if;

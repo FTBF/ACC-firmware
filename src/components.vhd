@@ -158,8 +158,9 @@ component commandHandler is
     count_reset             : out std_logic;
     phaseUpdate            : out std_logic;
     updn                   : out std_logic;
-    cntsel                 : out std_logic_vector(4 downto 0)
-
+    cntsel                 : out std_logic_vector(4 downto 0);
+    train_manchester_links : out std_logic;
+    backpressure_threshold : out std_logic_vector(11 downto 0)
 );
 end component;
 
@@ -327,22 +328,25 @@ end component io_delay_ctrl;
 
 component serialRx_dataBuffer is
   port (
-    clock                : in  clock_type;
-    reset                : in  std_logic;
-    delayCommand         : in  std_logic_vector(11 downto 0);
-    delayCommandSet      : in  std_logic;
-    delayCommandMask     : in  std_logic_vector(15 downto 0);
-    LVDS_In_hs           : in  std_logic_vector(2*N-1 downto 0);
-    data_out             : out Array_16bit;
-    data_occ             : out Array_16bit;
-    data_re              : in  std_logic_vector(N-1 downto 0);
-    byte_fifo_occ        : out DoubleArray_16bit;
-    prbs_error_counts    : out DoubleArray_16bit;
-    symbol_error_counts  : out DoubleArray_16bit;
-    count_reset          : in  std_logic;
-    io_config_clkena     : out std_logic_vector(15 downto 0);
-    io_config_datain     : out std_logic;
-    io_config_update     : out std_logic);
+    clock                  : in  clock_type;
+    reset                  : in  std_logic;
+    delayCommand           : in  std_logic_vector(11 downto 0);
+    delayCommandSet        : in  std_logic;
+    delayCommandMask       : in  std_logic_vector(15 downto 0);
+    LVDS_In_hs             : in  std_logic_vector(2*N-1 downto 0);
+    data_out               : out Array_16bit;
+    data_occ               : out Array_16bit;
+    data_re                : in  std_logic_vector(N-1 downto 0);
+    byte_fifo_occ          : out DoubleArray_16bit;
+    prbs_error_counts      : out DoubleArray_16bit;
+    symbol_error_counts    : out DoubleArray_16bit;
+    backpressure_threshold : in std_logic_vector(11 downto 0);
+    backpressure_out       : out std_logic_vector(N-1 downto 0);
+    count_reset            : in  std_logic;
+    trig_out               : out std_logic_vector(N-1 downto 0);
+    io_config_clkena       : out std_logic_vector(15 downto 0);
+    io_config_datain       : out std_logic;
+    io_config_update       : out std_logic);
 end component serialRx_dataBuffer;
 
 

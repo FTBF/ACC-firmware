@@ -26,7 +26,11 @@ entity serialRx_dataBuffer is
     byte_fifo_occ       : out DoubleArray_16bit;
     prbs_error_counts   : out DoubleArray_16bit;
     symbol_error_counts : out DoubleArray_16bit;
+    backpressure_threshold : in std_logic_vector(11 downto 0);
+    backpressure_out    : out std_logic_vector(N-1 downto 0);
     count_reset   : in std_logic;
+
+    trig_out         : out std_logic_vector(N-1 downto 0);
     
     io_config_clkena : out std_logic_vector(2*N-1 downto 0);
     io_config_datain : out std_logic;
@@ -39,6 +43,8 @@ architecture vhdl of serialRx_dataBuffer is
   constant sync_word0: std_logic_vector(9 downto 0):= "0001111100";		-- the symbol for codeword K28.7
   constant sync_word1: std_logic_vector(9 downto 0):= "0010111100";		-- the symbol for codeword K28.0
 
+  signal data_occ_loc        : Array_16bit;
+  
   attribute PRESERVE          : boolean;
   signal serialRX_hs        : serialRx_hs_array;
   signal prbs_error_counts_z    : DoubleArray_16bit;
@@ -67,6 +73,8 @@ architecture vhdl of serialRx_dataBuffer is
   signal serialRX_deser_8bit_valid : std_logic_vector(2*N-1 downto 0);
 
 begin  -- architecture vhdl
+
+  data_occ <= data_occ_loc;
 
   --synchronize signals
   nreset <= not reset;
@@ -184,10 +192,21 @@ begin  -- architecture vhdl
         else
           serialRX_deser_10bit_z(iLink) <= serialRX_deser_10bit_z(iLink);
         end if;
+
       end loop;
     end if;
   end process;
 
+  serial_hs_controldecode : process(all)
+  begin
+    for iLink in 0 to N-1 loop
+      if serialRX_deser_10bit_z(2*iLink) = "0001011011" or serialRX_deser_10bit_z(2*iLink) = "1110100100" then --FB k-code for trigger 
+        trig_out(iLink) <= '1';
+      else
+        trig_out(iLink) <= '0';
+      end if;
+    end loop;
+  end process;
 
   -- synchronize to 25 Mz domain
   serialRX_deser_sync : process(clock.serial25)
@@ -244,10 +263,12 @@ begin  -- architecture vhdl
     signal data_in_msb_kout : std_logic;
     signal data_in_lsb_valid : std_logic;
     signal data_in_msb_valid : std_logic;
---    signal data_in_lsb_dly : std_logic_vector(7 downto 0);
---    signal data_in_msb_dly : std_logic_vector(7 downto 0);
+    signal data_in_lsb_dly : std_logic_vector(7 downto 0);
+    signal data_in_msb_dly : std_logic_vector(7 downto 0);
     signal data_in_lsb_write : std_logic;
     signal data_in_msb_write : std_logic; 
+    signal data_in_lsb_enable : std_logic;
+    signal data_in_msb_enable : std_logic; 
     signal empty_lsb : std_logic;
     signal empty_msb : std_logic;
     signal full_lsb : std_logic;
@@ -261,8 +282,9 @@ begin  -- architecture vhdl
 
     -- map links into pairs for each ACDC 
     data_in_lsb <= serialRX_deser_8bit(iACDC*2 + 0);
-    data_in_msb(7) <= serialRX_deser_8bit_valid(iACDC*2 + 0) and serialRX_deser_8bit_valid(iACDC*2 + 1);
-    data_in_msb(6 downto 0) <= serialRX_deser_8bit(iACDC*2 + 1)(6 downto 0);
+    data_in_msb <= serialRX_deser_8bit(iACDC*2 + 1);
+    --data_in_msb(7) <= serialRX_deser_8bit_valid(iACDC*2 + 0) and serialRX_deser_8bit_valid(iACDC*2 + 1);
+    --data_in_msb(6 downto 0) <= serialRX_deser_8bit(iACDC*2 + 1)(6 downto 0);
     data_in_lsb_kout <= serialRX_deser_8bit_kout(iACDC*2 + 0);
     data_in_msb_kout <= serialRX_deser_8bit_kout(iACDC*2 + 1);
     data_in_lsb_valid <= serialRX_deser_8bit_valid(iACDC*2 + 0);
@@ -272,34 +294,38 @@ begin  -- architecture vhdl
     data_in_delay : process(clock.serial25)
     begin
       if rising_edge(clock.serial25) then
---        data_in_msb_dly(6 downto 0) <= data_in_msb(6 downto 0);
---        -- replace an unused bit with an error bit 
---        data_in_msb_dly(7) <= data_in_msb_valid and data_in_lsb_valid;
---        data_in_lsb_dly <= data_in_lsb;
+        data_in_msb_dly <= data_in_msb;
+        data_in_lsb_dly <= data_in_lsb;
 
+        -- write when inside a packet (after symbol F7 but before F8 or Idle
+        -- (1C)) and when data is valid and not a k code
         if reset_sync2 = '1' or reset_local = '1' then
           data_in_lsb_write <= '0';
           data_in_msb_write <= '0';
+          data_in_lsb_enable <= '0';
+          data_in_msb_enable <= '0';
           writeBuffer <= '0';
         else
-          if data_in_lsb_kout = '1' and data_in_lsb_valid = '1' and data_in_lsb = X"F7" then
+          if data_in_lsb_enable = '1' and data_in_lsb_kout = '0' and data_in_lsb_valid = '1' then
             data_in_lsb_write <= '1';
-          elsif data_in_lsb_kout = '1' and data_in_lsb_valid = '1' and data_in_lsb = X"FB" then
-            data_in_lsb_write <= '0';
-          elsif data_in_lsb_kout = '1' and data_in_lsb_valid = '1' and data_in_lsb = X"1C" then
-            data_in_lsb_write <= '0';
           else
-            data_in_lsb_write <= data_in_lsb_write;
+            data_in_lsb_write <= '0';
           end if;
 
-          if data_in_msb_kout = '1' and data_in_msb_valid = '1' and data_in_msb = X"F7" then
+          if data_in_msb_enable = '1' and data_in_msb_kout = '0' and data_in_msb_valid = '1' then
             data_in_msb_write <= '1';
-          elsif data_in_msb_kout = '1' and data_in_msb_valid = '1' and data_in_msb = X"FB" then
-            data_in_msb_write <= '0';
-          elsif data_in_msb_kout = '1' and data_in_msb_valid = '1' and data_in_msb = X"1C" then
-            data_in_msb_write <= '0';
           else
-            data_in_msb_write <= data_in_msb_write;
+            data_in_msb_write <= '0';
+          end if;
+          
+          if    data_in_lsb_kout = '1' and data_in_lsb_valid = '1' and data_in_lsb = X"F7" then  data_in_lsb_enable <= '1';
+          elsif data_in_lsb_kout = '1' and data_in_lsb_valid = '1' and data_in_lsb = X"9c" then  data_in_lsb_enable <= '0';
+          elsif data_in_lsb_kout = '1' and data_in_lsb_valid = '1' and data_in_lsb = X"1C" then  data_in_lsb_enable <= '0';
+          end if;
+
+          if    data_in_msb_kout = '1' and data_in_msb_valid = '1' and data_in_msb = X"F7" then  data_in_msb_enable <= '1';
+          elsif data_in_msb_kout = '1' and data_in_msb_valid = '1' and data_in_msb = X"9c" then  data_in_msb_enable <= '0';
+          elsif data_in_msb_kout = '1' and data_in_msb_valid = '1' and data_in_msb = X"1C" then  data_in_msb_enable <= '0';
           end if;
 
           -- delay buffer write to wait until data from byte FIFOs are ready 
@@ -311,11 +337,12 @@ begin  -- architecture vhdl
     readFifo <= not (empty_lsb or empty_msb);
     byte_fifo_occ(2*iACDC + 0)(15 downto 4) <= "000000000000";
     byte_fifo_occ(2*iACDC + 1)(15 downto 4) <= "000000000000";
-    
+
+    -- shallow byte alignment FIFOs
     serialRX_InterByteAlign_lsb: serialRX_InterByteAlign_fifo
       port map (
         clock => clock.serial25,
-        data  => data_in_lsb,
+        data  => data_in_lsb_dly,
         rdreq => readFifo,
         sclr  => reset_sync2 or reset_local,
         wrreq => data_in_lsb_write,
@@ -327,7 +354,7 @@ begin  -- architecture vhdl
     serialRX_InterByteAlign_msb: serialRX_InterByteAlign_fifo
       port map (
         clock => clock.serial25,
-        data  => data_in_msb,
+        data  => data_in_msb_dly,
         rdreq => readFifo,
         sclr  => reset_sync2 or reset_local,
         wrreq => data_in_msb_write,
@@ -353,7 +380,8 @@ begin  -- architecture vhdl
       end if;
     end process;
 
-    data_occ(iACDC)(15) <= '0';
+    -- deep data FIFO storing 16 bit wide words
+    data_occ_loc(iACDC)(15) <= '0';
     serialRX_data_buffer: serialRX_data_fifo
       port map (
         aclr    => reset_sync2,
@@ -364,8 +392,20 @@ begin  -- architecture vhdl
         wrreq   => writeBuffer,
         q       => data_out(iACDC),
         rdempty => open,
-        rdusedw => data_occ(iACDC)(14 downto 0),
+        rdusedw => data_occ_loc(iACDC)(14 downto 0),
         wrfull  => open);
+
+    backpressure_gen : process( clock.serial25 )
+    begin
+      if rising_edge(clock.serial25) then
+        -- backpressure signals
+        if to_integer(unsigned(data_occ_loc(iACDC))) >= (unsigned(backpressure_threshold(7 downto 0)) & X"00") then
+          backpressure_out(iACDC) <= '1';
+        else
+          backpressure_out(iACDC) <= '0';
+        end if;
+      end if;
+    end process;
     
   end generate;
 

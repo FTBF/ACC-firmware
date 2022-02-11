@@ -309,7 +309,7 @@ architecture rtl of sync_Bits_Altera is
 	attribute ALTERA_ATTRIBUTE  : string;
 
 	-- Apply a SDC constraint to meta stable flip flop
-	attribute ALTERA_ATTRIBUTE of rtl        : architecture is "-name SDC_STATEMENT ""set_false_path -to [get_registers {*|sync_Bits_Altera:*|\gen:*:Data_meta}] """;
+	attribute ALTERA_ATTRIBUTE of rtl        : architecture is "-name SDC_STATEMENT ""set_false_path -to [get_registers {*sync_Bits_Altera:*|\gen:*:Data_meta}] """;
 begin
 	gen : for i in 0 to BITS - 1 generate
 		signal Data_async        : std_logic;

@@ -272,6 +272,16 @@ component sync_Bits_Altera is
     Output : out std_logic_vector(BITS - 1 downto 0));
 end component sync_Bits_Altera;
 
+
+component manchester_encoder is
+  port (
+    clock     : in  std_logic;
+    reset     : in  std_logic;
+    trainTrig : in  std_logic;
+    sig_in    : in  std_logic;
+    sig_out   : out std_logic);
+end component manchester_encoder;
+
 end LibDG;
 
 

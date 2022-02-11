@@ -6,7 +6,7 @@
 -- Author     :   <Pastika@ITID20020501N>
 -- Company    : 
 -- Created    : 2021-10-15
--- Last update: 2021-10-15
+-- Last update: 2022-02-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -55,8 +55,7 @@ architecture sim of ACC_main_tb is
 		enableV1p2a : out STD_LOGIC;
 		calEnable : inout std_logic_vector(14 downto 0);
 		DAC : out acdc_full_sim.defs.DAC_ARRAY_TYPE;
-		SMA_J5 : inout std_logic;
-		SMA_J16 : in STD_LOGIC;
+		SMA_J3 : inout std_logic; 
 		ledOut : out STD_LOGIC_VECTOR(8 downto 0);
 		debug2 : out STD_LOGIC;
 		debug3 : out STD_LOGIC
@@ -67,7 +66,8 @@ architecture sim of ACC_main_tb is
   -- constants 
   constant OSC_PERIOD : time := 40 ns;
   constant JCPLL_PERIOD : time := 25 ns;
-  constant USB_PERIOD : time := 20.8 ns;
+  constant USB_PERIOD : time := 20.8 ns; 
+  constant WR_PERIOD : time := 10 ns;
 
   shared variable ENDSIM : boolean := false; 
   
@@ -100,8 +100,7 @@ architecture sim of ACC_main_tb is
   signal enableV1p2a    : STD_LOGIC;
   signal calEnable      : std_logic_vector(14 downto 0);
   signal DAC            : acdc_full_sim.defs.DAC_ARRAY_TYPE;
-  signal SMA_J5         : std_logic;
-  signal SMA_J16        : STD_LOGIC;
+  signal SMA_J3         : std_logic;
   signal ledOut         : STD_LOGIC_VECTOR(8 downto 0);
   signal debug2         : STD_LOGIC;
   signal debug3         : STD_LOGIC;
@@ -109,6 +108,9 @@ architecture sim of ACC_main_tb is
   signal fastClk      : std_logic;
   signal reset        : std_logic;				  
   signal prbs         : std_logic_vector(15 downto 0);
+  
+  type trig_type is array (4 downto 0) of std_logic_vector(5 downto 0);
+  signal selftrig : trig_type;
   
   procedure sendword
   ( constant word : in std_logic_vector(31 downto 0); 
@@ -127,6 +129,8 @@ architecture sim of ACC_main_tb is
 	word_out <= word(31 downto 16);
 	SLRD <= '0';
 	wait for 10 ns;
+	
+	--word_out <= "ZZZZZZZZZZZZZZZZ";
   end sendword;
 
 
@@ -166,8 +170,7 @@ begin  -- architecture sim
 		enableV1p2a => enableV1p2a,
 		calEnable => calEnable,
 		DAC => DAC,
-		SMA_J5 => SMA_J5,
-		SMA_J16 => SMA_J16,
+		SMA_J3 => SMA_J3,	
 		ledOut => ledOut,
 		debug2 => debug2,
 		debug3 => debug3
@@ -223,6 +226,18 @@ begin  -- architecture sim
     end if;
   end process;
   		   
+  WR_CLK_GEN_PROC : process 
+  begin
+    if ENDSIM = false then
+      clockIn_ACDC.wr100 <= '0';
+      wait for WR_PERIOD / 2;
+      clockIn_ACDC.wr100 <= '1';
+      wait for WR_PERIOD / 2;
+    else 
+      wait;
+    end if;
+  end process;
+  
   USB_CLK_GEN_PROC : process 
   begin
     if ENDSIM = false then
@@ -248,18 +263,24 @@ begin  -- architecture sim
   end process;
   
   fakeData : for i in 0 to 4 generate
-  	PSEC4_process : process(PSEC4_out(0).readClock, reset)
+	PSEC4_in(i).trig <= selftrig(i);
+	PSEC4_in(i).overflow <= '0';
+	  
+  	PSEC4_process : process(PSEC4_out(i).readClock, reset)
+	  variable partialNumber : std_logic_vector(11 downto 0);
   	begin
-		if reset = '1' then
-			PSEC4_in(i).data <= X"000";
-		else 
-		    if rising_edge(PSEC4_out(i).readClock) then
-			   if PSEC4_out(i).TokDecode /= "101" and PSEC4_out(i).TokIn = "00" then 
-			       PSEC4_in(i).data <= std_logic_vector(unsigned(PSEC4_in(i).data) + 1);
-			    end if;
-		     end if;
-		  end if;
-	  end process;
+      if reset = '1' then
+        PSEC4_in(i).data <= X"fff";
+        --partialNumber := "0000"&X"00";
+      else 
+        if rising_edge(PSEC4_out(i).readClock) then
+          if PSEC4_out(i).TokDecode /= "101" and PSEC4_out(i).TokIn = "00" then
+            --partialNumber := std_logic_vector((unsigned(PSEC4_in(i).data) + 1));
+            PSEC4_in(i).data <= std_logic_vector((unsigned(PSEC4_in(i).data) + 1));
+          end if;
+        end if;
+      end if;
+    end process;
   end generate;
   
   -- waveform generation
@@ -268,6 +289,11 @@ begin  -- architecture sim
     -- insert signal assignments here  
 	USB_in.CTL <= "100";
 	USB_bus.FD <= X"0000";
+	SMA_J3 <= '0';
+	
+	for i in 0 to 4 loop
+		selftrig(i) <= "000000";
+	end loop;
 	
 	reset <= '0';
 	wait for 200 ns;
@@ -278,13 +304,13 @@ begin  -- architecture sim
 	
 	wait for 50 us;
 	
+	sendword(X"00600000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
 	sendword(X"005200ff", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
 	sendword(X"0051001f", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
 	sendword(X"00500000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
 	sendword(X"0054ffff", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
 	
 	sendword(X"ffA00000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
-	sendword(X"FFB00001", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
 	
 	--wait for 10 us;
 	
@@ -303,14 +329,28 @@ begin  -- architecture sim
 	
 	--wait for 10 us;
 	--sendword(X"00230000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );	
+
+	sendword(X"FFB20040", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
+	sendword(X"FFB1003f", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
+	sendword(X"FFB00002", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) ); 
 	
-	sendword(X"00100000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
-	wait for 5 us;
-	sendword(X"00100000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );	
-	wait for 5 us;
+	wait for 10 us;
+	
+	selftrig(0) <= "001000";
+	wait for 50 ns;
+	selftrig(0) <= "000000";
+	wait for 500 ns;
 	sendword(X"00100000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
 	
-	wait for 400 us;
+	wait for 200 us;
+	selftrig(0) <= "001000";
+	wait for 50 ns;
+	selftrig(0) <= "000000";
+	wait for 500 ns;
+	--sendword(X"00100000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
+	--sendword(X"fff60002", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
+	--sendword(X"fff60003", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
+	wait for 200 us;
 	sendword(X"00220000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );	
 	
 	

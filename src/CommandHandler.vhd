@@ -44,8 +44,9 @@ entity commandHandler is
     count_reset             : out std_logic;
     phaseUpdate            : out std_logic;
     updn                   : out std_logic;
-    cntsel                 : out std_logic_vector(4 downto 0)
-
+    cntsel                 : out std_logic_vector(4 downto 0);
+    train_manchester_links : out std_logic;
+    backpressure_threshold : out std_logic_vector(11 downto 0)
     );
 end commandHandler;
 
@@ -59,10 +60,12 @@ architecture vhdl of commandHandler is
     signal nreset                    : std_logic;
     signal nreset_sync1              : std_logic;
     signal nreset_sync2              : std_logic;
-    signal phaseUpdate_z               : std_logic;
-    signal updn_z                      : std_logic;
-    signal cntsel_z                    : std_logic_vector(4 downto 0);
-    signal cntsel_and_updn             : std_logic_vector(5 downto 0);
+    signal phaseUpdate_z             : std_logic;
+    signal updn_z                    : std_logic;
+    signal cntsel_z                  : std_logic_vector(4 downto 0);
+    signal cntsel_and_updn           : std_logic_vector(5 downto 0);
+    signal train_manchester_links_z  : std_logic;
+    signal backpressure_threshold_z  : std_logic_vector(11 downto 0);
 begin	
   
 -- note
@@ -109,6 +112,15 @@ begin
       dest_pulse   => count_reset,
       dest_aresetn => nreset_sync2);
 
+  pulseSync2_manchesterTrain: pulseSync2
+    port map (
+      src_clk      => clock.sys,
+      src_pulse    => train_manchester_links_z,
+      src_aresetn  => nreset,
+      dest_clk     => clock.x4,
+      dest_pulse   => train_manchester_links,
+      dest_aresetn => nreset);
+
   phaseUpdate <= phaseUpdate_z;
   --pulseSync2_phaseUpdate: pulseSync2
   --  port map (
@@ -139,6 +151,17 @@ begin
       src_aresetn  => nreset,
       dest_clk     => clock.serial25,
       dest_params  => delayCommandMask,
+      dest_aresetn => nreset_sync2);
+
+  param_handshake_backpressureThresh: param_handshake_sync
+    generic map (
+      WIDTH => backpressure_threshold_z'length)
+    port map (
+      src_clk      => clock.sys,
+      src_params   => backpressure_threshold_z,
+      src_aresetn  => nreset,
+      dest_clk     => clock.serial25,
+      dest_params  => backpressure_threshold,
       dest_aresetn => nreset_sync2);
 
   cntsel <= cntsel_and_updn(5 downto 1);
@@ -205,6 +228,7 @@ begin
           delayCommandMask_z <= X"0000";
           updn_z    <= '0';
           cntsel_z  <= "00000";
+          backpressure_threshold_z <= X"07f";
           
         end if;
         
@@ -222,7 +246,8 @@ begin
         param_readReq <= '0';
         delayCommandSet_z <= '0';
         count_reset_z <= '0';
-        phaseUpdate_z <= '0';        
+        phaseUpdate_z <= '0';
+        train_manchester_links_z <= '0';
         
       else     -- new instruction received
         
@@ -323,8 +348,6 @@ begin
                   end if;
                 end loop;
                 
-                
-                
               when x"1" => trig.SMA_invert <= din(0);
               when x"2" => trig.windowStart <= to_integer(unsigned(din(15 downto 0)));
               when x"3" => trig.windowLen <= to_integer(unsigned(din(15 downto 0)));
@@ -360,6 +383,16 @@ begin
               when x"4" => updn_z <= cmdValue(0);
               when x"5" => cntsel_z <= cmdValue(4 downto 0);
               when x"6" => phaseUpdate_z <= '1';
+              when x"7" => backpressure_threshold_z <= cmdValue(11 downto 0);
+              when others => null;
+            end case;
+
+            
+          when x"6" =>  -- manchester link controls 
+
+            case cmdOption is
+              
+              when x"0" => train_manchester_links_z <= '1';
               when others => null;
             end case;
               

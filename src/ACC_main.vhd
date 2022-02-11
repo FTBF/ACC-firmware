@@ -90,6 +90,11 @@ architecture vhdl of	ACC_main is
     signal data_occ        : Array_16bit;
     signal data_re         : std_logic_vector(N-1 downto 0);
     signal byte_fifo_occ   : DoubleArray_16bit;
+    signal backpressure_out : std_logic_vector(N-1 downto 0);
+    signal backpressure_out_man : std_logic_vector(N-1 downto 0);
+    signal train_manchester_links : std_logic;
+    signal backpressure_threshold : std_logic_vector(11 downto 0);
+    signal ACDC_triggers          : std_logic_vector(N-1 downto 0);
 	
 begin
 
@@ -193,7 +198,7 @@ begin
 	for i in N-1 downto 0 loop
 		LVDS_Out(i)(0) <=	serialTx.serial(i);
 		LVDS_Out(i)(1) <=	trig_out_manchester(i);
-        LVDS_Out(i)(2) <=	'0';
+        LVDS_Out(i)(2) <=	backpressure_out_man(i);
         -- select low speed LVDS RX pair (slow control line)
         serialRx.serial(i)  <= LVDS_In(i)(0);
         --serialRx.serial(i)  <= LVDS_In(i)(0);
@@ -207,28 +212,37 @@ begin
 	end loop;
 end process;
 
--- add layer of manchster encoding to pass trigger through the AC coupled path
+-- add layer of manchster encoding to pass DC signals through the AC coupled path
 manchesterEncoders : for i in 0 to N-1 generate
-  signal toggle : std_logic;
-  signal out_z : std_logic;
+  signal backpressure_out_z : std_logic;
 begin
-  manchesterEncoding : process (clock.x4)
-  begin
-    if rising_edge(clock.x4) then
-      if reset.global then
-        toggle <= '0';
-        out_z <= '0';
-      else
-        if toggle = '0' then
-          trig_out_manchester(i) <= trig_out(i);
-          out_z <= not trig_out(i);
-        else
-          trig_out_manchester(i) <= out_z;
-        end if;
-        toggle <= not toggle;
-      end if;
-    end if;
-  end process;
+
+  manchester_encoder_trig: manchester_encoder
+    port map (
+      clock     => clock.x4,
+      reset     => reset.global,
+      trainTrig => train_manchester_links,
+      sig_in    => trig_out(i),
+      sig_out   => trig_out_manchester(i));
+
+  sync_backpressure: sync_Bits_Altera
+    generic map (
+      BITS       => 1,
+      INIT       => x"00000000",
+      SYNC_DEPTH => 2)
+    port map (
+      Clock  => clock.x4,
+      Input(0)  => backpressure_out(i),
+      Output(0) => backpressure_out_z);
+  
+  manchester_encoder_backpressure: manchester_encoder
+    port map (
+      clock     => clock.x4,
+      reset     => reset.global,
+      trainTrig => train_manchester_links,
+      sig_in    => backpressure_out_z,
+      sig_out   => backpressure_out_man(i));
+  
 end generate;
 
 --
@@ -269,7 +283,10 @@ serialRx_dataBuffer_inst: serialRx_dataBuffer
     byte_fifo_occ    => byte_fifo_occ,
     prbs_error_counts     => prbs_error_counts,
     symbol_error_counts   => symbol_error_counts,
+    backpressure_threshold => backpressure_threshold,
+    backpressure_out => backpressure_out,
     count_reset      => count_reset,
+    trig_out         => ACDC_triggers,
     io_config_clkena => io_config_clkena,
     io_config_datain => io_config_datain,
     io_config_update => io_config_update
@@ -304,7 +321,9 @@ CMD_HANDLER_MAP: commandHandler port map (
         count_reset           => count_reset,
         phaseUpdate      => phaseUpdate,
         updn             => updn,
-        cntsel           => cntsel
+        cntsel           => cntsel,
+        train_manchester_links => train_manchester_links,
+        backpressure_threshold => backpressure_threshold
       );
 
   
@@ -316,37 +335,37 @@ CMD_HANDLER_MAP: commandHandler port map (
 ------------------------------------
 -- handles data frame transmission over usb
 DATA_HANDLER_MAP: dataHandler port map (
-		reset			=> reset.global,
-		clock			=> clock.sys,
-		serialRx		=> serialRx,
-		pllLock		=> clock.altPllLock,
-		trig			=> trig,
-		channel    	=> readChannel,		
-      ramReadEnable  => rxBuffer.ramReadEn,
-      ramAddress     => rxBuffer.ramAddress,
-      ramData        => rxBuffer.ramDataOut,
-      rxDataLen		=> rxBuffer.dataLen,
-		frame_received	=> rxBuffer.frame_received,
-        bufferReadoutDone => rxBuffer.ramReadDone,  -- byte wide, one bit for each channel
-        dataFIFO_readReq => dataFIFO_readReq,
-      data_out         => data_out,
-      data_occ         => data_occ,
-      data_re          => data_re,
+  reset                 => reset.global,
+  clock                 => clock.sys,
+  serialRx              => serialRx,
+  pllLock               => clock.altPllLock,
+  trig                  => trig,
+  channel               => readChannel,		
+  ramReadEnable         => rxBuffer.ramReadEn,
+  ramAddress            => rxBuffer.ramAddress,
+  ramData               => rxBuffer.ramDataOut,
+  rxDataLen             => rxBuffer.dataLen,
+  frame_received        => rxBuffer.frame_received,
+  bufferReadoutDone     => rxBuffer.ramReadDone,  -- byte wide, one bit for each channel
+  dataFIFO_readReq      => dataFIFO_readReq,
+  data_out              => data_out,
+  data_occ              => data_occ,
+  data_re               => data_re,
 
-        param_readReq      => param_readReq,
-        param_num          => param_num,
-		dout 		         => usb.txData_in,
-		txReq					=> usb.txReq,
-      txAck             => usb.txAck,
-      txLockReq         => usb.tx_busReq,
-      txLockAck         => usb.tx_busAck,
-      rxBuffer_readReq	=> rxBuffer.readReq,
-		localInfo_readRequest=> localInfo_readReq,    
-      acdcBoardDetect     	=> acdcBoardDetect,
-		useExtRef		=> useExtRef,
-        prbs_error_counts    => prbs_error_counts,
-      byte_fifo_occ       => byte_fifo_occ,
-        symbol_error_counts  => symbol_error_counts
+  param_readReq         => param_readReq,
+  param_num             => param_num,
+  dout                  => usb.txData_in,
+  txReq					=> usb.txReq,
+  txAck                 => usb.txAck,
+  txLockReq             => usb.tx_busReq,
+  txLockAck             => usb.tx_busAck,
+  rxBuffer_readReq      => rxBuffer.readReq,
+  localInfo_readRequest => localInfo_readReq,    
+  acdcBoardDetect     	=> acdcBoardDetect,
+  useExtRef             => useExtRef,
+  prbs_error_counts     => prbs_error_counts,
+  byte_fifo_occ         => byte_fifo_occ,
+  symbol_error_counts   => symbol_error_counts
 );
 	
 
