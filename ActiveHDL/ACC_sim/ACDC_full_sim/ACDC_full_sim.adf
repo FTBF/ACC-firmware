@@ -1,0 +1,180 @@
+[Project]
+version=4
+Current Config=compile
+Current Flow=Generic
+
+[Library]
+ACDC_full_sim=.\ACDC_full_sim\ACDC_full_sim.LIB
+
+[$LibMap$]
+ACDC_full_sim=.
+
+[Settings]
+FLOW_TYPE=HDL
+LANGUAGE=VHDL
+REFRESH_FLOW=1
+fileopenfolder=C:\Users\pastika\TOF\firmware\ACDC\ACDC-firmware\lib
+
+[SpecTracer]
+WindowVisible=0
+
+[HierarchyViewer]
+HierarchyInformation=
+ShowHide=ShowTopLevel
+Selected=
+
+[Configurations]
+compile=ACDC_full_sim
+
+[Files.Data]
+.\..\..\..\..\..\ACDC\ACDC-firmware\lib\decoder_8b10b.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\lib\encoder_8b10b.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\lib\fallingEdgeDetect.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\lib\fastCounter64.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\lib\LibDG.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\lib\manchester_decoder.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\lib\monostable_async_edge.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\lib\monostable_async_level.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\lib\monostable_asyncio_edge.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\lib\monostable_sync_edge.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\lib\monostable_sync_level.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\lib\prbsGenerator.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\lib\pulseGobbler.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\lib\risingEdgeDetect.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\lib\synchronizer.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\lib\synchronousRx_8b10b.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\lib\synchronousTx_8b10b.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\lib\timeout.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\lib\uart.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\lib\windowGenerator.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\ACDC_main.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\ClockGenerator.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\CommandHandler.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\components.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\data_readout_control.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\DataHandler.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\defs.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\rxCommand.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\selfTrigger.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\serialTx_highSpeed.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\trigger.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\acc_pll.ppf=External File
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\acc_pll.qip=External File
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\acc_pll.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\acc_pll_backup.qip=External File
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\dataRam.cmp=External File
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\dataRam.qip=External File
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\dataRam.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\ddr_iobuf.ppf=External File
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\ddr_iobuf.qip=External File
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\ddr_iobuf.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\pll.cmp=External File
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\pll.ppf=External File
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\pll.qip=External File
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\pll.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\serial_pll.ppf=External File
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\serial_pll.qip=External File
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\serial_pll.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\txFifo.cmp=External File
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\txFifo.qip=External File
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\txFifo.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\txFifo_hs.qip=External File
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\txFifo_hs.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\PSEC4\ADC_ctrl.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\PSEC4\dacSerial.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\PSEC4\PSEC4_dataBuffer.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\PSEC4\PSEC4_driver.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\timeFifo.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\pll_wr.vhd=VHDL Source Code
+.\..\..\..\..\..\ACDC\ACDC-firmware\lib\skid_buffer.vhd=VHDL Source Code
+
+[Files]
+/..\..\..\..\..\..\ACDC\ACDC-firmware\lib\decoder_8b10b.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\lib\encoder_8b10b.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\lib\fallingEdgeDetect.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\lib\fastCounter64.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\lib\LibDG.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\lib\manchester_decoder.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\lib\monostable_async_edge.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\lib\monostable_async_level.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\lib\monostable_asyncio_edge.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\lib\monostable_sync_edge.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\lib\monostable_sync_level.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\lib\prbsGenerator.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\lib\pulseGobbler.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\lib\risingEdgeDetect.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\lib\synchronizer.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\lib\synchronousRx_8b10b.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\lib\synchronousTx_8b10b.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\lib\timeout.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\lib\uart.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\lib\windowGenerator.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\ACDC_main.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\ClockGenerator.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\CommandHandler.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\components.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\data_readout_control.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\DataHandler.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\defs.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\rxCommand.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\selfTrigger.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\serialTx_highSpeed.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\timeFifo.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\trigger.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\acc_pll.ppf=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\acc_pll.qip=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\acc_pll.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\acc_pll_backup.qip=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\dataRam.cmp=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\dataRam.qip=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\dataRam.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\ddr_iobuf.ppf=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\ddr_iobuf.qip=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\ddr_iobuf.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\pll.cmp=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\pll.ppf=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\pll.qip=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\pll.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\serial_pll.ppf=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\serial_pll.qip=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\serial_pll.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\txFifo.cmp=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\txFifo.qip=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\txFifo.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\txFifo_hs.qip=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\txFifo_hs.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\PSEC4\ADC_ctrl.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\PSEC4\dacSerial.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\PSEC4\PSEC4_dataBuffer.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\PSEC4\PSEC4_driver.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\src\QIPcomponents\pll_wr.vhd=-1
+/..\..\..\..\..\..\ACDC\ACDC-firmware\lib\skid_buffer.vhd=-1
+
+[Folders]
+Name0=Event Lists
+Directory0=C:\Users\pastika\TOF\firmware\ACC\ACC-firmware\ActiveHDL\ACC_sim\ACDC_full_sim\
+Extension0=lst
+Name1=Logs
+Directory1=C:\Users\pastika\TOF\firmware\ACC\ACC-firmware\ActiveHDL\ACC_sim\ACDC_full_sim\
+Extension1=log;htm;xml;txt
+Name2=Waveforms
+Directory2=C:\Users\pastika\TOF\firmware\ACC\ACC-firmware\ActiveHDL\ACC_sim\ACDC_full_sim\
+Extension2=asdb;awc;asdbc;asdbe
+Name3=Makefiles
+Directory3=C:\Users\pastika\TOF\firmware\ACC\ACC-firmware\ActiveHDL\ACC_sim\ACDC_full_sim\
+Extension3=mak
+Name4=Memory
+Directory4=C:\Users\pastika\TOF\firmware\ACC\ACC-firmware\ActiveHDL\ACC_sim\ACDC_full_sim\
+Extension4=mem;mif;hex
+Name5=Dll Libraries
+Directory5=C:\Users\pastika\TOF\firmware\ACC\ACC-firmware\ActiveHDL\ACC_sim\ACDC_full_sim\
+Extension5=dll
+Name6=PDF
+Directory6=C:\Users\pastika\TOF\firmware\ACC\ACC-firmware\ActiveHDL\ACC_sim\ACDC_full_sim\
+Extension6=pdf
+Name7=HTML
+Directory7=C:\Users\pastika\TOF\firmware\ACC\ACC-firmware\ActiveHDL\ACC_sim\ACDC_full_sim\
+Extension7=htm;html
+Name8=ALINT-PRO Workspaces
+Directory8=C:\Users\pastika\TOF\firmware\ACC\ACC-firmware\ActiveHDL\ACC_sim\ACDC_full_sim\
+Extension8=alintws
