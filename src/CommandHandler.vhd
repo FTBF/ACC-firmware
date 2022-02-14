@@ -46,7 +46,8 @@ entity commandHandler is
     updn                   : out std_logic;
     cntsel                 : out std_logic_vector(4 downto 0);
     train_manchester_links : out std_logic;
-    backpressure_threshold : out std_logic_vector(11 downto 0)
+    backpressure_threshold : out std_logic_vector(11 downto 0);
+    rxFIFO_resetReq        : out std_logic_vector(N-1 downto 0)
     );
 end commandHandler;
 
@@ -66,6 +67,7 @@ architecture vhdl of commandHandler is
     signal cntsel_and_updn           : std_logic_vector(5 downto 0);
     signal train_manchester_links_z  : std_logic;
     signal backpressure_threshold_z  : std_logic_vector(11 downto 0);
+    signal rxFIFO_resetReq_z         : std_logic_vector(N-1 downto 0);
 begin	
   
 -- note
@@ -120,6 +122,17 @@ begin
       dest_clk     => clock.x4,
       dest_pulse   => train_manchester_links,
       dest_aresetn => nreset);
+
+  rxFIFO_resetReq_Sync : for i in 0 to N - 1 generate
+    pulseSync2_rxFIFO_resetReq: pulseSync2
+      port map (
+        src_clk      => clock.sys,
+        src_pulse    => rxFIFO_resetReq_z(i),
+        src_aresetn  => nreset,
+        dest_clk     => clock.serial25,
+        dest_pulse   => rxFIFO_resetReq(i),
+        dest_aresetn => nreset);
+  end generate;
 
   phaseUpdate <= phaseUpdate_z;
   --pulseSync2_phaseUpdate: pulseSync2
@@ -248,6 +261,7 @@ begin
         count_reset_z <= '0';
         phaseUpdate_z <= '0';
         train_manchester_links_z <= '0';
+        rxFIFO_resetReq_z <= X"00";
         
       else     -- new instruction received
         
@@ -277,6 +291,7 @@ begin
 
             case cmdOption is
               when x"0" => globalResetReq <= '1';
+              when x"1" => rxFIFO_resetReq_z <= din(7 downto 0);
               when x"2" => rxBuffer_resetReq <= din(7 downto 0);
               when others => null;
             end case;	
@@ -336,13 +351,6 @@ begin
                       when x"0" => trig.source(i) <= 0; -- mode 0 = trigger off
                       when x"1" => trig.source(i) <= 1; -- mode 1 = software trigger
                       when x"2" => trig.source(i) <= 2; -- mode 2 = acc sma trigger
-                      when x"3" => trig.source(i) <= 0; -- mode 3 = acdc sma trigger
-                      when x"4" => trig.source(i) <= 0; -- mode 4 = self-trigger
-                      when x"5" => trig.source(i) <= 4; -- mode 5 = self-trigger with acc sma validation
-                      when x"6" => trig.source(i) <= 0; -- mode 6 = self-trigger with acdc sma validation
-                      when x"7" => trig.source(i) <= 2; -- mode 7 = acc sma trigger with acdc sma validation
-                      when x"8" => trig.source(i) <= 4; -- mode 8 = acdc sma trigger with acc sma validation
-                      when x"9" => trig.source(i) <= 3; -- mode 9 = pps trigger 
                       when others =>	trig.source(i) <= 0;
                     end case;
                   end if;

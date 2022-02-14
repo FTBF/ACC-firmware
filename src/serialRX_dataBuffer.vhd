@@ -13,6 +13,8 @@ entity serialRx_dataBuffer is
     clock  : in clock_type;
     reset  : in std_logic;
 
+    rxFIFO_resetReq    : in std_logic_vector(N-1 downto 0);
+
     delayCommand       : in std_logic_vector(11 downto 0);
     delayCommandSet    : in std_logic;
     delayCommandMask   : in std_logic_vector(2*N-1 downto 0);
@@ -344,7 +346,7 @@ begin  -- architecture vhdl
         clock => clock.serial25,
         data  => data_in_lsb_dly,
         rdreq => readFifo,
-        sclr  => reset_sync2 or reset_local,
+        sclr  => reset_sync2 or reset_local or rxFIFO_resetReq(iACDC),
         wrreq => data_in_lsb_write,
         empty => empty_lsb,
         full  => full_lsb,
@@ -356,7 +358,7 @@ begin  -- architecture vhdl
         clock => clock.serial25,
         data  => data_in_msb_dly,
         rdreq => readFifo,
-        sclr  => reset_sync2 or reset_local,
+        sclr  => reset_sync2 or reset_local or rxFIFO_resetReq(iACDC),
         wrreq => data_in_msb_write,
         empty => empty_msb,
         full  => full_msb,
@@ -384,7 +386,7 @@ begin  -- architecture vhdl
     data_occ_loc(iACDC)(15) <= '0';
     serialRX_data_buffer: serialRX_data_fifo
       port map (
-        aclr    => reset_sync2,
+        aclr    => reset_sync2 or rxFIFO_resetReq(iACDC),
         data    => data_out_msb & data_out_lsb,
         rdclk   => clock.sys,
         rdreq   => data_re(iACDC),

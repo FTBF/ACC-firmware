@@ -160,7 +160,8 @@ component commandHandler is
     updn                   : out std_logic;
     cntsel                 : out std_logic_vector(4 downto 0);
     train_manchester_links : out std_logic;
-    backpressure_threshold : out std_logic_vector(11 downto 0)
+    backpressure_threshold : out std_logic_vector(11 downto 0);
+    rxFIFO_resetReq        : out std_logic_vector(N-1 downto 0)
 );
 end component;
 
