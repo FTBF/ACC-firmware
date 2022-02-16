@@ -274,6 +274,7 @@ serialRx_dataBuffer_inst: serialRx_dataBuffer
   port map (
     clock            => clock,
     reset            => reset.global,
+    rxFIFO_resetReq  => rxFIFO_resetReq,
     delayCommand     => delayCommand,
     delayCommandSet  => delayCommandSet,
     delayCommandMask => delayCommandMask,

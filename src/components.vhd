@@ -331,6 +331,7 @@ component serialRx_dataBuffer is
   port (
     clock                  : in  clock_type;
     reset                  : in  std_logic;
+    rxFIFO_resetReq        : in  std_logic_vector(N-1 downto 0);
     delayCommand           : in  std_logic_vector(11 downto 0);
     delayCommandSet        : in  std_logic;
     delayCommandMask       : in  std_logic_vector(15 downto 0);
@@ -341,7 +342,7 @@ component serialRx_dataBuffer is
     byte_fifo_occ          : out DoubleArray_16bit;
     prbs_error_counts      : out DoubleArray_16bit;
     symbol_error_counts    : out DoubleArray_16bit;
-    backpressure_threshold : in std_logic_vector(11 downto 0);
+    backpressure_threshold : in  std_logic_vector(11 downto 0);
     backpressure_out       : out std_logic_vector(N-1 downto 0);
     count_reset            : in  std_logic;
     trig_out               : out std_logic_vector(N-1 downto 0);
