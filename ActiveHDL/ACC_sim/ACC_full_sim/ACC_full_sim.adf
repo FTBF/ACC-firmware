@@ -55,7 +55,7 @@ IncrementalCompilation=0
 AdditionalOptions=
 
 [HierarchyViewer]
-HierarchyInformation=acc_main_tb|sim|0       
+HierarchyInformation=acc_main_tb|sim|0        
 ShowHide=ShowTopLevel
 Selected=
 

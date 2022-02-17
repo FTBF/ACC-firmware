@@ -8,6 +8,9 @@ use work.LibDG.all;
 LIBRARY altera;
 USE altera.altera_primitives_components.all;
 
+LIBRARY altera_mf;
+USE altera_mf.altera_mf_components.all;
+
 entity serialRx_dataBuffer is
   port(
     clock  : in clock_type;
@@ -383,19 +386,47 @@ begin  -- architecture vhdl
     end process;
 
     -- deep data FIFO storing 16 bit wide words
-    data_occ_loc(iACDC)(15) <= '0';
-    serialRX_data_buffer: serialRX_data_fifo
-      port map (
-        aclr    => reset_sync2 or rxFIFO_resetReq(iACDC),
-        data    => data_out_msb & data_out_lsb,
-        rdclk   => clock.sys,
-        rdreq   => data_re(iACDC),
-        wrclk   => clock.serial25,
-        wrreq   => writeBuffer,
-        q       => data_out(iACDC),
-        rdempty => open,
-        rdusedw => data_occ_loc(iACDC)(14 downto 0),
-        wrfull  => open);
+	dcfifo_component : dcfifo
+	GENERIC MAP (
+		intended_device_family => "Arria V",
+		lpm_numwords => 65536,
+		lpm_showahead => "OFF",
+		lpm_type => "dcfifo",
+		lpm_width => 16,
+		lpm_widthu => 16,
+		overflow_checking => "ON",
+		rdsync_delaypipe => 4,
+		read_aclr_synch => "OFF",
+		underflow_checking => "ON",
+		use_eab => "ON",
+		write_aclr_synch => "OFF",
+		wrsync_delaypipe => 4
+	)
+	PORT MAP (
+		aclr => reset_sync2 or rxFIFO_resetReq(iACDC),
+		data => data_out_msb & data_out_lsb,
+		rdclk => clock.sys,
+		rdreq => data_re(iACDC),
+		wrclk => clock.serial25,
+		wrreq => writeBuffer,
+		q => data_out(iACDC),
+		rdempty => open,
+		rdusedw => data_occ_loc(iACDC),
+		wrfull => open,
+		wrusedw => open
+	);
+--    serialRX_data_buffer: serialRX_data_fifo
+--      port map (
+--        aclr    => reset_sync2 or rxFIFO_resetReq(iACDC),
+--        data    => data_out_msb & data_out_lsb,
+--        rdclk   => clock.sys,
+--        rdreq   => data_re(iACDC),
+--        wrclk   => clock.serial25,
+--        wrreq   => writeBuffer,
+--        q       => data_out(iACDC),
+--        rdempty => open,
+--        rdusedw => data_occ_loc(iACDC)(14 downto 0),
+--        wrfull  => open);
 
     backpressure_gen : process( clock.serial25 )
     begin
