@@ -85,6 +85,7 @@ architecture sim of ACC_main_tb is
   signal USB_in       : USB_in_type;
   signal USB_out      : USB_out_type;
   signal USB_bus      : USB_bus_type;
+  signal ETH_in       : ETH_in_type;
   signal DIPswitch    : std_logic_vector (9 downto 0);
   
   signal clockIn_ACDC   : acdc_full_sim.defs.CLOCKSOURCE_TYPE;
@@ -153,6 +154,8 @@ begin  -- architecture sim
       USB_in       => USB_in,
       USB_out      => USB_out,
       USB_bus      => USB_bus,
+	  ETH_in       => ETH_in,
+	  ETH_out      => open,
       DIPswitch    => DIPswitch);
 	  
   acdc_inst : acdc_main
@@ -332,7 +335,7 @@ begin  -- architecture sim
 
 	sendword(X"FFB20040", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
 	sendword(X"FFB1003f", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
-	sendword(X"FFB00002", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) ); 
+	sendword(X"FFB00003", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) ); 
 	
 	wait for 10 us;
 	

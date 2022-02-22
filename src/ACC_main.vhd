@@ -36,6 +36,8 @@ entity ACC_main is
 		USB_in			: in USB_in_type;
 		USB_out			: out USB_out_type;
 		USB_bus			: inout USB_bus_type;
+        ETH_in          : in  ETH_in_type;
+        ETH_out         : out ETH_out_type;
 		DIPswitch		: in   std_logic_vector (9 downto 0)		-- switch reads as a 10-bit binary number msb left (sw1), lsb right (sw10); switch open = logic 1		
 	);
 end ACC_main;

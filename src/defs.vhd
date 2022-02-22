@@ -273,6 +273,21 @@ end record;
 
 
 
+------------------------------------
+--	Ethernet 
+------------------------------------
+
+type ETH_in_type is record
+  rx_clk : std_logic;
+  rx_ctl : std_logic;
+  rx_dat : std_logic_vector(3 downto 0);
+end record;
+
+type ETH_out_type is record
+  tx_clk : std_logic;
+  tx_ctl : std_logic;
+  tx_dat : std_logic_vector(3 downto 0);
+end record;
 
 	
 ------------------------------------
