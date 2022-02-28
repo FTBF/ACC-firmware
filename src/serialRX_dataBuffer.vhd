@@ -14,7 +14,7 @@ USE altera_mf.altera_mf_components.all;
 entity serialRx_dataBuffer is
   port(
     clock  : in clock_type;
-    reset  : in std_logic;
+    reset  : in reset_type;
 
     rxFIFO_resetReq    : in std_logic_vector(N-1 downto 0);
 
@@ -55,6 +55,7 @@ architecture vhdl of serialRx_dataBuffer is
   signal prbs_error_counts_z    : DoubleArray_16bit;
   signal symbol_error_counts_z  : DoubleArray_16bit;
   signal nreset             : std_logic;
+  signal reset_sync0       : std_logic;
   signal reset_sync1       : std_logic;
   signal reset_sync2       : std_logic;
   signal resetFast_sync1       : std_logic;
@@ -82,20 +83,32 @@ begin  -- architecture vhdl
   data_occ <= data_occ_loc;
 
   --synchronize signals
-  nreset <= not reset;
-  reset_sync : process(clock.serial25)
+  nreset <= not reset.global;
+  reset_sync : process(clock.serial25, clock.serialpllLock)
   begin
-    if rising_edge(clock.serial25) then
-      reset_sync1 <= reset;
-      reset_sync2 <= reset_sync1;
+    if clock.serialpllLock = '0' then
+      reset_sync0 <= '1';
+      reset_sync1 <= '1';
+      reset_sync2 <= '1';
+    else
+      if rising_edge(clock.serial25) then
+        reset_sync0 <= reset.global;
+        reset_sync1 <= reset_sync0;
+        reset_sync2 <= reset_sync1;
+      end if;
     end if;
   end process;
   
-  resetFast_sync : process(clock.serial125)
+  resetFast_sync : process(clock.serial125, clock.serialpllLock)
   begin
-    if rising_edge(clock.serial125) then
-      resetFast_sync1 <= reset_sync2;
-      resetFast_sync2 <= resetFast_sync1;
+    if clock.serialpllLock = '0' then
+      resetFast_sync1 <= '1';
+      resetFast_sync2 <= '1';
+    else
+      if rising_edge(clock.serial125) then
+        resetFast_sync1 <= reset_sync2;
+        resetFast_sync2 <= resetFast_sync1;
+      end if;
     end if;
   end process;
 
@@ -127,19 +140,24 @@ begin  -- architecture vhdl
   
   serial_remapping: for i in 2*N-1 downto 0 generate
     signal resetFast_ddr   : std_logic;
-    signal resetFast_ddr_vhdlIsDumb   : std_logic_vector(0 downto 0);
     signal fifoEmpty       : std_logic;
+    signal dpa_pll_lock    : std_logic;
   begin
-    resetFast_ddr <= resetFast_ddr_vhdlIsDumb(0);
+    pll_lock_switch: if i < N generate
+      dpa_pll_lock <= clock.dpa1pllLock;
+    else generate
+      dpa_pll_lock <= clock.dpa2pllLock;
+    end generate;
+    
     syncReset: sync_Bits_Altera
       generic map (
         BITS       => 1,
         INIT       => "0",
-        SYNC_DEPTH => 2)
+        SYNC_DEPTH => 3)
       port map (
-        Clock  => clock.serial125_ps(i),
-        Input  => ""&resetFast_sync2,
-        Output => resetFast_ddr_vhdlIsDumb);
+        Clock     => clock.serial125_ps(i),
+        Input(0)  => resetFast_sync2 and not dpa_pll_lock,
+        Output(0) => resetFast_ddr);
       
     serialRX_ddr_inst: serialRX_ddr
       port map (
@@ -151,6 +169,7 @@ begin  -- architecture vhdl
 
     serialRX_dpa_fifo_inst: serialRX_dpa_fifo
       port map (
+        aclr    => resetFast_ddr,
         data    => serialRX_hs_z(i),
         rdclk   => clock.serial125,
         rdreq   => not fifoEmpty,
@@ -173,10 +192,12 @@ begin  -- architecture vhdl
           wordAlignCount(iLink) <= "000";
           wordAlignOffset(iLink) <= '0';
         else
-          if serialRX_deser_23bit(iLink)(19 downto 0) = sync_word0 & sync_word1 then
+          if (serialRX_deser_23bit(iLink)(19 downto 10) = sync_word0 or serialRX_deser_23bit(iLink)(19 downto 10) = not sync_word0) and
+             (serialRX_deser_23bit(iLink)( 9 downto  0) = sync_word1 or serialRX_deser_23bit(iLink)( 9 downto  0) = not sync_word1) then
             wordAlignCount(iLink) <= "000";
             wordAlignOffset(iLink) <= '0';
-          elsif serialRX_deser_23bit(iLink)(20 downto 1) = sync_word0 & sync_word1 then
+          elsif (serialRX_deser_23bit(iLink)(20 downto 11) = sync_word0 or serialRX_deser_23bit(iLink)(20 downto 11) = not sync_word0) and
+                (serialRX_deser_23bit(iLink)(10 downto  1) = sync_word1 or serialRX_deser_23bit(iLink)(10 downto  1) = not sync_word1) then
             wordAlignCount(iLink) <= "000";
             wordAlignOffset(iLink) <= '1';
           elsif to_integer(wordAlignCount(iLink)) >= 4 then
@@ -227,7 +248,7 @@ begin  -- architecture vhdl
     decoder_8b10b_inst: decoder_8b10b
       port map (
         clock        => clock.serial25,
-        rd_reset     => '0',
+        rd_reset     => reset_sync2,
         din          => serialRX_deser_10bit(iLink),
         din_valid    => '1',
         kout         => serialRX_deser_8bit_kout(iLink),
@@ -283,6 +304,7 @@ begin  -- architecture vhdl
     signal data_out_msb : std_logic_vector(7 downto 0);
     signal readFifo : std_logic;
     signal writeBuffer : std_logic;
+    signal rxFIFO_resetReq_sync : std_logic;
   begin
 
     -- map links into pairs for each ACDC 
@@ -344,12 +366,21 @@ begin  -- architecture vhdl
     byte_fifo_occ(2*iACDC + 1)(15 downto 4) <= "000000000000";
 
     -- shallow byte alignment FIFOs
+    pulseSync2_rxFIFO_resetReq: pulseSync2
+      port map (
+        src_clk      => clock.sys,
+        src_pulse    => rxFIFO_resetReq(iACDC),
+        src_aresetn  => nreset,
+        dest_clk     => clock.serial25,
+        dest_pulse   => rxFIFO_resetReq_sync,
+        dest_aresetn => not reset_sync2);
+
     serialRX_InterByteAlign_lsb: serialRX_InterByteAlign_fifo
       port map (
         clock => clock.serial25,
         data  => data_in_lsb_dly,
         rdreq => readFifo,
-        sclr  => reset_sync2 or reset_local or rxFIFO_resetReq(iACDC),
+        sclr  => reset_sync2 or reset_local or rxFIFO_resetReq_sync,
         wrreq => data_in_lsb_write,
         empty => empty_lsb,
         full  => full_lsb,
@@ -361,7 +392,7 @@ begin  -- architecture vhdl
         clock => clock.serial25,
         data  => data_in_msb_dly,
         rdreq => readFifo,
-        sclr  => reset_sync2 or reset_local or rxFIFO_resetReq(iACDC),
+        sclr  => reset_sync2 or reset_local or rxFIFO_resetReq_sync,
         wrreq => data_in_msb_write,
         empty => empty_msb,
         full  => full_msb,
@@ -403,7 +434,7 @@ begin  -- architecture vhdl
 		wrsync_delaypipe => 4
 	)
 	PORT MAP (
-		aclr => reset_sync2 or rxFIFO_resetReq(iACDC),
+		aclr => reset.global or rxFIFO_resetReq(iACDC),
 		data => data_out_msb & data_out_lsb,
 		rdclk => clock.sys,
 		rdreq => data_re(iACDC),

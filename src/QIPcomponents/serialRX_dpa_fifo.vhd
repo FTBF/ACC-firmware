@@ -43,6 +43,7 @@ USE altera_mf.all;
 ENTITY serialRX_dpa_fifo IS
 	PORT
 	(
+		aclr		: IN STD_LOGIC  := '0';
 		data		: IN STD_LOGIC_VECTOR (1 DOWNTO 0);
 		rdclk		: IN STD_LOGIC ;
 		rdreq		: IN STD_LOGIC ;
@@ -73,11 +74,14 @@ ARCHITECTURE SYN OF serialrx_dpa_fifo IS
 		lpm_widthu		: NATURAL;
 		overflow_checking		: STRING;
 		rdsync_delaypipe		: NATURAL;
+		read_aclr_synch		: STRING;
 		underflow_checking		: STRING;
 		use_eab		: STRING;
+		write_aclr_synch		: STRING;
 		wrsync_delaypipe		: NATURAL
 	);
 	PORT (
+			aclr	: IN STD_LOGIC ;
 			data	: IN STD_LOGIC_VECTOR (1 DOWNTO 0);
 			rdclk	: IN STD_LOGIC ;
 			rdreq	: IN STD_LOGIC ;
@@ -97,18 +101,21 @@ BEGIN
 	dcfifo_component : dcfifo
 	GENERIC MAP (
 		intended_device_family => "Arria V",
-		lpm_numwords => 8,
+		lpm_numwords => 16,
 		lpm_showahead => "OFF",
 		lpm_type => "dcfifo",
 		lpm_width => 2,
-		lpm_widthu => 3,
+		lpm_widthu => 4,
 		overflow_checking => "ON",
 		rdsync_delaypipe => 5,
+		read_aclr_synch => "ON",
 		underflow_checking => "ON",
 		use_eab => "ON",
+		write_aclr_synch => "ON",
 		wrsync_delaypipe => 5
 	)
 	PORT MAP (
+		aclr => aclr,
 		data => data,
 		rdclk => rdclk,
 		rdreq => rdreq,
@@ -132,7 +139,7 @@ END SYN;
 -- Retrieval info: PRIVATE: AlmostFullThr NUMERIC "-1"
 -- Retrieval info: PRIVATE: CLOCKS_ARE_SYNCHRONIZED NUMERIC "0"
 -- Retrieval info: PRIVATE: Clock NUMERIC "4"
--- Retrieval info: PRIVATE: Depth NUMERIC "8"
+-- Retrieval info: PRIVATE: Depth NUMERIC "16"
 -- Retrieval info: PRIVATE: Empty NUMERIC "1"
 -- Retrieval info: PRIVATE: Full NUMERIC "1"
 -- Retrieval info: PRIVATE: INTENDED_DEVICE_FAMILY STRING "Arria V"
@@ -146,7 +153,7 @@ END SYN;
 -- Retrieval info: PRIVATE: UNDERFLOW_CHECKING NUMERIC "0"
 -- Retrieval info: PRIVATE: UsedW NUMERIC "1"
 -- Retrieval info: PRIVATE: Width NUMERIC "2"
--- Retrieval info: PRIVATE: dc_aclr NUMERIC "0"
+-- Retrieval info: PRIVATE: dc_aclr NUMERIC "1"
 -- Retrieval info: PRIVATE: diff_widths NUMERIC "0"
 -- Retrieval info: PRIVATE: msb_usedw NUMERIC "0"
 -- Retrieval info: PRIVATE: output_width NUMERIC "2"
@@ -160,16 +167,19 @@ END SYN;
 -- Retrieval info: PRIVATE: wsUsedW NUMERIC "0"
 -- Retrieval info: LIBRARY: altera_mf altera_mf.altera_mf_components.all
 -- Retrieval info: CONSTANT: INTENDED_DEVICE_FAMILY STRING "Arria V"
--- Retrieval info: CONSTANT: LPM_NUMWORDS NUMERIC "8"
+-- Retrieval info: CONSTANT: LPM_NUMWORDS NUMERIC "16"
 -- Retrieval info: CONSTANT: LPM_SHOWAHEAD STRING "OFF"
 -- Retrieval info: CONSTANT: LPM_TYPE STRING "dcfifo"
 -- Retrieval info: CONSTANT: LPM_WIDTH NUMERIC "2"
--- Retrieval info: CONSTANT: LPM_WIDTHU NUMERIC "3"
+-- Retrieval info: CONSTANT: LPM_WIDTHU NUMERIC "4"
 -- Retrieval info: CONSTANT: OVERFLOW_CHECKING STRING "ON"
 -- Retrieval info: CONSTANT: RDSYNC_DELAYPIPE NUMERIC "5"
+-- Retrieval info: CONSTANT: READ_ACLR_SYNCH STRING "ON"
 -- Retrieval info: CONSTANT: UNDERFLOW_CHECKING STRING "ON"
 -- Retrieval info: CONSTANT: USE_EAB STRING "ON"
+-- Retrieval info: CONSTANT: WRITE_ACLR_SYNCH STRING "ON"
 -- Retrieval info: CONSTANT: WRSYNC_DELAYPIPE NUMERIC "5"
+-- Retrieval info: USED_PORT: aclr 0 0 0 0 INPUT GND "aclr"
 -- Retrieval info: USED_PORT: data 0 0 2 0 INPUT NODEFVAL "data[1..0]"
 -- Retrieval info: USED_PORT: q 0 0 2 0 OUTPUT NODEFVAL "q[1..0]"
 -- Retrieval info: USED_PORT: rdclk 0 0 0 0 INPUT NODEFVAL "rdclk"
@@ -178,6 +188,7 @@ END SYN;
 -- Retrieval info: USED_PORT: wrclk 0 0 0 0 INPUT NODEFVAL "wrclk"
 -- Retrieval info: USED_PORT: wrfull 0 0 0 0 OUTPUT NODEFVAL "wrfull"
 -- Retrieval info: USED_PORT: wrreq 0 0 0 0 INPUT NODEFVAL "wrreq"
+-- Retrieval info: CONNECT: @aclr 0 0 0 0 aclr 0 0 0 0
 -- Retrieval info: CONNECT: @data 0 0 2 0 data 0 0 2 0
 -- Retrieval info: CONNECT: @rdclk 0 0 0 0 rdclk 0 0 0 0
 -- Retrieval info: CONNECT: @rdreq 0 0 0 0 rdreq 0 0 0 0

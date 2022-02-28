@@ -59,6 +59,7 @@ architecture vhdl of commandHandler is
     signal delayCommandMask_z        : std_logic_vector(15 downto 0);
     signal count_reset_z             : std_logic;
     signal nreset                    : std_logic;
+    signal nreset_sync0              : std_logic;
     signal nreset_sync1              : std_logic;
     signal nreset_sync2              : std_logic;
     signal phaseUpdate_z             : std_logic;
@@ -67,7 +68,6 @@ architecture vhdl of commandHandler is
     signal cntsel_and_updn           : std_logic_vector(5 downto 0);
     signal train_manchester_links_z  : std_logic;
     signal backpressure_threshold_z  : std_logic_vector(11 downto 0);
-    signal rxFIFO_resetReq_z         : std_logic_vector(N-1 downto 0);
 begin	
   
 -- note
@@ -88,11 +88,18 @@ begin
 
   -- synchronizers
   nreset <= not reset;
-  reset_sync : process(clock.serial25)
+  reset_sync : process(clock.serial25, clock.serialpllLock)
   begin
-    if rising_edge(clock.serial25) then
-      nreset_sync1 <= nreset;
-      nreset_sync2 <= nreset_sync1;
+    if clock.serialpllLock = '0' then
+      nreset_sync0 <= '0';
+      nreset_sync1 <= '0';
+      nreset_sync2 <= '0';
+    else
+      if rising_edge(clock.serial25) then
+        nreset_sync0 <= nreset;
+        nreset_sync1 <= nreset_sync0;
+        nreset_sync2 <= nreset_sync1;
+      end if;
     end if;
   end process;
   
@@ -122,17 +129,6 @@ begin
       dest_clk     => clock.x4,
       dest_pulse   => train_manchester_links,
       dest_aresetn => nreset);
-
-  rxFIFO_resetReq_Sync : for i in 0 to N - 1 generate
-    pulseSync2_rxFIFO_resetReq: pulseSync2
-      port map (
-        src_clk      => clock.sys,
-        src_pulse    => rxFIFO_resetReq_z(i),
-        src_aresetn  => nreset,
-        dest_clk     => clock.serial25,
-        dest_pulse   => rxFIFO_resetReq(i),
-        dest_aresetn => nreset);
-  end generate;
 
   phaseUpdate <= phaseUpdate_z;
   --pulseSync2_phaseUpdate: pulseSync2
@@ -261,7 +257,7 @@ begin
         count_reset_z <= '0';
         phaseUpdate_z <= '0';
         train_manchester_links_z <= '0';
-        rxFIFO_resetReq_z <= X"00";
+        rxFIFO_resetReq <= X"00";
         
       else     -- new instruction received
         
@@ -291,7 +287,7 @@ begin
 
             case cmdOption is
               when x"0" => globalResetReq <= '1';
-              when x"1" => rxFIFO_resetReq_z <= din(7 downto 0);
+              when x"1" => rxFIFO_resetReq <= din(7 downto 0);
               when x"2" => rxBuffer_resetReq <= din(7 downto 0);
               when others => null;
             end case;	

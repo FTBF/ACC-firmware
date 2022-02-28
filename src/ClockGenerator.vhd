@@ -194,33 +194,33 @@ end process;
 useExtRef <= useExtRef_x;
 
 
-EDGE_DET: risingEdgeDetect port map(clock.sys, pps, pps_risingEdgeDetect);
-
-
-PPS_PROCESS: process(clock.sys)
-variable count: natural:= 0;
-variable t: natural:= 0;
-begin
-	if (rising_edge(clock.sys)) then
-		
-		-- pps detect
-		if (t < 100000000) then 	-- 2.5 sec timer
-			if (pps_risingEdgeDetect = '1') then count := count + 1; end if;
-			t := t + 1;
-		else
-			if (count >= 2) then
-				useExtRef_z <= '1';
-			end if;
-		end if;
-		
-		
-		useExtRef_x <= useEXtRef_z or useExtRef_x;		-- latch. Once high it stays high
-		useExtRef_x2 <= useExtRef_x;
-		resetRequest <= useExtRef_x2 xor useExtRef_x;	-- reset pulse
-
-	end if;
-end process;
-
+--EDGE_DET: risingEdgeDetect port map(clock.sys, pps, pps_risingEdgeDetect);
+--
+--
+--PPS_PROCESS: process(clock.sys)
+--variable count: natural:= 0;
+--variable t: natural:= 0;
+--begin
+--	if (rising_edge(clock.sys)) then
+--		
+--		-- pps detect
+--		if (t < 100000000) then 	-- 2.5 sec timer
+--			if (pps_risingEdgeDetect = '1') then count := count + 1; end if;
+--			t := t + 1;
+--		else
+--			if (count >= 2) then
+--				useExtRef_z <= '1';
+--			end if;
+--		end if;
+--		
+--		
+--		useExtRef_x <= useEXtRef_z or useExtRef_x;		-- latch. Once high it stays high
+--		useExtRef_x2 <= useExtRef_x;
+--		resetRequest <= useExtRef_x2 xor useExtRef_x;	-- reset pulse
+--
+--	end if;
+--end process;
+resetRequest <= '0';
 
 
 

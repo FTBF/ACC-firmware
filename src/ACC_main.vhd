@@ -46,7 +46,8 @@ end ACC_main;
 	
 architecture vhdl of	ACC_main is
 
-
+    constant INCLUDE_ETHERNET : boolean := false;
+  
 	signal	ledSetup				: LEDSetup_type;
 	signal	ledSetup_sw			: LEDSetup_type;
 	signal	ledSetup_hw			: LEDSetup_type;
@@ -98,6 +99,7 @@ architecture vhdl of	ACC_main is
     signal backpressure_threshold : std_logic_vector(11 downto 0);
     signal ACDC_triggers          : std_logic_vector(N-1 downto 0);
     signal rxFIFO_resetReq        : std_logic_vector(N-1 downto 0);
+    signal self_trig       :  std_logic;
 	
 begin
 
@@ -129,7 +131,7 @@ begin
 	end case;
 end process;
 
-SMA(5) <= trig_out(3);
+SMA(5) <= self_trig;
 
 
 
@@ -145,7 +147,8 @@ TRIG_MAP: trigger Port map(
 		pps		=> pps,
 		hw_trig	=> SMA(6) xor trig.SMA_invert,
 		beamGate_trig => beamgate_trig,
-		trig_out	=> trig_out
+		trig_out	=> trig_out,
+        self_trig   => self_trig
 		);
 
 		
@@ -275,7 +278,7 @@ serialRX_iobuf_inst: serialRX_iobuf
 serialRx_dataBuffer_inst: serialRx_dataBuffer
   port map (
     clock            => clock,
-    reset            => reset.global,
+    reset            => reset,
     rxFIFO_resetReq  => rxFIFO_resetReq,
     delayCommand     => delayCommand,
     delayCommandSet  => delayCommandSet,
@@ -489,7 +492,19 @@ begin
 end process;
 	
 	
-	
+------------------------------------
+--	Ethernet interface
+------------------------------------
+
+ETHERNET_SWITCH : if INCLUDE_ETHERNET = true generate
+  ethernet_adapter_inst: ethernet_adapter
+    port map (
+      clock   => clock,
+      reset   => reset.global,
+      ETH_in  => ETH_in,
+      ETH_out => ETH_out);
+end generate;
+
 	
 ------------------------------------
 --	USB DRIVER 

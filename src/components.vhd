@@ -78,7 +78,8 @@ component trigger is
 		pps		: in std_logic;
 		hw_trig	: in std_logic;
 		beamGate_trig: in std_logic;
-		trig_out		:  out std_logic_vector(7 downto 0)
+		trig_out		:  out std_logic_vector(7 downto 0);
+        self_trig       :  out std_logic
 		);
 end component;
 
@@ -330,7 +331,7 @@ end component io_delay_ctrl;
 component serialRx_dataBuffer is
   port (
     clock                  : in  clock_type;
-    reset                  : in  std_logic;
+    reset                  : in  reset_type;
     rxFIFO_resetReq        : in  std_logic_vector(N-1 downto 0);
     delayCommand           : in  std_logic_vector(11 downto 0);
     delayCommandSet        : in  std_logic;
@@ -354,6 +355,7 @@ end component serialRx_dataBuffer;
 
 component serialRX_dpa_fifo is
   port (
+    aclr    : IN  STD_LOGIC := '0';
     data    : IN  STD_LOGIC_VECTOR (1 DOWNTO 0);
     rdclk   : IN  STD_LOGIC;
     rdreq   : IN  STD_LOGIC;
@@ -361,7 +363,7 @@ component serialRX_dpa_fifo is
     wrreq   : IN  STD_LOGIC;
     q       : OUT STD_LOGIC_VECTOR (1 DOWNTO 0);
     rdempty : OUT STD_LOGIC;
-    wrfull  : OUT STD_LOGIC);
+    wrfull  : OUT STD_LOGIC); 
 end component serialRX_dpa_fifo;
 
 
@@ -400,6 +402,15 @@ component serialRX_data_fifo is
     rdusedw : OUT STD_LOGIC_VECTOR (14 DOWNTO 0);
     wrfull  : OUT STD_LOGIC);
 end component serialRX_data_fifo;
+
+
+component ethernet_adapter is
+  port (
+    clock   : in  clock_type;
+    reset   : in  std_logic;
+    ETH_in  : in  ETH_in_type;
+    ETH_out : out ETH_out_type);
+end component ethernet_adapter;
 
 end components;
 

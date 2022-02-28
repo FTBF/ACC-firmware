@@ -51,7 +51,8 @@ entity trigger is
 		pps		: in std_logic;
 		hw_trig	: in std_logic;
 		beamGate_trig: in std_logic;
-		trig_out		:  out std_logic_vector(7 downto 0)
+		trig_out		:  out std_logic_vector(7 downto 0);
+        self_trig       :  out std_logic
 		);
 end trigger;
 
@@ -82,8 +83,19 @@ begin
 -- 3 = pps
 -- 4 = beam gate / pps multiplexed
 
+  selfTrigOut : process(All)
+    variable tout : std_logic;
+  begin
+    tout := '0';
+    for i in 0 to 7 loop
+      if trig.sw(i) = '1' then
+        tout := '1';
+      end if;
+    end loop;
+    self_trig <= tout;
+  end process;
 
-
+  
 TRIG_MULTIPLEXER: process(trig, hw_trig, pps_divided, beamGate_pps_mux)
 begin
 	for i in 0 to 7 loop
