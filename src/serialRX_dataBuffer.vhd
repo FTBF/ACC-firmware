@@ -192,12 +192,12 @@ begin  -- architecture vhdl
           wordAlignCount(iLink) <= "000";
           wordAlignOffset(iLink) <= '0';
         else
-          if (serialRX_deser_23bit(iLink)(19 downto 10) = sync_word0 or serialRX_deser_23bit(iLink)(19 downto 10) = not sync_word0) and
-             (serialRX_deser_23bit(iLink)( 9 downto  0) = sync_word1 or serialRX_deser_23bit(iLink)( 9 downto  0) = not sync_word1) then
+          if (serialRX_deser_23bit(iLink)(19 downto 10) =     sync_word0 and serialRX_deser_23bit(iLink)( 9 downto  0) =     sync_word1) or
+             (serialRX_deser_23bit(iLink)(19 downto 10) = not sync_word0 and serialRX_deser_23bit(iLink)( 9 downto  0) = not sync_word1) then
             wordAlignCount(iLink) <= "000";
             wordAlignOffset(iLink) <= '0';
-          elsif (serialRX_deser_23bit(iLink)(20 downto 11) = sync_word0 or serialRX_deser_23bit(iLink)(20 downto 11) = not sync_word0) and
-                (serialRX_deser_23bit(iLink)(10 downto  1) = sync_word1 or serialRX_deser_23bit(iLink)(10 downto  1) = not sync_word1) then
+          elsif (serialRX_deser_23bit(iLink)(20 downto 11) =     sync_word0 and serialRX_deser_23bit(iLink)(10 downto  1) =     sync_word1) or
+                (serialRX_deser_23bit(iLink)(20 downto 11) = not sync_word0 and serialRX_deser_23bit(iLink)(10 downto  1) = not sync_word1) then
             wordAlignCount(iLink) <= "000";
             wordAlignOffset(iLink) <= '1';
           elsif to_integer(wordAlignCount(iLink)) >= 4 then
@@ -324,7 +324,7 @@ begin  -- architecture vhdl
         data_in_msb_dly <= data_in_msb;
         data_in_lsb_dly <= data_in_lsb;
 
-        -- write when inside a packet (after symbol F7 but before F8 or Idle
+        -- write when inside a packet (after symbol F7 but before 9C or Idle
         -- (1C)) and when data is valid and not a k code
         if reset_sync2 = '1' or reset_local = '1' then
           data_in_lsb_write <= '0';
