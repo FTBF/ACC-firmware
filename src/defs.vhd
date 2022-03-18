@@ -284,6 +284,7 @@ type ETH_in_type is record
 end record;
 
 type ETH_out_type is record
+  resetn : std_logic;
   tx_clk : std_logic;
   tx_ctl : std_logic;
   tx_dat : std_logic_vector(3 downto 0);

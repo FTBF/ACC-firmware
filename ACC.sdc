@@ -16,6 +16,11 @@ create_clock -period "125.0 MHz" [get_ports ETH_in.rx_clk]
 
 set_max_delay -from [get_registers *param_handshake_sync*src_params_latch*] -to [get_registers *param_handshake_sync*dest_params*] 25
 
+
+set_false_path -from [get_clocks {ethernet_adapter:\ETHERNET_SWITCH:ethernet_adapter_inst|ETH_pll:ETH_pll_inst|ETH_pll_0002:eth_pll_inst|altera_pll:altera_pll_i|outclk_wire[0]}] -to [get_clocks {ClockGenerator:clockGen_map|pll_serial:pll_serial_inst|pll_serial_0002:pll_serial_inst|altera_pll:altera_pll_i|outclk_wire[0]}]
+set_false_path -to [get_clocks {ethernet_adapter:\ETHERNET_SWITCH:ethernet_adapter_inst|ETH_pll:ETH_pll_inst|ETH_pll_0002:eth_pll_inst|altera_pll:altera_pll_i|outclk_wire[0]}] -from [get_clocks {ClockGenerator:clockGen_map|pll_serial:pll_serial_inst|pll_serial_0002:pll_serial_inst|altera_pll:altera_pll_i|outclk_wire[0]}]
+
+
 #trig slow control prameters 
 set_false_path -from [get_registers {commandHandler:CMD_HANDLER_MAP|trig.SMA_invert commandHandler:CMD_HANDLER_MAP|trig.source*}] -to [get_registers {serialTx_ddr:serialTx_ddr_trigger|altddio_out:ALTDDIO_OUT_component|ddio_out_m9j:auto_generated|ddio_outa*}]
 

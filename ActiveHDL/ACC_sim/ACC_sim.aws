@@ -10,7 +10,7 @@ mode=none
 order=1
 macro=
 [Expand]
-acc_full_sim=0
+acc_full_sim=1
 acdc_src=0
 acdc_full_sim=0
 [Settings]

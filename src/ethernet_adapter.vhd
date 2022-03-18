@@ -28,7 +28,10 @@ entity ethernet_adapter is
     reset           : in std_logic;
 
     ETH_in          : in  ETH_in_type;
-    ETH_out         : out ETH_out_type
+    ETH_out         : out ETH_out_type;
+
+    ETH_mdc         : inout std_logic;
+    ETH_mdio        : inout std_logic
 
 --    -- rx/tx signals
 --    rx_addr              	: out   std_logic_vector (31 downto 0); 
@@ -68,6 +71,8 @@ architecture vhdl of ethernet_adapter is
   end component ethernet_interface;
   
   --RX signals
+  signal rx_clk  : std_logic;
+  signal rx_clk_lock  : std_logic;
   signal rx_dv   : std_logic;
   signal rx_tmp  : std_logic;
   signal rx_er   : std_logic;
@@ -75,9 +80,11 @@ architecture vhdl of ethernet_adapter is
   
   --TX signals
   signal gtx_clk : std_logic;
+  signal tx_clk  : std_logic;
   signal tx_en   : std_logic;
   signal tx_er   : std_logic;
   signal tx_dat  : std_logic_vector(7 downto 0);
+  signal tx_dat_z : std_logic_vector(7 downto 0);
 
   type mem_type is array (7 downto 0) of std_logic_vector(63 downto 0);
   signal cfg_mem : mem_type;
@@ -94,12 +101,37 @@ architecture vhdl of ethernet_adapter is
   signal b_enable             	: std_logic;
 
   -- other signals
+  signal clockIn_global : std_logic;
+  
   signal resetSync_serial : std_logic;
 
   signal resetSync_eth : std_logic;
+  signal resetSync_eth_z : std_logic;
+
+  signal reset_out : std_logic;
+
+  signal tx_mdc     : std_logic;
+  signal rx_mdio    : std_logic;
+  signal tx_mdio    : std_logic;
+  signal tx_mdio_we : std_logic;
+
+  signal debug_clock : std_logic;
 
 begin
 
+  eth_clk_ctrl_inst: eth_clk_ctrl
+    port map (
+      inclk  => ETH_in.rx_clk,
+      outclk => clockIn_global);
+  
+  ETH_pll_inst: ETH_pll
+    port map (
+      refclk   => clockIn_global,
+      rst      => resetSync_serial,
+      outclk_0 => rx_clk,
+      outclk_1 => debug_clock,
+      locked   => rx_clk_lock);
+  
   reset_sync_serial: sync_Bits_Altera
     generic map (
       BITS       => 1,
@@ -116,10 +148,12 @@ begin
       INIT       => x"00000000",
       SYNC_DEPTH => 2)
     port map (
-      Clock  => ETH_in.rx_ctl,
+      Clock  => rx_clk,
       Input(0)  => reset,
-      Output(0) => resetSync_eth);
-
+      Output(0) => resetSync_eth_z);
+  
+  resetSync_eth <= resetSync_eth_z or not rx_clk_lock;
+  
   -- RX signal DDR logic 
   rx_ctl_ddr : ALTDDIO_IN
 	GENERIC MAP (
@@ -133,9 +167,9 @@ begin
 	PORT MAP (
       aclr => resetSync_eth,
       datain(0) => ETH_in.rx_ctl,
-      inclock => ETH_in.rx_clk,
-      dataout_h(0) => rx_dv,
-      dataout_l(0) => rx_tmp
+      inclock => rx_clk,
+      dataout_h(0) => rx_tmp,
+      dataout_l(0) => rx_dv
       );
 
   rx_er <= rx_dv xor rx_tmp;
@@ -152,9 +186,9 @@ begin
 	PORT MAP (
       aclr => resetSync_eth,
       datain => ETH_in.rx_dat,
-      inclock => ETH_in.rx_clk,
-      dataout_h => rx_dat(3 downto 0),
-      dataout_l => rx_dat(7 downto 4)
+      inclock => rx_clk,
+      dataout_h => rx_dat(7 downto 4),
+      dataout_l => rx_dat(3 downto 0)
       );
 
   --TX signal DDR logic
@@ -173,11 +207,13 @@ begin
       )
     PORT MAP (
       datain_h(0) => tx_en,
-      datain_l(0) => tx_en xor tx_er,
-      outclock => gtx_clk,
+      datain_l(0) => tx_en,
+      outclock => tx_clk,
       dataout(0) => ETH_out.tx_ctl
       );
 
+  tx_data_ddr_gen : for i in 0 to 3 generate
+  begin
     tx_data_ddr : ALTDDIO_OUT
     GENERIC MAP (
       extend_oe_disable => "OFF",
@@ -187,20 +223,27 @@ begin
       lpm_type => "altddio_out",
       oe_reg => "UNREGISTERED",
       power_up_high => "OFF",
-      width => 4
+      width => 1
       )
     PORT MAP (
-      datain_h => tx_dat(3 downto 0),
-      datain_l => tx_dat(7 downto 4),
-      outclock => gtx_clk,
-      dataout => ETH_out.tx_dat
+      datain_h(0) => tx_dat(0 + i),
+      datain_l(0) => tx_dat(4 + i),
+      outclock    => tx_clk,
+      dataout(0)  => ETH_out.tx_dat(i)
+      
       );
+  end generate;
+
+  --tx_dat_z <= tx_dat when tx_en = '1' else X"DD";
+
+--  phy_reset : process(clock.serial25)
+  ETH_out.resetn <= not reset_out;
 
   --ethernet interface
   ethernet_interface_inst: ethernet_interface
     port map (
       reset_in   => resetSync_eth,
-      reset_out  => open,
+      reset_out  => reset_out,
 
       -- mmap interface signals 
       rx_addr    => rx_addr,
@@ -212,20 +255,20 @@ begin
       b_data_we  => b_data_we,
       b_enable   => b_enable,
       --PHY interface signals 
-      MASTER_CLK => ETH_in.rx_clk,
-      USER_CLK   => ETH_in.rx_clk,
+      MASTER_CLK => rx_clk,
+      USER_CLK   => clock.serial25,
       PHY_RXD    => rx_dat,
       PHY_RX_DV  => rx_dv,
       PHY_RX_ER  => rx_er,
-      TX_CLK     => gtx_clk,
+      TX_CLK     => tx_clk,
       PHY_TXD    => tx_dat,
       PHY_TX_EN  => tx_en,
       PHY_TX_ER  => tx_er);
 
   tx_data <= cfg_mem(to_integer(unsigned(rx_addr)));
-  read_mux : process(ETH_in.rx_clk)
+  read_mux : process(rx_clk)
   begin
-    if rising_Edge(ETH_in.rx_clk) then
+    if rising_Edge(rx_clk) then
       if resetSync_eth = '1' then
         for i in 0 to 7 loop
           cfg_mem(i) <= X"0000000000000000";
@@ -238,4 +281,40 @@ begin
     end if;
   end process;
 
+  ETH_out_pll_inst: ETH_out_pll
+    port map (
+      refclk   => tx_clk,
+      rst      => resetSync_serial,
+      outclk_0 => gtx_clk,
+      locked   => open);
+
+  
+  --mdio configuration of chip
+  -- open collector buffer for mdX
+--  IOBuf_openCollector_mdc: IOBuf_openCollector_iobuf_bidir_cfo
+--    port map (
+--      datain(0)  => tx_mdc,
+--      dataio(0)  => ETH_mdc,
+--      dataout    => open,
+--      oe         => "1");
+--
+--  IOBuf_openCollector_mdio: IOBuf_openCollector_iobuf_bidir_cfo
+--    port map (
+--      datain(0)  => tx_mdio,
+--      dataio(0)  => ETH_mdio,
+--      dataout(0) => rx_mdio,
+--      oe(0)      => tx_mdio_we);
+
+--  mdio_controller : process(rx_clk)
+--    variable countDown : natural;
+--  begin
+--    if rising_Edge(rx_clk) then
+--      if resetSync_eth = '1' then
+--        tx_mdc     => '1';
+--        tx_mdio    => '1';
+--        tx_mdio_we => '0';
+--      end if;
+--    end if;
+--  end
+  
 end vhdl;

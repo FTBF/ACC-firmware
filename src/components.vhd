@@ -409,8 +409,45 @@ component ethernet_adapter is
     clock   : in  clock_type;
     reset   : in  std_logic;
     ETH_in  : in  ETH_in_type;
-    ETH_out : out ETH_out_type);
+    ETH_out : out ETH_out_type;
+    ETH_mdc  : inout std_logic;
+    ETH_mdio : inout std_logic);
 end component ethernet_adapter;
+
+
+component ETH_pll is
+  port (
+    refclk   : in  std_logic := '0';
+    rst      : in  std_logic := '0';
+    outclk_0 : out std_logic;
+    outclk_1 : out std_logic;
+    locked   : out std_logic);
+end component ETH_pll;
+
+
+component ETH_out_pll is
+  port (
+    refclk   : in  std_logic := '0';
+    rst      : in  std_logic := '0';
+    outclk_0 : out std_logic;
+    locked   : out std_logic);
+end component ETH_out_pll;
+
+component eth_clk_ctrl is
+  port (
+    inclk  : in  std_logic := '0'; --  altclkctrl_input.inclk
+    outclk : out std_logic         -- altclkctrl_output.outclk
+	);
+end component eth_clk_ctrl;
+
+component IOBuf_openCollector_iobuf_bidir_cfo is
+  port (
+    datain  : IN    STD_LOGIC_VECTOR (0 DOWNTO 0);
+    dataio  : INOUT STD_LOGIC_VECTOR (0 DOWNTO 0);
+    dataout : OUT   STD_LOGIC_VECTOR (0 DOWNTO 0);
+    oe      : IN    STD_LOGIC_VECTOR (0 DOWNTO 0));
+end component IOBuf_openCollector_iobuf_bidir_cfo;
+
 
 end components;
 

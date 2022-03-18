@@ -38,6 +38,8 @@ entity ACC_main is
 		USB_bus			: inout USB_bus_type;
         ETH_in          : in  ETH_in_type;
         ETH_out         : out ETH_out_type;
+        ETH_mdc         : inout std_logic;
+        ETH_mdio        : inout std_logic;
 		DIPswitch		: in   std_logic_vector (9 downto 0)		-- switch reads as a 10-bit binary number msb left (sw1), lsb right (sw10); switch open = logic 1		
 	);
 end ACC_main;
@@ -46,7 +48,7 @@ end ACC_main;
 	
 architecture vhdl of	ACC_main is
 
-    constant INCLUDE_ETHERNET : boolean := false;
+    constant INCLUDE_ETHERNET : boolean := true;
   
 	signal	ledSetup				: LEDSetup_type;
 	signal	ledSetup_sw			: LEDSetup_type;
@@ -499,10 +501,13 @@ end process;
 ETHERNET_SWITCH : if INCLUDE_ETHERNET = true generate
   ethernet_adapter_inst: ethernet_adapter
     port map (
-      clock   => clock,
-      reset   => reset.global,
-      ETH_in  => ETH_in,
-      ETH_out => ETH_out);
+      clock    => clock,
+      reset    => reset.global,
+      ETH_in   => ETH_in,
+      ETH_out  => ETH_out,
+      ETH_mdc  => ETH_mdc,
+      ETH_mdio => ETH_mdio
+);
 end generate;
 
 	

@@ -67,7 +67,8 @@ architecture sim of ACC_main_tb is
   constant OSC_PERIOD : time := 40 ns;
   constant JCPLL_PERIOD : time := 25 ns;
   constant USB_PERIOD : time := 20.8 ns; 
-  constant WR_PERIOD : time := 10 ns;
+  constant WR_PERIOD : time := 10 ns; 
+  constant ETH_PERIOD : time := 8 ns;
 
   shared variable ENDSIM : boolean := false; 
   
@@ -86,6 +87,9 @@ architecture sim of ACC_main_tb is
   signal USB_out      : USB_out_type;
   signal USB_bus      : USB_bus_type;
   signal ETH_in       : ETH_in_type;
+  signal ETH_out      : ETH_out_type;
+  signal ETH_mdc      : std_logic;
+  signal ETH_mdio     : std_logic;
   signal DIPswitch    : std_logic_vector (9 downto 0);
   
   signal clockIn_ACDC   : acdc_full_sim.defs.CLOCKSOURCE_TYPE;
@@ -108,7 +112,9 @@ architecture sim of ACC_main_tb is
   
   signal fastClk      : std_logic;
   signal reset        : std_logic;				  
-  signal prbs         : std_logic_vector(15 downto 0);
+  signal prbs         : std_logic_vector(15 downto 0); 
+  
+  signal tmpEthData   : std_logic_vector(4 downto 0);
   
   type trig_type is array (4 downto 0) of std_logic_vector(5 downto 0);
   signal selftrig : trig_type;
@@ -132,8 +138,20 @@ architecture sim of ACC_main_tb is
 	wait for 10 ns;
 	
 	--word_out <= "ZZZZZZZZZZZZZZZZ";
-  end sendword;
-
+  end sendword;	
+  
+  procedure ethSend
+  ( constant word : in std_logic_vector(7 downto 0);
+  signal word_out : out std_logic_vector(4 downto 0)) is
+  begin
+	word_out(4) <= '1';
+	word_out(3 downto 0) <= word(3 downto 0);
+	wait for ETH_PERIOD / 2;
+	
+	word_out(4) <= '1';
+	word_out(3 downto 0) <= word(7 downto 4);
+	wait for ETH_PERIOD / 2;
+  end ethSend;
 
 
 begin  -- architecture sim
@@ -155,8 +173,10 @@ begin  -- architecture sim
       USB_out      => USB_out,
       USB_bus      => USB_bus,
 	  ETH_in       => ETH_in,
-	  ETH_out      => open,
-      DIPswitch    => DIPswitch);
+	  ETH_out      => ETH_out,
+      ETH_mdc  	   => ETH_mdc,
+	  ETH_mdio 	   => ETH_mdio,
+	  DIPswitch    => DIPswitch);
 	  
   acdc_inst : acdc_main
 	port map(
@@ -265,6 +285,18 @@ begin  -- architecture sim
     end if;
   end process;
   
+  ETH_CLK_GEN_PROC : process 
+  begin
+    if ENDSIM = false then
+      ETH_in.rx_clk <= '0';
+      wait for ETH_PERIOD / 2;
+      ETH_in.rx_clk <= '1';
+      wait for ETH_PERIOD / 2;
+    else 
+      wait;
+    end if;
+  end process;
+  
   fakeData : for i in 0 to 4 generate
 	PSEC4_in(i).trig <= selftrig(i);
 	PSEC4_in(i).overflow <= '0';
@@ -285,6 +317,106 @@ begin  -- architecture sim
       end if;
     end process;
   end generate;
+  
+  ETH_in.rx_dat <= transport tmpEthData(3 downto 0) after 6 ns;	
+  ETH_in.rx_ctl <= transport tmpEthData(4) after 6 ns;
+  
+  eth_process : process
+  begin
+	tmpEthData <= "0" & X"d";
+	
+	wait for 50 us;	
+
+	ethSend(X"55", tmpEthData);
+	ethSend(X"55", tmpEthData);
+	ethSend(X"55", tmpEthData);
+	ethSend(X"55", tmpEthData);
+	ethSend(X"55", tmpEthData);
+	ethSend(X"55", tmpEthData);
+	ethSend(X"55", tmpEthData);
+	
+	ethSend(X"D5", tmpEthData);
+	
+	ethSend(X"FF", tmpEthData);
+	ethSend(X"FF", tmpEthData);
+	ethSend(X"FF", tmpEthData);
+	ethSend(X"FF", tmpEthData);
+	ethSend(X"FF", tmpEthData);
+	ethSend(X"FF", tmpEthData);
+	
+	ethSend(X"DC", tmpEthData);
+	ethSend(X"A6", tmpEthData);
+	ethSend(X"32", tmpEthData);
+	ethSend(X"78", tmpEthData);
+	ethSend(X"07", tmpEthData);
+	ethSend(X"B4", tmpEthData);
+	
+	ethSend(X"08", tmpEthData);
+	ethSend(X"06", tmpEthData);
+	
+	ethSend(X"00", tmpEthData);
+	ethSend(X"01", tmpEthData);
+	ethSend(X"08", tmpEthData);
+	ethSend(X"00", tmpEthData);
+	ethSend(X"06", tmpEthData);
+	ethSend(X"04", tmpEthData);
+	ethSend(X"00", tmpEthData);
+	ethSend(X"01", tmpEthData);
+	
+	ethSend(X"DC", tmpEthData);
+	ethSend(X"A6", tmpEthData);
+	ethSend(X"32", tmpEthData);
+	ethSend(X"78", tmpEthData);
+	ethSend(X"07", tmpEthData);
+	ethSend(X"B4", tmpEthData);
+	
+	ethSend(X"C0", tmpEthData);
+	ethSend(X"A8", tmpEthData);
+	ethSend(X"85", tmpEthData);
+	ethSend(X"16", tmpEthData);
+	
+	ethSend(X"00", tmpEthData);
+	ethSend(X"00", tmpEthData);
+	ethSend(X"00", tmpEthData);
+	ethSend(X"00", tmpEthData);
+	ethSend(X"00", tmpEthData);
+	ethSend(X"00", tmpEthData);
+	
+	ethSend(X"C0", tmpEthData);
+	ethSend(X"A8", tmpEthData);
+	ethSend(X"01", tmpEthData);
+	ethSend(X"01", tmpEthData);
+	
+	ethSend(X"00", tmpEthData);
+	ethSend(X"00", tmpEthData);
+	ethSend(X"00", tmpEthData);
+	ethSend(X"00", tmpEthData);
+	ethSend(X"00", tmpEthData);
+	ethSend(X"00", tmpEthData);
+	ethSend(X"00", tmpEthData);
+	ethSend(X"00", tmpEthData);
+	ethSend(X"00", tmpEthData);
+	ethSend(X"00", tmpEthData);
+	ethSend(X"00", tmpEthData);
+	ethSend(X"00", tmpEthData);
+	ethSend(X"00", tmpEthData);
+	ethSend(X"00", tmpEthData);
+	ethSend(X"00", tmpEthData);
+	ethSend(X"00", tmpEthData);
+	ethSend(X"00", tmpEthData);
+	ethSend(X"00", tmpEthData);
+	
+	ethSend(X"D6", tmpEthData);
+	ethSend(X"EF", tmpEthData);
+	ethSend(X"F9", tmpEthData);
+	ethSend(X"B6", tmpEthData);
+	
+	tmpEthData <= "0" & X"d";
+	
+	wait;
+	
+  end process;
+  
   
   -- waveform generation
   WaveGen_Proc: process
