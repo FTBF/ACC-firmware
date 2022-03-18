@@ -129,7 +129,7 @@ begin
       refclk   => clockIn_global,
       rst      => resetSync_serial,
       outclk_0 => rx_clk,
-      outclk_1 => debug_clock,
+      outclk_1 => gtx_clk,
       locked   => rx_clk_lock);
   
   reset_sync_serial: sync_Bits_Altera
@@ -212,9 +212,7 @@ begin
       dataout(0) => ETH_out.tx_ctl
       );
 
-  tx_data_ddr_gen : for i in 0 to 3 generate
-  begin
-    tx_data_ddr : ALTDDIO_OUT
+  tx_data_ddr : ALTDDIO_OUT
     GENERIC MAP (
       extend_oe_disable => "OFF",
       intended_device_family => "Arria V",
@@ -223,16 +221,14 @@ begin
       lpm_type => "altddio_out",
       oe_reg => "UNREGISTERED",
       power_up_high => "OFF",
-      width => 1
+      width => 4
       )
     PORT MAP (
-      datain_h(0) => tx_dat(0 + i),
-      datain_l(0) => tx_dat(4 + i),
-      outclock    => tx_clk,
-      dataout(0)  => ETH_out.tx_dat(i)
-      
+      datain_h => tx_dat(3 downto 0),
+      datain_l => tx_dat(7 downto 4),
+      outclock => tx_clk,
+      dataout  => ETH_out.tx_dat      
       );
-  end generate;
 
   --tx_dat_z <= tx_dat when tx_en = '1' else X"DD";
 
@@ -281,12 +277,12 @@ begin
     end if;
   end process;
 
-  ETH_out_pll_inst: ETH_out_pll
-    port map (
-      refclk   => tx_clk,
-      rst      => resetSync_serial,
-      outclk_0 => gtx_clk,
-      locked   => open);
+--  ETH_out_pll_inst: ETH_out_pll
+--    port map (
+--      refclk   => tx_clk,
+--      rst      => resetSync_serial,
+--      outclk_0 => gtx_clk,
+--      locked   => open);
 
   
   --mdio configuration of chip
