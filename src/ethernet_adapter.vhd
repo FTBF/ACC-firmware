@@ -15,6 +15,7 @@
 library IEEE; 
 use ieee.std_logic_1164.all;
 USE ieee.numeric_std.ALL; 
+use ieee.std_logic_misc.ALL;
 use work.defs.all;
 use work.components.all;
 use work.LibDG.all;
@@ -276,6 +277,62 @@ begin
       end if;
     end if;
   end process;
+
+  -- start data gen block
+  dataGenGen : for i in 0 to 0 generate
+    signal reg_cnt : unsigned(63 downto 0) := (others => '0'); -- 1s is infinite
+    signal reg_rate : unsigned(63 downto 0) := (others => '0');  -- delay between 8 clock periods
+    
+    signal cnt : unsigned(2 downto 0) := (others => '0');
+    signal delay_cnt : unsigned(63 downto 0) := (others => '0');
+    signal data_cnt : unsigned(31 downto 0) := (others => '0');
+
+--    attribute mark_debug of reg_cnt : signal is "true";
+--    attribute mark_debug of reg_rate : signal is "true";
+--    attribute mark_debug of cnt : signal is "true";
+--    attribute mark_debug of delay_cnt : signal is "true";
+--    attribute mark_debug of data_cnt : signal is "true";
+  begin
+    process(rx_clk)
+    begin
+      if (rising_edge(rx_clk)) then
+        
+        b_data_we <= '0';
+        
+        -- register map
+        if (rx_wren = '1') then 	
+          if (unsigned(rx_addr) = x"1001") then --reg_cnt
+            reg_cnt <= unsigned(rx_data); 
+          elsif (unsigned(rx_addr) = x"1002") then --reg_rate
+            reg_rate <= unsigned(rx_data); 						
+          end if;
+          delay_cnt <= (others => '0'); --reset delay and execute burst write
+        else
+          
+          cnt <= cnt + 1; 
+          if (cnt = 0) then	--count groups of 8 with wrap around
+            delay_cnt <= delay_cnt + 1;
+            
+            if (delay_cnt = reg_rate and reg_cnt /= 0) then
+              delay_cnt <= (others => '0'); --reset delay and execute burst write
+              b_data(63 downto 32) <= std_logic_vector(data_cnt);
+              b_data(31 downto 0) <= tx_data(31 downto 0); -- last saved write
+              b_data_we <= '1';
+              data_cnt <= data_cnt + 1;
+              
+              if ( and_reduce(std_logic_vector(reg_cnt)) /= '1' ) then --count down pulses, if not infinite
+                reg_cnt <= reg_cnt - 1;
+              end if;
+            end if;
+          end if;
+        end if;
+      end if;
+        
+    end process;
+
+  end generate;	
+  -- end data gen block
+
 
 --  ETH_out_pll_inst: ETH_out_pll
 --    port map (

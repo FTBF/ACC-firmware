@@ -6,7 +6,7 @@
 -- Author     :   <Pastika@ITID20020501N>
 -- Company    : 
 -- Created    : 2021-10-15
--- Last update: 2022-02-02
+-- Last update: 2022-03-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -327,7 +327,7 @@ begin  -- architecture sim
 	
 	wait for 50 us;	
 
-	ethSend(X"55", tmpEthData);
+    ethSend(X"55", tmpEthData);
 	ethSend(X"55", tmpEthData);
 	ethSend(X"55", tmpEthData);
 	ethSend(X"55", tmpEthData);
@@ -411,6 +411,88 @@ begin  -- architecture sim
 	ethSend(X"F9", tmpEthData);
 	ethSend(X"B6", tmpEthData);
 	
+	tmpEthData <= "0" & X"d";
+
+    wait for 20 us;
+    
+    ethSend(X"55", tmpEthData);
+	ethSend(X"55", tmpEthData);
+	ethSend(X"55", tmpEthData);
+	ethSend(X"55", tmpEthData);
+	ethSend(X"55", tmpEthData);
+	ethSend(X"55", tmpEthData);
+	ethSend(X"55", tmpEthData);
+	
+	ethSend(X"D5", tmpEthData);
+	
+    ethSend(X"00", tmpEthData);
+    ethSend(X"80", tmpEthData);
+    ethSend(X"55", tmpEthData);
+    ethSend(X"ec", tmpEthData);
+    ethSend(X"00", tmpEthData);
+    ethSend(X"6b", tmpEthData);
+
+    ethSend(X"d0", tmpEthData);
+    ethSend(X"8e", tmpEthData);
+    ethSend(X"79", tmpEthData);
+    ethSend(X"d7", tmpEthData);
+    ethSend(X"b5", tmpEthData);
+    ethSend(X"e0", tmpEthData);
+
+    ethSend(X"08", tmpEthData);
+    ethSend(X"00", tmpEthData);
+    ethSend(X"45", tmpEthData);
+    ethSend(X"00", tmpEthData);
+    ethSend(X"00", tmpEthData);
+    ethSend(X"2e", tmpEthData);
+    ethSend(X"0f", tmpEthData);
+    ethSend(X"48", tmpEthData);
+    ethSend(X"00", tmpEthData);
+    ethSend(X"00", tmpEthData);
+    ethSend(X"80", tmpEthData);
+    ethSend(X"11", tmpEthData);
+    ethSend(X"00", tmpEthData);
+    ethSend(X"00", tmpEthData);
+    ethSend(X"c0", tmpEthData);
+    ethSend(X"a8", tmpEthData);
+    ethSend(X"85", tmpEthData);
+    ethSend(X"01", tmpEthData);
+    ethSend(X"c0", tmpEthData);
+    ethSend(X"a8", tmpEthData);
+    ethSend(X"85", tmpEthData);
+    ethSend(X"6b", tmpEthData);
+    ethSend(X"e5", tmpEthData);
+    ethSend(X"c0", tmpEthData);
+    ethSend(X"07", tmpEthData);
+    ethSend(X"d7", tmpEthData);
+    ethSend(X"00", tmpEthData);
+    ethSend(X"1a", tmpEthData);
+    ethSend(X"8b", tmpEthData);
+    ethSend(X"e9", tmpEthData);
+    ethSend(X"01", tmpEthData);
+    ethSend(X"01", tmpEthData);
+    ethSend(X"09", tmpEthData);
+    ethSend(X"00", tmpEthData);
+    ethSend(X"00", tmpEthData);
+    ethSend(X"00", tmpEthData);
+    ethSend(X"01", tmpEthData);
+    ethSend(X"00", tmpEthData);
+    ethSend(X"00", tmpEthData);
+    ethSend(X"00", tmpEthData);
+    ethSend(X"01", tmpEthData);
+    ethSend(X"00", tmpEthData);
+    ethSend(X"00", tmpEthData);
+    ethSend(X"00", tmpEthData);
+    ethSend(X"00", tmpEthData);
+    ethSend(X"00", tmpEthData);
+    ethSend(X"00", tmpEthData);
+    ethSend(X"00", tmpEthData);
+
+    ethSend(X"56", tmpEthData);
+    ethSend(X"fa", tmpEthData);
+    ethSend(X"07", tmpEthData);
+    ethSend(X"e1", tmpEthData);
+    
 	tmpEthData <= "0" & X"d";
 	
 	wait;
