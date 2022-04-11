@@ -20,7 +20,7 @@ LANGUAGE=VHDL
 REFRESH_FLOW=1
 FLOWTOOLS=NONE
 FAMILY=Intel ArriaV
-fileopenfolder=C:\Users\pastika\TOF\firmware\ACC\ACC-firmware\src\QIPcomponents\eth_clk_ctrl\synthesis\submodules
+fileopenfolder=C:\Users\pastika\TOF\firmware\ACC\ACC-firmware\src
 WireDelay=2
 AccessACCB=0
 AccessACCR=0
@@ -55,7 +55,7 @@ IncrementalCompilation=0
 AdditionalOptions=
 
 [HierarchyViewer]
-HierarchyInformation=acc_main_tb|sim|0   
+HierarchyInformation=acc_main_tb|sim|0 
 ShowHide=ShowTopLevel
 Selected=
 
@@ -82,34 +82,6 @@ EnableDebug=0
 AdditionalOptions=
 ErrorOutputLimit=0
 
-[Folders]
-Name0=Event Lists
-Directory0=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension0=lst
-Name1=Logs
-Directory1=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension1=log;htm;xml;txt
-Name2=Waveforms
-Directory2=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension2=asdb;awc;asdbc;asdbe
-Name3=Makefiles
-Directory3=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension3=mak
-Name4=Memory
-Directory4=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension4=mem;mif;hex
-Name5=Dll Libraries
-Directory5=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension5=dll
-Name6=PDF
-Directory6=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension6=pdf
-Name7=HTML
-Directory7=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension7=htm;html
-Name8=ALINT-PRO Workspaces
-Directory8=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension8=alintws
 
 [DefineMacro]
 Global=
@@ -208,6 +180,7 @@ Count=0
 /..\..\..\..\src\QIPcomponents\ETH_pll\ETH_pll_0002.v=-1
 /..\..\..\..\src\QIPcomponents\eth_clk_ctrl\synthesis\eth_clk_ctrl.vhd=-1
 /..\..\..\..\src\QIPcomponents\eth_clk_ctrl\synthesis\submodules\eth_clk_ctrl_altclkctrl_0.v=-1
+/..\..\..\..\src\commandSync.vhd=-1
 
 [Files.Data]
 .\..\..\..\src\QIPcomponents\altlvds_rx0.vhd=VHDL Source Code
@@ -300,4 +273,33 @@ Count=0
 .\..\..\..\src\QIPcomponents\ETH_pll\ETH_pll_0002.v=Verilog Source Code
 .\..\..\..\src\QIPcomponents\eth_clk_ctrl\synthesis\eth_clk_ctrl.vhd=VHDL Source Code
 .\..\..\..\src\QIPcomponents\eth_clk_ctrl\synthesis\submodules\eth_clk_ctrl_altclkctrl_0.v=Verilog Source Code
+.\..\..\..\src\commandSync.vhd=VHDL Source Code
 
+[Folders]
+Name0=Event Lists
+Directory0=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension0=lst
+Name1=Logs
+Directory1=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension1=log;htm;xml;txt
+Name2=Waveforms
+Directory2=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension2=asdb;awc;asdbc;asdbe
+Name3=Makefiles
+Directory3=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension3=mak
+Name4=Memory
+Directory4=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension4=mem;mif;hex
+Name5=Dll Libraries
+Directory5=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension5=dll
+Name6=PDF
+Directory6=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension6=pdf
+Name7=HTML
+Directory7=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension7=htm;html
+Name8=ALINT-PRO Workspaces
+Directory8=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension8=alintws

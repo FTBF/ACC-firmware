@@ -32,17 +32,20 @@ entity ethernet_adapter is
     ETH_out         : out ETH_out_type;
 
     ETH_mdc         : inout std_logic;
-    ETH_mdio        : inout std_logic
+    ETH_mdio        : inout std_logic;
 
---    -- rx/tx signals
---    rx_addr              	: out   std_logic_vector (31 downto 0); 
---    rx_data              	: out   std_logic_vector (63 downto 0);   	
---    rx_wren              	: out   std_logic;												   
---    tx_data              	: in    std_logic_vector (63 downto 0); 	 					 
---    -- burst signals
---    b_data               	: in    std_logic_vector (63 downto 0); 
---    b_data_we            	: in    std_logic; 												                            
---    b_enable             	: out   std_logic; 				  		  						
+    -- rx/tx signals
+    eth_clk                 : out   std_logic;
+    rx_addr              	: out   std_logic_vector (31 downto 0);
+    rx_data              	: out   std_logic_vector (63 downto 0);
+    rx_wren              	: out   std_logic;
+    tx_data              	: in    std_logic_vector (63 downto 0);
+    tx_rden              	: out   std_logic;
+    -- burst signals
+    b_data               	: in    std_logic_vector (63 downto 0);
+    b_data_we            	: in    std_logic;
+    b_data_force            : in    std_logic;
+    b_enable             	: out   std_logic
 	);
 end ethernet_adapter;
 	
@@ -51,24 +54,26 @@ architecture vhdl of ethernet_adapter is
 
   component ethernet_interface is
     port (
-      reset_in   : in  std_logic;
-      reset_out  : out std_logic;
-      rx_addr    : out std_logic_vector (31 downto 0);
-      rx_data    : out std_logic_vector (63 downto 0);
-      rx_wren    : out std_logic;
-      tx_data    : in  std_logic_vector (63 downto 0);
-      b_data     : in  std_logic_vector (63 downto 0);
-      b_data_we  : in  std_logic;
-      b_enable   : out std_logic;
-      MASTER_CLK : in  std_logic;
-      USER_CLK   : in  std_logic;
-      PHY_RXD    : in  std_logic_vector (7 downto 0);
-      PHY_RX_DV  : in  std_logic;
-      PHY_RX_ER  : in  std_logic;
-      TX_CLK     : out std_logic;
-      PHY_TXD    : out std_logic_vector (7 downto 0);
-      PHY_TX_EN  : out std_logic;
-      PHY_TX_ER  : out std_logic);
+      reset_in     : in  std_logic;
+      reset_out    : out std_logic;
+      rx_addr      : out std_logic_vector (31 downto 0);
+      rx_data      : out std_logic_vector (63 downto 0);
+      rx_wren      : out std_logic;
+      tx_data      : in  std_logic_vector (63 downto 0);
+      tx_rden      : out   std_logic;
+      b_data       : in  std_logic_vector (63 downto 0);
+      b_data_we    : in  std_logic;
+      b_data_force : in  std_logic;
+      b_enable     : out std_logic;
+      MASTER_CLK   : in  std_logic;
+      USER_CLK     : in  std_logic;
+      PHY_RXD      : in  std_logic_vector (7 downto 0);
+      PHY_RX_DV    : in  std_logic;
+      PHY_RX_ER    : in  std_logic;
+      TX_CLK       : out std_logic;
+      PHY_TXD      : out std_logic_vector (7 downto 0);
+      PHY_TX_EN    : out std_logic;
+      PHY_TX_ER    : out std_logic);
   end component ethernet_interface;
   
   --RX signals
@@ -91,15 +96,16 @@ architecture vhdl of ethernet_adapter is
   signal cfg_mem : mem_type;
   signal cfg_datum : std_logic_vector(63 downto 0);
 
-  -- rx/tx signals
-  signal rx_addr              	: std_logic_vector (31 downto 0);
-  signal rx_data              	: std_logic_vector (63 downto 0);
-  signal rx_wren              	: std_logic;
-  signal tx_data              	: std_logic_vector (63 downto 0);
-  -- burst signals
-  signal b_data               	: std_logic_vector (63 downto 0);
-  signal b_data_we            	: std_logic;
-  signal b_enable             	: std_logic;
+--  -- rx/tx signals
+--  signal rx_addr              	: std_logic_vector (31 downto 0);
+--  signal rx_data              	: std_logic_vector (63 downto 0);
+--  signal rx_wren              	: std_logic;
+--  signal tx_data              	: std_logic_vector (63 downto 0);
+--  -- burst signals
+--  signal b_data               	: std_logic_vector (63 downto 0);
+--  signal b_data_we            	: std_logic;
+--  signal b_data_force           : std_logic;
+--  signal b_enable             	: std_logic;
 
   -- other signals
   signal clockIn_global : std_logic;
@@ -132,6 +138,8 @@ begin
       outclk_0 => rx_clk,
       outclk_1 => gtx_clk,
       locked   => rx_clk_lock);
+  
+  eth_clk <= rx_clk;
   
   reset_sync_serial: sync_Bits_Altera
     generic map (
@@ -239,135 +247,105 @@ begin
   --ethernet interface
   ethernet_interface_inst: ethernet_interface
     port map (
-      reset_in   => resetSync_eth,
-      reset_out  => reset_out,
+      reset_in     => resetSync_eth,
+      reset_out    => reset_out,
 
       -- mmap interface signals 
-      rx_addr    => rx_addr,
-      rx_data    => rx_data,
-      rx_wren    => rx_wren,
-      tx_data    => tx_data,
+      rx_addr      => rx_addr,
+      rx_data      => rx_data,
+      rx_wren      => rx_wren,
+      tx_data      => tx_data,
+      tx_rden      => tx_rden,
       --burst interface signals 
-      b_data     => b_data,
-      b_data_we  => b_data_we,
-      b_enable   => b_enable,
+      b_data       => b_data,
+      b_data_we    => b_data_we,
+      b_data_force => b_data_force,
+      b_enable     => b_enable,
       --PHY interface signals 
-      MASTER_CLK => rx_clk,
-      USER_CLK   => clock.serial25,
-      PHY_RXD    => rx_dat,
-      PHY_RX_DV  => rx_dv,
-      PHY_RX_ER  => rx_er,
-      TX_CLK     => tx_clk,
-      PHY_TXD    => tx_dat,
-      PHY_TX_EN  => tx_en,
-      PHY_TX_ER  => tx_er);
+      MASTER_CLK   => rx_clk,
+      USER_CLK     => clock.serial25,
+      PHY_RXD      => rx_dat,
+      PHY_RX_DV    => rx_dv,
+      PHY_RX_ER    => rx_er,
+      TX_CLK       => tx_clk,
+      PHY_TXD      => tx_dat,
+      PHY_TX_EN    => tx_en,
+      PHY_TX_ER    => tx_er);
 
-  tx_data <= cfg_mem(to_integer(unsigned(rx_addr)));
-  read_mux : process(rx_clk)
-  begin
-    if rising_Edge(rx_clk) then
-      if resetSync_eth = '1' then
-        for i in 0 to 7 loop
-          cfg_mem(i) <= X"0000000000000000";
-        end loop;
-      else
-        if rx_wren = '1' then
-          cfg_mem(to_integer(unsigned(rx_addr))) <= rx_data;
-        end if;
-      end if;
-    end if;
-  end process;
-
-  -- start data gen block
-  dataGenGen : for i in 0 to 0 generate
-    signal reg_cnt : unsigned(63 downto 0) := (others => '0'); -- 1s is infinite
-    signal reg_rate : unsigned(63 downto 0) := (others => '0');  -- delay between 8 clock periods
-    
-    signal cnt : unsigned(2 downto 0) := (others => '0');
-    signal delay_cnt : unsigned(63 downto 0) := (others => '0');
-    signal data_cnt : unsigned(31 downto 0) := (others => '0');
-
---    attribute mark_debug of reg_cnt : signal is "true";
---    attribute mark_debug of reg_rate : signal is "true";
---    attribute mark_debug of cnt : signal is "true";
---    attribute mark_debug of delay_cnt : signal is "true";
---    attribute mark_debug of data_cnt : signal is "true";
-  begin
-    process(rx_clk)
-    begin
-      if (rising_edge(rx_clk)) then
-        
-        b_data_we <= '0';
-        
-        -- register map
-        if (rx_wren = '1') then 	
-          if (unsigned(rx_addr) = x"1001") then --reg_cnt
-            reg_cnt <= unsigned(rx_data); 
-          elsif (unsigned(rx_addr) = x"1002") then --reg_rate
-            reg_rate <= unsigned(rx_data); 						
-          end if;
-          delay_cnt <= (others => '0'); --reset delay and execute burst write
-        else
-          
-          cnt <= cnt + 1; 
-          if (cnt = 0) then	--count groups of 8 with wrap around
-            delay_cnt <= delay_cnt + 1;
-            
-            if (delay_cnt = reg_rate and reg_cnt /= 0) then
-              delay_cnt <= (others => '0'); --reset delay and execute burst write
-              b_data(63 downto 32) <= std_logic_vector(data_cnt);
-              b_data(31 downto 0) <= tx_data(31 downto 0); -- last saved write
-              b_data_we <= '1';
-              data_cnt <= data_cnt + 1;
-              
-              if ( and_reduce(std_logic_vector(reg_cnt)) /= '1' ) then --count down pulses, if not infinite
-                reg_cnt <= reg_cnt - 1;
-              end if;
-            end if;
-          end if;
-        end if;
-      end if;
-        
-    end process;
-
-  end generate;	
-  -- end data gen block
-
-
---  ETH_out_pll_inst: ETH_out_pll
---    port map (
---      refclk   => tx_clk,
---      rst      => resetSync_serial,
---      outclk_0 => gtx_clk,
---      locked   => open);
-
-  
-  --mdio configuration of chip
-  -- open collector buffer for mdX
---  IOBuf_openCollector_mdc: IOBuf_openCollector_iobuf_bidir_cfo
---    port map (
---      datain(0)  => tx_mdc,
---      dataio(0)  => ETH_mdc,
---      dataout    => open,
---      oe         => "1");
---
---  IOBuf_openCollector_mdio: IOBuf_openCollector_iobuf_bidir_cfo
---    port map (
---      datain(0)  => tx_mdio,
---      dataio(0)  => ETH_mdio,
---      dataout(0) => rx_mdio,
---      oe(0)      => tx_mdio_we);
-
---  mdio_controller : process(rx_clk)
---    variable countDown : natural;
+--  tx_data <= cfg_mem(to_integer(unsigned(rx_addr)));
+--  read_mux : process(rx_clk)
 --  begin
 --    if rising_Edge(rx_clk) then
 --      if resetSync_eth = '1' then
---        tx_mdc     => '1';
---        tx_mdio    => '1';
---        tx_mdio_we => '0';
+--        for i in 0 to 7 loop
+--          cfg_mem(i) <= X"0000000000000000";
+--        end loop;
+--      else
+--        if rx_wren = '1' then
+--          cfg_mem(to_integer(unsigned(rx_addr))) <= rx_data;
+--        end if;
 --      end if;
 --    end if;
---  end
-  
+--  end process;
+--
+--  -- start data gen block
+--  dataGenGen : for i in 0 to 0 generate
+--    signal reg_cnt : unsigned(63 downto 0) := (others => '0'); -- 1s is infinite
+--    signal reg_rate : unsigned(63 downto 0) := (others => '0');  -- delay between 8 clock periods
+--    
+--    signal cnt : unsigned(2 downto 0) := (others => '0');
+--    signal delay_cnt : unsigned(63 downto 0) := (others => '0');
+--    signal data_cnt : unsigned(31 downto 0) := (others => '0');
+--
+----    attribute mark_debug of reg_cnt : signal is "true";
+----    attribute mark_debug of reg_rate : signal is "true";
+----    attribute mark_debug of cnt : signal is "true";
+----    attribute mark_debug of delay_cnt : signal is "true";
+----    attribute mark_debug of data_cnt : signal is "true";
+--  begin
+--    process(rx_clk)
+--    begin
+--      if (rising_edge(rx_clk)) then
+--        
+--        b_data_we <= '0';
+--        b_data_force <= '0';
+--        
+--        -- register map
+--        if (rx_wren = '1') then 	
+--          if (unsigned(rx_addr) = x"1001") then --reg_cnt
+--            reg_cnt <= unsigned(rx_data); 
+--          elsif (unsigned(rx_addr) = x"1002") then --reg_rate
+--            reg_rate <= unsigned(rx_data); 						
+--          end if;
+--          delay_cnt <= (others => '0'); --reset delay and execute burst write
+--        else
+--          
+--          cnt <= cnt + 1; 
+--          if (cnt = 0) then	--count groups of 8 with wrap around
+--            delay_cnt <= delay_cnt + 1;
+--            
+--            if (delay_cnt = reg_rate and reg_cnt /= 0) then
+--              delay_cnt <= (others => '0'); --reset delay and execute burst write
+--              b_data(63 downto 32) <= std_logic_vector(data_cnt);
+--              b_data(31 downto 0) <= tx_data(31 downto 0); -- last saved write
+--              b_data_we <= '1';
+--              data_cnt <= data_cnt + 1;
+--              
+--              if ( and_reduce(std_logic_vector(reg_cnt)) /= '1' ) then --count down pulses, if not infinite
+--                reg_cnt <= reg_cnt - 1;
+--              end if;
+--
+--              if reg_cnt = 1 then
+--                b_data_force <= '1';
+--              end if;
+--            end if;
+--          end if;
+--        end if;
+--      end if;
+--        
+--    end process;
+--
+--  end generate;	
+--  -- end data gen block
+
 end vhdl;

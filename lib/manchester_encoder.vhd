@@ -48,12 +48,12 @@ begin
         toggle <= '0';
         out_z <= '0';
         sig_out <= '0';
-        timer := 100;
+        timer := 1000;
         train := '0';
         sig := '0';
       else
         if trainTrig = '1' then
-          timer := 100;
+          timer := 1000;
         elsif timer > 0 then
           timer := timer - 1;
         end if;

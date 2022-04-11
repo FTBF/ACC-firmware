@@ -31,13 +31,14 @@ entity ethernet_interface is
           rx_addr              	: out   std_logic_vector (31 downto 0); 
           rx_data              	: out   std_logic_vector (63 downto 0);   	
           rx_wren              	: out   std_logic;												   
-          tx_data              	: in    std_logic_vector (63 downto 0); 	 					 
---erased for simple interface 
+          tx_data              	: in    std_logic_vector (63 downto 0);
+          tx_rden              	: out   std_logic;
 --erased for simple interface 
 		  
 		  -- burst signals
    		  b_data               	: in    std_logic_vector (63 downto 0); 
-          b_data_we            	: in    std_logic; 												                            
+          b_data_we            	: in    std_logic;
+          b_data_force          : in    std_logic;
           b_enable             	: out   std_logic; 				  		  															 				   
 --erased for simple interface  	
 		  
@@ -98,7 +99,7 @@ architecture BEHAVIORAL of ethernet_interface is
 	signal user_tx_dest_mac     	: std_logic_vector (47 downto 0); 
 	signal user_tx_dest_port    	: std_logic_vector (15 downto 0); 		 
 	
-	signal user_tx_rden			   	: std_logic;						
+--	signal user_tx_rden			   	: std_logic;						
 	signal user_ready		   		: std_logic; 						
 	signal user_b_force_packet	   	: std_logic;  						
 	signal crc_chk_out	   			: std_logic;		
@@ -291,7 +292,7 @@ begin
 	-- NOTE: User code is treated as "block 0"																																																																																																																																
 	ots_user_mask <= '1' when ( ots_block_sel = 0) else '0';  		
 	rx_wren <= ots_user_mask and ots_wren;		   
-	user_tx_rden <= ots_user_mask and ots_rden;	
+	tx_rden <= ots_user_mask and ots_rden;	
 	
 	ots_dout <= tx_data when (ots_user_mask = '1') else internal_eth_dout;
 	ots_ready <= (not ots_user_mask) or user_ready; -- ots address space is always ready	  
@@ -504,7 +505,7 @@ begin
 --erased for simple interface  will be commented out	
 									   
 	 user_ready <= '1';
-	 user_b_force_packet <= '0';	  
+	 user_b_force_packet <= b_data_force;	  
 		
 	-------- end simple section -----------
 	   

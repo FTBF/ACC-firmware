@@ -290,6 +290,7 @@ set_location_assignment PIN_AB11 -to ETH_out.tx_dat[3]
 set_location_assignment PIN_AL11 -to ETH_out.resetn
 set_location_assignment PIN_AJ11 -to ETH_mdc
 set_location_assignment PIN_AH11 -to ETH_mdio
+set_global_assignment -name VHDL_FILE src/commandSync.vhd
 set_global_assignment -name QIP_FILE src/QIPcomponents/eth_clk_ctrl/synthesis/eth_clk_ctrl.qip
 set_global_assignment -name QIP_FILE src/QIPcomponents/ETH_pll.qip
 set_global_assignment -name VHDL_FILE src/ethernet_controller/reset_mgr.vhd
@@ -375,4 +376,5 @@ set_global_assignment -name QIP_FILE src/QIPcomponents/IOBuf_openCollector.qip
 set_global_assignment -name SIGNALTAP_FILE output_files/stp2.stp
 set_global_assignment -name QIP_FILE src/QIPcomponents/ETH_out_pll.qip
 set_global_assignment -name SIP_FILE src/QIPcomponents/ETH_out_pll.sip
+set_global_assignment -name QIP_FILE src/QIPcomponents/rx_data_fifo.qip
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

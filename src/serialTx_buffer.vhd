@@ -22,11 +22,11 @@ use work.LibDG.all;
 
 entity serialTx_buffer is
 	port(
-		clock				: in	std_logic;	--system clock		 
-      din				: in	std_logic_vector(31 downto 0);
+		clock			: in	std_logic;	--system clock
+        eth_clk         : in    std_logic;
+        din				: in	std_logic_vector(31 downto 0);
 		din_txReq		: in	std_logic;		 
-		din_txAck		: out	std_logic;		 
-		dout				: out	std_logic_vector(7 downto 0);
+		dout			: out	std_logic_vector(7 downto 0);
 		dout_txReq		: out	std_logic;
 		dout_txAck		: in	std_logic
 		);	
@@ -35,67 +35,20 @@ end serialTx_buffer;
 
 architecture vhdl of serialTx_buffer is
 
+  constant header: std_logic_vector(15 downto 0):= x"B734";
 
+  signal fifo_dout: std_logic_vector(31 downto 0);
+  signal fifo_rdreq: std_logic;
+  signal fifo_wrreq: std_logic;
+  signal fifo_empty: std_logic;
+  signal fifo_full: std_logic;
 
-
-constant header: std_logic_vector(15 downto 0):= x"B734";
-
-
-
-
-signal fifo_dout: std_logic_vector(31 downto 0);
-signal fifo_rdreq: std_logic;
-signal fifo_wrreq: std_logic;
-signal fifo_empty: std_logic;
-signal fifo_full: std_logic;
-
-signal din_txReq_z: std_logic;
-signal dout_txAck_z: std_logic;
-
-
-
-
+  signal din_txReq_z: std_logic;
+  signal dout_txAck_z: std_logic;
 
 begin
 
 
-
-
------------------------------------------
--- FIFO WRITE
------------------------------------------
--- check the fifo is not full and write the input data (32 bits)
--- then send an acknowledge that the data was written
-FIFO_WR: process(clock)
-variable fifo_wrreq_flag: std_logic:= '0';
-begin
-	if (rising_edge(clock)) then
-		
-		
-		din_txReq_z <= din_txReq;
-		
-		
-		if (din_txReq = '1' and din_txReq_z = '0' and fifo_full = '0') then 	-- rising edge on din_txReq
-		
-			fifo_wrreq <= '1';
-			
-		else
-		
-			fifo_wrreq <= '0';
-		
-		end if;
-		
-		
-	end if;
-	
-end process;
-		
--- din ack pulse generator
-DIN_ACK_GEN: monostable_sync_edge port map (clock, 1, fifo_wrreq, din_txAck);		-- generate a single ack pulse
-		
-		
-		
-		
 		
 -----------------------------------------
 -- FIFO READ
@@ -183,38 +136,15 @@ begin
 end process;
 
 
-
-			
-
-TX_FIFO_map: txFifo port map 
-(
-		clock		=> clock,
-		data		=> din,
-		rdreq		=> fifo_rdreq,
-		wrreq		=> fifo_wrreq,
-		empty		=> fifo_empty,
-		full		=> fifo_full,
-		q			=> fifo_dout,
-		usedw		=> open
-);
-
-
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+TX_FIFO_map: txFifo
+  port map (
+    data    => din,
+    rdclk   => clock,
+    rdreq   => fifo_rdreq,
+    wrclk   => eth_clk,
+    wrreq   => din_txReq,
+    q       => fifo_dout,
+    rdempty => fifo_empty,
+    wrfull  => open);
 	
 end vhdl;
