@@ -140,6 +140,8 @@ begin
       dest_pulse   => config.globalResetReq,
       dest_aresetn => nreset);
 
+  config.rxFIFO_resetReq <= config_z.rxFIFO_resetReq;
+  
   loop_gen : for i in 0 to N-1 generate
     pulseSync2_rxBuffer_resetReq: pulseSync2
       port map (
@@ -148,15 +150,6 @@ begin
         src_aresetn  => eth_reset,
         dest_clk     => clock.sys,
         dest_pulse   => config.rxBuffer_resetReq(i),
-        dest_aresetn => nreset);
-
-    pulseSync2_rxFIFO_resetReq: pulseSync2
-      port map (
-        src_clk      => eth_clk,
-        src_pulse    => config_z.rxFIFO_resetReq(i),
-        src_aresetn  => eth_reset,
-        dest_clk     => clock.sys,
-        dest_pulse   => config.rxFIFO_resetReq(i),
         dest_aresetn => nreset);
 
     pulseSync2_trigsw: pulseSync2
@@ -187,14 +180,8 @@ begin
       dest_pulse   => config.rxBuffer_readReq,
       dest_aresetn => nreset);
 
-  pulseSync2_dataFIFO_readReq: pulseSync2
-    port map (
-      src_clk      => eth_clk,
-      src_pulse    => config_z.dataFIFO_readReq,
-      src_aresetn  => eth_reset,
-      dest_clk     => clock.sys,
-      dest_pulse   => config.dataFIFO_readReq,
-      dest_aresetn => nreset);
+  config.dataFIFO_readReq <= config_z.dataFIFO_readReq;
+  config.readChannel <= config_z.readChannel;
 
   pulseSync2_phaseUpdate: pulseSync2
     port map (
@@ -233,19 +220,6 @@ begin
       dest_params  => trig_src,
       dest_aresetn => nreset);
 
-  readChannel_z <= std_logic_vector(to_unsigned(config_z.readChannel, 16));
-  config.readChannel <= to_integer(unsigned(readChannel));
-  param_handshake_readChannel: param_handshake_sync
-    generic map (
-      WIDTH => 16)
-    port map (
-      src_clk      => eth_clk,
-      src_params   => readChannel_z,
-      src_aresetn  => eth_reset,
-      dest_clk     => clock.sys,
-      dest_params  => readChannel,
-      dest_aresetn => nreset);
-  
   trigWindow_z <= std_logic_vector(to_unsigned(config_z.trig.windowStart, 16)) & std_logic_vector(to_unsigned(config_z.trig.windowLen, 16));
   config.trig.windowStart <= to_integer(unsigned(trigWindow(31 downto 16)));
   config.trig.windowLen   <= to_integer(unsigned(trigWindow(15 downto 0)));
@@ -280,19 +254,8 @@ begin
 
   reg_readback_by8 : for i in 0 to N-1 generate
   begin
-    
-    param_handshake_countRegs: param_handshake_sync
-      generic map (
-        WIDTH => 16)
-      port map (
-        src_clk      => clock.serial25,
-        src_params   => reg.data_occ(i),
-        src_aresetn  => nreset_sync2,
-        dest_clk     => eth_clk,
-        dest_params  => reg_z.data_occ(i),
-        dest_aresetn => eth_reset);
-
-    -- rx Data len is already in the eth_clk domain
+    -- already in the eth_clk domain
+    reg_z.data_occ(i)  <= reg.data_occ(i);
     reg_z.rxDataLen(i) <= reg.rxDataLen(i);
 
   end generate;

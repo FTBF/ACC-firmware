@@ -282,6 +282,21 @@ component manchester_encoder is
     sig_out   : out std_logic);
 end component manchester_encoder;
 
+
+component skid_buffer is
+  generic (
+    NBITS : natural);
+  port (
+    clock          : in  std_logic;
+    reset          : in  std_logic;
+    data_in        : in  std_logic_vector(NBITS - 1 downto 0);
+    data_in_ready  : out std_logic;
+    data_in_valid  : in  std_logic;
+    data_out       : out std_logic_vector(NBITS - 1 downto 0);
+    data_out_ready : in  std_logic;
+    data_out_valid : out std_logic);
+end component skid_buffer;
+
 end LibDG;
 
 

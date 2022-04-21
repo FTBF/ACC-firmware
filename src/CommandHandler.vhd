@@ -250,6 +250,7 @@ begin
         -- read only registers 
         when x"00001000" => tx_data(15 downto 0) <= firwareVersion.number;
         when x"00001001" => tx_data(31 downto 0) <= firwareVersion.year & firwareVersion.MMDD;
+        when x"00001002" => tx_data( 3 downto 0) <= regs_z.pllLock;
 
         when x"00001010" => tx_data(N-1 downto 0) <= regs_z.serialRX_rx_clock_fail;
         when x"00001011" => tx_data(N-1 downto 0) <= regs_z.serialRX_symbol_align_error;

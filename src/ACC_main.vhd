@@ -197,7 +197,7 @@ begin
 
   manchester_encoder_trig: manchester_encoder
     port map (
-      clock     => clock.x4,
+      clock     => clock.sys,
       reset     => reset.global,
       trainTrig => config.train_manchester_links,
       sig_in    => trig_out(i),
@@ -209,13 +209,13 @@ begin
       INIT       => x"00000000",
       SYNC_DEPTH => 2)
     port map (
-      Clock  => clock.x4,
+      Clock  => clock.sys,
       Input(0)  => backpressure_out(i),
       Output(0) => backpressure_out_z);
   
   manchester_encoder_backpressure: manchester_encoder
     port map (
-      clock     => clock.x4,
+      clock     => clock.sys,
       reset     => reset.global,
       trainTrig => config.train_manchester_links,
       sig_in    => backpressure_out_z,
@@ -242,6 +242,7 @@ serialRx_dataBuffer_inst: serialRx_dataBuffer
   port map (
     clock            => clock,
     reset            => reset,
+    eth_clk          => eth_clk,
     rxFIFO_resetReq  => config.rxFIFO_resetReq,
     delayCommand     => config.delayCommand,
     delayCommandSet  => config.delayCommandSet,
@@ -260,7 +261,8 @@ serialRx_dataBuffer_inst: serialRx_dataBuffer
     io_config_clkena => io_config_clkena,
     io_config_datain => io_config_datain,
     io_config_update => io_config_update
-);
+    );
+regs.data_occ <= data_occ;
 
 ------------------------------------
 --	COMMAND HANDLER
@@ -293,43 +295,20 @@ reset.request <= config.globalResetReq;
 ------------------------------------
 --	DATA HANDLER
 ------------------------------------
--- handles data frame transmission over usb
---DATA_HANDLER_MAP: dataHandler port map (
---  reset                 => reset.global,
---  clock                 => clock.sys,
---  serialRx              => serialRx,
---  pllLock               => clock.altPllLock,
---  trig                  => config.trig,
---  channel               => config.readChannel,		
---  ramReadEnable         => rxBuffer.ramReadEn,
---  ramAddress            => rxBuffer.ramAddress,
---  ramData               => rxBuffer.ramDataOut,
---  rxDataLen             => rxBuffer.dataLen,
---  frame_received        => rxBuffer.frame_received,
---  bufferReadoutDone     => rxBuffer.ramReadDone,  -- byte wide, one bit for each channel
---  dataFIFO_readReq      => config.dataFIFO_readReq,
---  data_out              => data_out,
---  data_occ              => data_occ,
---  data_re               => data_re,
---
---  param_readReq         => '0',
---  param_num             => 0,
---  dout                  => usb.txData_in,
---  txReq					=> usb.txReq,
---  txAck                 => usb.txAck,
---  txLockReq             => usb.tx_busReq,
---  txLockAck             => usb.tx_busAck,
---  rxBuffer_readReq      => rxBuffer.readReq,
---  localInfo_readRequest => config.localInfo_readReq,    
---  acdcBoardDetect     	=> acdcBoardDetect,
---  useExtRef             => useExtRef,
---  prbs_error_counts     => prbs_error_counts,
---  byte_fifo_occ         => byte_fifo_occ,
---  symbol_error_counts   => symbol_error_counts
---);
-	
-
- 
+dataHandler_inst: dataHandler
+  port map (
+    reset            => reset.global,
+    clock            => clock.serial25,
+    eth_clk          => eth_clk,
+    b_data           => b_data,
+    b_data_we        => b_data_we,
+    b_data_force     => b_data_force,
+    b_enable         => b_enable,
+    dataFIFO_readReq => config.dataFIFO_readReq,
+    dataFIFO_chan    => config.readChannel,
+    data_out         => data_out,
+    data_occ         => data_occ,
+    data_re          => data_re);
 	 	 
 	 
 	 
@@ -473,63 +452,63 @@ ethernet_adapter_inst: ethernet_adapter
 ------------------------------------
 --	USB DRIVER 
 ------------------------------------
-usbDriver_gen: usbDriver port map (
-	clock   					=> clock.sys,
-	rxData_in  	  	 		=> usb.rxData_in,
-	txData_out				=> usb.txData_out,
-   txBufferReady 			=> usb.txBufferReady,
-   rxDataAvailable	  	=> usb.rxDataAvailable, -- FLAG A      (note this flag is on usb clock)
-   busWriteEnable 		=> usb.busWriteEnable,     --when high the fpga outputs data onto the usb bus
-   PKTEND  					=> usb.PKTEND,	--usb packet end flag
-   SLWR		        		=> usb.SLWR,	--usb slave interface write signal
-   SLOE         			=> usb.SLOE,   	--usb slave interface bus output enable, active low
-   SLRD     	   		=> usb.SLRD,		--usb  slave interface bus read, active low
-   FIFOADR  	   		=> usb.FIFOADR, -- usb endpoint fifo select, essentially selects the tx fifo or rx fifo
-	tx_busReq  				=> usb.tx_busReq,  -- request to lock the bus in tx mode, preventing any interruptions from usb read
-	tx_busAck  				=> usb.tx_busAck,  
-   txData_in       		=> usb.txData_in,		
-   txReq		        		=> usb.txReq,
-   txAck		        		=> usb.txAck,		
-   rxData_out      		=> usb.rxData_out,
-	rxData_valid     		=> usb.rxData_valid,
-	test						=> usb.test
-);
-        
-        
-		  
--- signals from usb chip
-usb.txBufferReady <= usb_in.CTL(2); -- usb flag c meaning the usb chip is ready to accept tx data  (note this flag is on usb clock)  	
-usb.rxDataAvailable <= usb_in.CTL(0);
-
--- signals to usb chip
-usb_bus.PA(7) <= '0';		-- SLCS signal, the slave chip select (Permanently enabled)
-usb_bus.PA(6) <= usb.PKTEND;
-usb_out.RDY(1) <= usb.SLWR;     
-usb_out.RDY(0) <= usb.SLRD;
-usb_bus.PA(2) <= usb.SLOE;
-usb_bus.PA(5 downto 4) <= usb.FIFOADR;
-
-
-
-
-
-       
-         
-------------------------------------
---	USB BUS CONTROL
-------------------------------------
--- tristate control of the usb bus for reading and writing
-usb_io_buffer	: iobuf
-	port map(
-		datain	=>	usb.txData_out,	-- tx data to the usb chip bus
-		oe			=> usb.busWriteEnable_vec,	-- low = read from bus, high = write to bus
-		dataio	=> usb_bus.FD,	         -- the 16-bit wide bidirectional data bus of the Cypress chip
-		dataout	=> usb.rxData_in); -- data from the usb chip
-      
-usb_bus_oe: process(usb)
-begin
-	for i in 15 downto 0 loop usb.busWriteEnable_vec(i) <= usb.busWriteEnable; end loop;
-end process;
+--usbDriver_gen: usbDriver port map (
+--	clock   					=> clock.sys,
+--	rxData_in  	  	 		=> usb.rxData_in,
+--	txData_out				=> usb.txData_out,
+--   txBufferReady 			=> usb.txBufferReady,
+--   rxDataAvailable	  	=> usb.rxDataAvailable, -- FLAG A      (note this flag is on usb clock)
+--   busWriteEnable 		=> usb.busWriteEnable,     --when high the fpga outputs data onto the usb bus
+--   PKTEND  					=> usb.PKTEND,	--usb packet end flag
+--   SLWR		        		=> usb.SLWR,	--usb slave interface write signal
+--   SLOE         			=> usb.SLOE,   	--usb slave interface bus output enable, active low
+--   SLRD     	   		=> usb.SLRD,		--usb  slave interface bus read, active low
+--   FIFOADR  	   		=> usb.FIFOADR, -- usb endpoint fifo select, essentially selects the tx fifo or rx fifo
+--	tx_busReq  				=> usb.tx_busReq,  -- request to lock the bus in tx mode, preventing any interruptions from usb read
+--	tx_busAck  				=> usb.tx_busAck,  
+--   txData_in       		=> usb.txData_in,		
+--   txReq		        		=> usb.txReq,
+--   txAck		        		=> usb.txAck,		
+--   rxData_out      		=> usb.rxData_out,
+--	rxData_valid     		=> usb.rxData_valid,
+--	test						=> usb.test
+--);
+--        
+--        
+--		  
+---- signals from usb chip
+--usb.txBufferReady <= usb_in.CTL(2); -- usb flag c meaning the usb chip is ready to accept tx data  (note this flag is on usb clock)  	
+--usb.rxDataAvailable <= usb_in.CTL(0);
+--
+---- signals to usb chip
+--usb_bus.PA(7) <= '0';		-- SLCS signal, the slave chip select (Permanently enabled)
+--usb_bus.PA(6) <= usb.PKTEND;
+--usb_out.RDY(1) <= usb.SLWR;     
+--usb_out.RDY(0) <= usb.SLRD;
+--usb_bus.PA(2) <= usb.SLOE;
+--usb_bus.PA(5 downto 4) <= usb.FIFOADR;
+--
+--
+--
+--
+--
+--       
+--         
+--------------------------------------
+----	USB BUS CONTROL
+--------------------------------------
+---- tristate control of the usb bus for reading and writing
+--usb_io_buffer	: iobuf
+--	port map(
+--		datain	=>	usb.txData_out,	-- tx data to the usb chip bus
+--		oe			=> usb.busWriteEnable_vec,	-- low = read from bus, high = write to bus
+--		dataio	=> usb_bus.FD,	         -- the 16-bit wide bidirectional data bus of the Cypress chip
+--		dataout	=> usb.rxData_in); -- data from the usb chip
+--      
+--usb_bus_oe: process(usb)
+--begin
+--	for i in 15 downto 0 loop usb.busWriteEnable_vec(i) <= usb.busWriteEnable; end loop;
+--end process;
 
          
       

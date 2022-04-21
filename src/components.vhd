@@ -134,43 +134,21 @@ end component commandHandler;
 
 
 component dataHandler is
-	port (
-		reset						: 	in   	std_logic;
-		clock				      : 	in		std_logic;        
-		serialRx					:	in		serialRx_type;
-		pllLock					:  in std_logic;
-		trig						: in trigSetup_type;
-		channel          		: in natural;
-      ramReadEnable        : 	out 	std_logic_vector(7 downto 0);
-      ramAddress           :  out   std_logic_vector(transceiver_mem_depth-1 downto 0);
-      ramData              :  in    rx_ram_data_type;
-      rxDataLen				:  in  	naturalArray_16bit;
-		frame_received    	:  in   std_logic_vector(7 downto 0);
-      bufferReadoutDone    :  buffer  std_logic_vector(7 downto 0);
-      dataFIFO_readReq : in std_logic;
-      data_out        : in  Array_16bit;
-      data_occ        : in  Array_16bit;
-      data_re         : out std_logic_vector(N-1 downto 0);
-      param_readReq        : in std_logic;
-      param_num            : in natural range 0 to 255;
-        dout 		            : 	out	std_logic_vector(15 downto 0);
-		txReq					   : 	out	std_logic;
-      txAck                : 	in 	std_logic;
-      txLockReq            : 	out	std_logic;
-      txLockAck            : 	in  	std_logic;
-		rxBuffer_readReq		:	in	std_logic;
-      localInfo_readRequest: in std_logic;      
-      acdcBoardDetect      : in std_logic_vector(7 downto 0);    
-		useExtRef				: in std_logic;   
-        prbs_error_counts  : in DoubleArray_16bit;
-        symbol_error_counts  : in DoubleArray_16bit;
-      byte_fifo_occ       : out DoubleArray_16bit;
-        
-      -- error
-      timeoutError  			:	out	std_logic 
-);
-end component;
-		
+  port (
+    reset            : in  std_logic;
+    clock            : in  std_logic;
+    eth_clk          : in  std_logic;
+    b_data           : out std_logic_vector (63 downto 0);
+    b_data_we        : out std_logic;
+    b_data_force     : out std_logic;
+    b_enable         : in  std_logic;
+    dataFIFO_readReq : in  std_logic;
+    dataFIFO_chan    : in  natural range 0 to 15;
+    data_out         : in  Array_16bit;
+    data_occ         : in  Array_16bit;
+    data_re          : out std_logic_vector(N-1 downto 0));
+end component dataHandler;
+
 
 component rx_data_ram
 	port (
@@ -298,6 +276,7 @@ component serialRx_dataBuffer is
   port (
     clock                  : in  clock_type;
     reset                  : in  reset_type;
+    eth_clk                : in  std_logic;
     rxFIFO_resetReq        : in  std_logic_vector(N-1 downto 0);
     delayCommand           : in  std_logic_vector(11 downto 0);
     delayCommandSet        : in  std_logic;
