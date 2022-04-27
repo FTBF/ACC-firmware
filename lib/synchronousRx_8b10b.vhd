@@ -170,7 +170,8 @@ begin
 end process;
 
 -- sync to x4 clock
-SYNC_ERR: pulseSync port map (clock_sys, clock_x4, sync_timeout_error, sync_timeout_error_y);
+--SYNC_ERR: pulseSync port map (clock_sys, clock_x4, sync_timeout_error, sync_timeout_error_y);
+sync_timeout_error_y <= sync_timeout_error;
 
 -- rising edge detect
 CLOCK_DET: monostable_async_edge port map (clock_sys, 1, serialIn_z, clock_detect);
@@ -203,6 +204,7 @@ begin
   if (rising_edge(clock_sys)) then
     
     -- sync
+    rxBit_y <= rxBit_x;
     rxBit <= rxBit_y;
     --rxBit_valid <= rxBit_valid_y;
     
@@ -277,36 +279,6 @@ begin
 		end if;
 	end if;
 end process;
-
-dcfifo_component : dcfifo
-  GENERIC MAP (
-    intended_device_family => "Arria V",
-    lpm_numwords => 8,
-    lpm_showahead => "OFF",
-    lpm_type => "dcfifo",
-    lpm_width => 1,
-    lpm_widthu => 3,
-    overflow_checking => "ON",
-    rdsync_delaypipe => 2,
-    read_aclr_synch => "OFF",
-    underflow_checking => "ON",
-    use_eab => "ON",
-    write_aclr_synch => "OFF",
-    wrsync_delaypipe => 2
-	)
-  PORT MAP (
-    aclr => '0',
-    data(0) => rxBit_x,
-    rdclk => clock_sys,
-    rdreq => not bitFIFOEmpty,
-    wrclk => clock_x8,
-    wrreq => rxBit_valid_x,
-    q(0) => rxBit_y,
-    rdempty => bitFIFOEmpty,
-    rdusedw => open,
-    wrfull => open,
-    wrusedw => open
-	);
 
 
 -- sync to x4 clock

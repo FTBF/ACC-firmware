@@ -55,7 +55,7 @@ IncrementalCompilation=0
 AdditionalOptions=
 
 [HierarchyViewer]
-HierarchyInformation=acc_main_tb|sim|0 
+HierarchyInformation=acc_main_tb|sim|0       
 ShowHide=ShowTopLevel
 Selected=
 
@@ -304,4 +304,3 @@ Extension7=htm;html
 Name8=ALINT-PRO Workspaces
 Directory8=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
 Extension8=alintws
-
