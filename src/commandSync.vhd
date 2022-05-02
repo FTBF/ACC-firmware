@@ -93,7 +93,7 @@ begin
       src_clk      => eth_clk,
       src_pulse    => config_z.train_manchester_links,
       src_aresetn  => eth_reset,
-      dest_clk     => clock.x4,
+      dest_clk     => clock.sys,
       dest_pulse   => config.train_manchester_links,
       dest_aresetn => nreset);
 

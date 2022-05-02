@@ -181,10 +181,12 @@ begin
                   b_data     <= dataBuf;
                   b_data_we  <= '1';
                 end if;
-
+              elsif iWord = 7680 - 1 then
+                data_re_loc(dataFIFO_chan) <= '0';
               else
                 data_re_loc(dataFIFO_chan) <= '1';
               end if;
+
             end if;
               
           when DONE =>

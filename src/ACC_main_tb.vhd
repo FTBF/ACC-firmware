@@ -281,13 +281,13 @@ architecture sim of ACC_main_tb is
 	--source IP
     ethSend(X"c0", tmpEthData, CRC);
     ethSend(X"a8", tmpEthData, CRC);
-    ethSend(X"85", tmpEthData, CRC);
+    ethSend(X"2e", tmpEthData, CRC);
     ethSend(X"01", tmpEthData, CRC);
     
 	--destination IP
 	ethSend(X"c0", tmpEthData, CRC);
     ethSend(X"a8", tmpEthData, CRC);
-    ethSend(X"85", tmpEthData, CRC);
+    ethSend(X"2e", tmpEthData, CRC);
     ethSend(X"6b", tmpEthData, CRC);
     
 	--UDP datagram starts 

@@ -113,7 +113,7 @@ architecture vhdl of ethernet_adapter is
   signal resetSync_serial : std_logic;
 
   signal resetSync_eth : std_logic;
-  signal resetSync_eth_z : std_logic;
+--  signal resetSync_eth_z : std_logic;
 
   signal reset_out : std_logic;
 
@@ -134,34 +134,34 @@ begin
   ETH_pll_inst: ETH_pll
     port map (
       refclk   => clockIn_global,
-      rst      => resetSync_serial,
+      rst      => '0',
       outclk_0 => rx_clk,
       outclk_1 => gtx_clk,
       locked   => rx_clk_lock);
   
   eth_clk <= rx_clk;
   
-  reset_sync_serial: sync_Bits_Altera
-    generic map (
-      BITS       => 1,
-      INIT       => x"00000000",
-      SYNC_DEPTH => 2)
-    port map (
-      Clock  => clock.serial125,
-      Input(0)  => reset,
-      Output(0) => resetSync_serial);
+--  reset_sync_serial: sync_Bits_Altera
+--    generic map (
+--      BITS       => 1,
+--      INIT       => x"00000000",
+--      SYNC_DEPTH => 2)
+--    port map (
+--      Clock  => clock.serial125,
+--      Input(0)  => reset,
+--      Output(0) => resetSync_serial);
 
-  reset_sync_eth: sync_Bits_Altera
-    generic map (
-      BITS       => 1,
-      INIT       => x"00000000",
-      SYNC_DEPTH => 2)
-    port map (
-      Clock  => rx_clk,
-      Input(0)  => reset,
-      Output(0) => resetSync_eth_z);
+--  reset_sync_eth: sync_Bits_Altera
+--    generic map (
+--      BITS       => 1,
+--      INIT       => x"00000000",
+--      SYNC_DEPTH => 2)
+--    port map (
+--      Clock  => rx_clk,
+--      Input(0)  => reset,
+--      Output(0) => resetSync_eth_z);
   
-  resetSync_eth <= resetSync_eth_z or not rx_clk_lock;
+  resetSync_eth <= not rx_clk_lock;
   
   -- RX signal DDR logic 
   rx_ctl_ddr : ALTDDIO_IN
@@ -174,7 +174,7 @@ begin
       width => 1
       )
 	PORT MAP (
-      aclr => resetSync_eth,
+      aclr => '0',
       datain(0) => ETH_in.rx_ctl,
       inclock => rx_clk,
       dataout_h(0) => rx_tmp,
@@ -193,7 +193,7 @@ begin
       width => 4
       )
 	PORT MAP (
-      aclr => resetSync_eth,
+      aclr => '0',
       datain => ETH_in.rx_dat,
       inclock => rx_clk,
       dataout_h => rx_dat(7 downto 4),
