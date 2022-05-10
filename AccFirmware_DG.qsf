@@ -169,7 +169,7 @@ set_location_assignment PIN_AL8 -to SMA[3]
 set_location_assignment PIN_AL10 -to SMA[4]
 set_location_assignment PIN_AM10 -to SMA[5]
 set_location_assignment PIN_AM8 -to SMA[6]
-set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_NETLIST_TYPE POST_FIT -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_instance_assignment -name IO_STANDARD LVDS -to LVDS_In*
