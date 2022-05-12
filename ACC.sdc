@@ -24,6 +24,7 @@ set_false_path -from {reset.global} -to {serialRx_dataBuffer:serialRx_dataBuffer
 set_false_path -from {commandHandler:CMD_HANDLER_MAP|commandSync:commandSync_inst|pulseSync2:\loop_gen:*:pulseSync2_rxBuffer_resetReq|dest_pulse} -to {serialRx_buffer:\rxBuffer_gen:*:rxBuffer_map|rx_data_fifo:rx_fifo_map|dcfifo:dcfifo_component*}
 set_false_path -from {reset.global} -to {commandHandler:CMD_HANDLER_MAP|nreset_eth_sync*}
 set_false_path -from {reset.global} -to {dataHandler:dataHandler_inst|reset_eth_sync*}
+set_false_path -from [get_ports *DIPswitch*]
 
 #trig slow control prameters 
 set_false_path -from [get_registers {commandHandler:CMD_HANDLER_MAP|trig.SMA_invert commandHandler:CMD_HANDLER_MAP|trig.source*}] -to [get_registers {serialTx_ddr:serialTx_ddr_trigger|altddio_out:ALTDDIO_OUT_component|ddio_out_m9j:auto_generated|ddio_outa*}]

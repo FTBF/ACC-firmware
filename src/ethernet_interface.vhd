@@ -41,7 +41,8 @@ entity ethernet_interface is
           b_data_force          : in    std_logic;
           b_enable             	: out   std_logic; 				  		  															 				   
 --erased for simple interface  	
-		  
+
+          user_addr				: in    std_logic_vector (7 downto 0);
 		  
 		  -- internal address space signals							   
 --erased for simple interface   
@@ -152,7 +153,6 @@ architecture BEHAVIORAL of ethernet_interface is
      signal internal_din				: std_logic_vector (63 downto 0):= (others => '0'); 	  
      signal internal_dout				: std_logic_vector (63 downto 0):= (others => '0'); 	
 		  
-     signal user_addr					: std_logic_vector (7 downto 0):= (others => '0'); 
 	-------- end simple declaration section -----------	
   	 											  								     
 begin										 

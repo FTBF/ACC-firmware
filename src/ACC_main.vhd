@@ -432,6 +432,7 @@ ethernet_adapter_inst: ethernet_adapter
     ETH_out  => ETH_out,
     ETH_mdc  => ETH_mdc,
     ETH_mdio => ETH_mdio,
+    user_addr    => DIPswitch(7 downto 0),
     eth_clk      => eth_clk,
     rx_addr      => rx_addr,
     rx_data      => rx_data,

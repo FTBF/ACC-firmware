@@ -34,6 +34,8 @@ entity ethernet_adapter is
     ETH_mdc         : inout std_logic;
     ETH_mdio        : inout std_logic;
 
+    user_addr				: in    std_logic_vector (7 downto 0);
+
     -- rx/tx signals
     eth_clk                 : out   std_logic;
     rx_addr              	: out   std_logic_vector (31 downto 0);
@@ -65,6 +67,7 @@ architecture vhdl of ethernet_adapter is
       b_data_we    : in  std_logic;
       b_data_force : in  std_logic;
       b_enable     : out std_logic;
+      user_addr	   : in std_logic_vector (7 downto 0);
       MASTER_CLK   : in  std_logic;
       USER_CLK     : in  std_logic;
       PHY_RXD      : in  std_logic_vector (7 downto 0);
@@ -261,6 +264,8 @@ begin
       b_data_we    => b_data_we,
       b_data_force => b_data_force,
       b_enable     => b_enable,
+      --address
+      user_addr    => user_addr,
       --PHY interface signals 
       MASTER_CLK   => rx_clk,
       USER_CLK     => clock.serial25,

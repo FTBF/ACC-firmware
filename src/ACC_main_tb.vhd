@@ -64,7 +64,7 @@ architecture sim of ACC_main_tb is
 
 
   -- constants 
-  constant OSC_PERIOD : time := 40 ns;
+  constant OSC_PERIOD : time := 8 ns;
   constant JCPLL_PERIOD : time := 25 ns;
   constant USB_PERIOD : time := 20.8 ns; 
   constant WR_PERIOD : time := 10 ns; 
@@ -518,6 +518,7 @@ begin  -- architecture sim
   
   eth_process : process
   begin
+	DIPswitch <= "00"&x"6b";
 	tmpEthData <= "0" & X"d"; 
 	
 	wait for 120 us;	 

@@ -138,7 +138,8 @@ begin
 
           when HEADER2 =>
             if b_enable = '1' then
-              dataBuf(15 + (3 - iChunk)*16 downto 0 + (3 - iChunk)*16) := data_muxed;
+              --dataBuf(15 + (3 - iChunk)*16 downto 0 + (3 - iChunk)*16) := data_muxed;
+              dataBuf := dataBuf(47 downto 0) & data_muxed;
               read_skidbuf <= '0';
               
               if iChunk < 4 - 1 then
@@ -162,7 +163,8 @@ begin
 
           when DATA =>
             if b_enable = '1' then
-              dataBuf(11 + (4 - iChunk)*12 downto 0 + (4 - iChunk)*12) := data_muxed(11 downto 0);
+              --dataBuf(11 + (4 - iChunk)*12 downto 0 + (4 - iChunk)*12) := data_muxed(11 downto 0);
+              dataBuf := dataBuf(51 downto 0) & data_muxed(11 downto 0);
               read_skidbuf <= '0';
               
               if iChunk < 5 - 1 then

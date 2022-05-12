@@ -357,6 +357,7 @@ component ethernet_adapter is
     ETH_out      : out   ETH_out_type;
     ETH_mdc      : inout std_logic;
     ETH_mdio     : inout std_logic;
+    user_addr	 : in    std_logic_vector (7 downto 0);
     eth_clk      : out   std_logic;
     rx_addr      : out   std_logic_vector (31 downto 0);
     rx_data      : out   std_logic_vector (63 downto 0);
