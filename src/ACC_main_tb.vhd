@@ -556,8 +556,10 @@ begin  -- architecture sim
 	ethSendCom(X"000000100", X"FFF60003", tmpEthData);
 	wait for 10 us;
 	
-	ethSendCom(X"000000010", X"000000FF", tmpEthData);
-	wait for 400 us;
+	for v in 0 to 100 loop
+		ethSendCom(X"000000010", X"000000FF", tmpEthData);
+		wait for 25 us;
+	end loop;
 	
 	ethSendCom(X"000000022", X"00000000", tmpEthData);
 	wait for 100 us;

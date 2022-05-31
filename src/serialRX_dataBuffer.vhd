@@ -38,6 +38,7 @@ entity serialRx_dataBuffer is
     count_reset   : in std_logic;
 
     trig_out         : out std_logic_vector(N-1 downto 0);
+    ACDC_backpressure_out : out std_logic_vector(N-1 downto 0);
     
     io_config_clkena : out std_logic_vector(2*N-1 downto 0);
     io_config_datain : out std_logic;
@@ -216,7 +217,7 @@ begin  -- architecture vhdl
     end if;
   end process;
 
-  serial_hs_controldecode : process(all)
+  serial_hs_trigger_controldecode : process(all)
   begin
     for iLink in 0 to N-1 loop
       if serialRX_deser_10bit_z(2*iLink) = "0001011011" or serialRX_deser_10bit_z(2*iLink) = "1110100100" then --FB k-code for trigger 
@@ -227,6 +228,21 @@ begin  -- architecture vhdl
     end loop;
   end process;
 
+  serial_hs_backpressure_controldecode : process(clock.serial25)
+  begin
+    for iLink in 0 to N-1 loop
+      if rising_edge(clock.serial25) then
+        if reset_sync2 = '1' then
+          ACDC_backpressure_out(iLink) <= '0';
+        elsif serialRX_deser_10bit_z(2*iLink) = "1001111100" or serialRX_deser_10bit_z(2*iLink) = "0110000011" then --3C k-code for backpressure enable 
+          ACDC_backpressure_out(iLink) <= '1';
+        elsif serialRX_deser_10bit_z(2*iLink) = "1010111100" or serialRX_deser_10bit_z(2*iLink) = "0101000011" then --5C k-code for backpressure disenable 
+          ACDC_backpressure_out(iLink) <= '0';
+        end if;
+      end if;
+    end loop;
+  end process;
+  
   -- synchronize to 25 Mz domain
   serialRX_deser_sync : process(clock.serial25)
   begin

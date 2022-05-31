@@ -292,6 +292,7 @@ component serialRx_dataBuffer is
     backpressure_out       : out std_logic_vector(N-1 downto 0);
     count_reset            : in  std_logic;
     trig_out               : out std_logic_vector(N-1 downto 0);
+    ACDC_backpressure_out  : out std_logic_vector(N-1 downto 0);
     io_config_clkena       : out std_logic_vector(15 downto 0);
     io_config_datain       : out std_logic;
     io_config_update       : out std_logic);

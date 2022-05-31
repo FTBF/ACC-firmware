@@ -75,6 +75,7 @@ architecture vhdl of	ACC_main is
     signal backpressure_out : std_logic_vector(N-1 downto 0);
     signal backpressure_out_man : std_logic_vector(N-1 downto 0);
     signal ACDC_triggers          : std_logic_vector(N-1 downto 0);
+    signal ACDC_backpressure      : std_logic_vector(N-1 downto 0);
     signal rxFIFO_resetReq        : std_logic_vector(N-1 downto 0);
     signal self_trig       :  std_logic;
 
@@ -253,6 +254,7 @@ serialRx_dataBuffer_inst: serialRx_dataBuffer
     backpressure_out => backpressure_out,
     count_reset      => config.count_reset,
     trig_out         => ACDC_triggers,
+    ACDC_backpressure_out => ACDC_backpressure,
     io_config_clkena => io_config_clkena,
     io_config_datain => io_config_datain,
     io_config_update => io_config_update
