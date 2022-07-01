@@ -31,6 +31,8 @@ LIBRARY work;
 use work.defs.all;
 use work.LibDG.all;
 
+LIBRARY altera_mf;
+USE altera_mf.altera_mf_components.all;
 
 
 ENTITY synchronousRx_8b10b IS 
@@ -75,6 +77,7 @@ signal sync_timeout_error: std_logic;
 signal sync_timeout_error_y: std_logic;
 signal clock_detect: std_logic;
 signal disparity_error_y: std_logic;
+signal bitFIFOEmpty : std_logic;
 
 
 constant sync_word0: std_logic_vector(9 downto 0):= "0001111100";		-- the symbol for codeword K28.7
@@ -121,7 +124,7 @@ begin
 				
 		--sync
 		symbol <= symbol_y;
-		symbol_valid <= symbol_valid_z;
+		symbol_valid <= symbol_valid_y;
 		symbol_align_error <= symbol_align_error_y or rx_clock_fail;
 		disparity_error <= disparity_error_y or rx_clock_fail;
 
@@ -167,7 +170,8 @@ begin
 end process;
 
 -- sync to x4 clock
-SYNC_ERR: pulseSync port map (clock_sys, clock_x4, sync_timeout_error, sync_timeout_error_y);
+--SYNC_ERR: pulseSync port map (clock_sys, clock_x4, sync_timeout_error, sync_timeout_error_y);
+sync_timeout_error_y <= sync_timeout_error;
 
 -- rising edge detect
 CLOCK_DET: monostable_async_edge port map (clock_sys, 1, serialIn_z, clock_detect);
@@ -191,63 +195,51 @@ CLOCK_DET: monostable_async_edge port map (clock_sys, 1, serialIn_z, clock_detec
 --
 -- sync words will be sent periodically by the sending end
 
-SYMBOL_SYNC: process(clock_x4)
+SYMBOL_SYNC: process(clock_sys)
 variable  sym_reg: std_logic_vector(19 downto 0);		-- Symbol register. Stores the most recent 2 symbols. This length is needed is for detecting the 2-symbol sync word
 variable  b: natural range 0 to 15;	-- bit number
 variable  aligned: std_logic:= '0';
 variable  sync_detect: std_logic_vector(1 downto 0);
 begin
-	if (rising_edge(clock_x4)) then
-		
-		-- sync
-		rxBit <= rxBit_x;
-		rxBit_valid <= rxBit_valid_y;
-				
-		if (rxBit_valid = '1') then				
-			
-			-- store bit in shift register. Lsb is always recevied first
-			sym_reg := rxBit & sym_reg(19 downto 1);
+  if (rising_edge(clock_sys)) then
+    
+    -- sync
+    rxBit_y <= rxBit_x;
+    rxBit <= rxBit_y;
+    --rxBit_valid <= rxBit_valid_y;
+    
+    -- store bit in shift register. Lsb is always recevied first
+    sym_reg := rxBit & sym_reg(19 downto 1);
 
-			-- check for special unique symbol sync code if not yet aligned
-			if (aligned = '0') then
-				sync_detect := "00";
-				if (sym_reg(9 downto 0) = sync_word0 or sym_reg(9 downto 0) = (not sync_word0)) then sync_detect(0) := '1'; end if;
-				if (sym_reg(19 downto 10) = sync_word1 or sym_reg(9 downto 0) = (not sync_word1)) then sync_detect(1) := '1'; end if;
-				if (sync_detect = "11") then
-					aligned := '1';
-					b := 9;			-- the bit just stored must be the last bit (msb) of the special code which has just been received, because the lsb is transmitted first
-				end if;
-			end if;		
-						
-			if (b = 9 and aligned = '1') then		-- bit 9 was just received i.e. the 10th bit so a complete symbol has been received and is in the shift reg			
-				symbol_y <= sym_reg(9 downto 0);		-- output the new symbol to the symbol decoder
-				symbol_valid_y <= '1'; 
-			else				
-				symbol_valid_y <= '0';
-			end if;
-				
-			b := b + 1;	if (b = 10) then b := 0; end if;		-- bit counter
-			
-		else
-		
-			symbol_valid_y <= '0';	
-		
-		end if;
-
-		symbol_align_error_y <= not aligned;
-		
-		if (sync_timeout_error_y = '1') then aligned := '0'; end if;
-		
-	end if;
+    -- check for special unique symbol sync code if not yet aligned
+    if (aligned = '0') then
+      sync_detect := "00";
+      if (sym_reg(19 downto 10) =      sync_word1  and sym_reg(9 downto 0) =      sync_word0)  then sync_detect(0) := '1'; end if;
+      if (sym_reg(19 downto 10) = (not sync_word1) and sym_reg(9 downto 0) = (not sync_word0)) then sync_detect(1) := '1'; end if;
+      if (sync_detect(0) = '1' or sync_detect(1) = '1') then
+        aligned := '1';
+        b := 9;			-- the bit just stored must be the last bit (msb) of the special code which has just been received, because the lsb is transmitted first
+      end if;
+    end if;		
+    
+    if (b = 9 and aligned = '1') then		-- bit 9 was just received i.e. the 10th bit so a complete symbol has been received and is in the shift reg			
+      symbol_y <= sym_reg(9 downto 0);		-- output the new symbol to the symbol decoder
+      symbol_valid_y <= '1'; 
+    else				
+      symbol_valid_y <= '0';
+    end if;
+    
+    b := b + 1;	if (b = 10) then b := 0; end if;		-- bit counter
+    
+    symbol_align_error_y <= not aligned;
+    
+    if (sync_timeout_error_y = '1') then aligned := '0'; end if;
+    
+  end if;
 end process;
 
-
 -- sync to sys clock
-SYMBOL_CLOCK_SYNC: pulseSync port map (clock_x4, clock_sys, symbol_valid_y, symbol_valid_z);
-
-
-
-
+--SYMBOL_CLOCK_SYNC: pulseSync port map (clock_x4, clock_sys, symbol_valid_y, symbol_valid_z);
 
 
 
@@ -290,16 +282,7 @@ end process;
 
 
 -- sync to x4 clock
-BIT_CLOCK_SYNC: pulseSync port map (clock_x8, clock_x4, rxBit_valid_x, rxBit_valid_y);
+--BIT_CLOCK_SYNC: pulseSync port map (clock_x8, clock_x4, rxBit_valid_x, rxBit_valid_y);
 
 
 end vhdl;
-
-
-
-
-
-
-
-
-

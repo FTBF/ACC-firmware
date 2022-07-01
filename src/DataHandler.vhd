@@ -15,361 +15,189 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 USE ieee.numeric_std.ALL; 
+use ieee.std_logic_misc.all;
 use work.defs.all;
 
-
-
 entity dataHandler is
-	port (
-		reset						: 	in   	std_logic;
-		clock				      : 	in		std_logic;        
-		serialRx					:	in		serialRx_type;
-		pllLock					:  in std_logic;
-		trig						:	in		trigSetup_type;
-		channel          		: in  natural;      
-      
-      -- rx buffer ram signals
-      ramReadEnable        : 	out 	std_logic_vector(7 downto 0);
-      ramAddress           :  out   std_logic_vector(transceiver_mem_depth-1 downto 0);
-      ramData              :  in    rx_ram_data_type;
-      rxDataLen				:  in  	naturalArray_16bit;
-		frame_received    	:  in   std_logic_vector(7 downto 0);
-		bufferReadoutDone    :  buffer   std_logic_vector(7 downto 0);
-		
+  port (
+    reset            : in  std_logic;
+    clock            : in  std_logic;
+    eth_clk          : in  std_logic;
 
-      -- Highspeed data FIFO controls
-
-      dataFIFO_readReq : in std_logic;
-      data_out         : in  Array_16bit;
-      data_occ         : in  Array_16bit;
-      data_re          : out std_logic_vector(N-1 downto 0);
-        
-      -- parameter signals
-      param_readReq        : in std_logic;
-      param_num            : in natural range 0 to 255;
-  
-        
-      -- usb tx signals
-      dout 		            : 	out	std_logic_vector(15 downto 0);
-		txReq					   : 	out	std_logic;
-      txAck                : 	in 	std_logic; -- a pulse input which shows that the data was sent to the usb chip
-      txLockReq            : 	out	std_logic;
-      txLockAck            : 	in  	std_logic;
-      rxBuffer_readReq		:	in		std_logic;
-		localInfo_readRequest: in std_logic;      
-      acdcBoardDetect      : in std_logic_vector(7 downto 0);    
-      useExtRef				:	in std_logic;
-
-      -- data bit error monitors
-      prbs_error_counts  : in DoubleArray_16bit;
-      symbol_error_counts  : in DoubleArray_16bit;
-
-      -- high speed input byte FIFO occupancy
-      byte_fifo_occ       : out DoubleArray_16bit;
-
-      -- error
-      timeoutError  			:	out	std_logic);
+    -- Ethernet burst controls
+    b_data           : out std_logic_vector (63 downto 0);
+    b_data_we        : out std_logic;
+    b_data_force     : out std_logic;
+    b_enable         : in  std_logic;
+    
+    -- Highspeed data FIFO controls
+    dataFIFO_readReq : in  std_logic;
+    dataFIFO_chan    : in  natural range 0 to 15;
+    
+    data_out         : in  Array_16bit;
+    data_occ         : in  Array_16bit;
+    data_re          : out std_logic_vector(N-1 downto 0)
+  );
 end dataHandler;
 
 
 architecture vhdl of dataHandler is
 
+  type state_type is (
+    IDLE,
+    HEADER,
+    HEADER2,
+    DATA,
+    DONE);
 
+  signal state : state_type;
 
-type state_type is (
-   CHECK_IF_SEND_DATA,
-   BUS_REQUEST,
-   DATA_SEND,
-   DATA_ACK,
-   DONE);
-   
-   
+  signal reset_eth_sync0 : std_logic;
+  signal reset_eth_sync1 : std_logic;
+  signal reset_eth_sync2 : std_logic;
 
+  signal data_skidbuf  : std_logic_vector(15 downto 0);
+  signal write_skidbuf : std_logic;
+  signal read_skidbuf  : std_logic;
+  signal data_muxed    : std_logic_vector(15 downto 0);
 
+  signal data_re_loc   : std_logic_vector(N-1 downto 0);
 
+begin	
 
-signal localData:  frameData_type;
-signal address: natural;
-signal txAck_z: std_logic;
-signal trigSource_word: std_logic_vector(15 downto 0);
-signal serialRx_statusWord: std_logic_vector(31 downto 0);
-
-type ParamMapType is array(255 downto 0) of std_logic_vector(15 downto 0);
-signal paramMap : ParamMapType;
-
-
-	
-	begin	
-	
-
-               
-ramAddress <= std_logic_vector(to_unsigned(address,15));
-
-
-
-   
-   
-DATA_HANDLER: process(clock)
-  variable getRamData: boolean;
-  variable getFIFOData: boolean;
-  variable getLocalData: boolean;
-  variable getParameter: boolean;
-  variable state: state_type;
-  variable t: natural; -- timeout value 
-  variable i: natural;  -- the index of the current data word within the frame = number of words done
-  variable frameLen: natural;
-  variable holdoff: natural; -- a delay between successive frames to give chance for rxPacketReceived to go low
-  variable data_re_v : std_logic_vector(N-1 downto 0);
-
-begin
-  if (rising_edge(clock)) then
-	
-    if (reset = '1') then
-      
-      bufferReadoutDone <= x"00";
-      state := CHECK_IF_SEND_DATA;
-      ramReadEnable <= X"FF"; 
-      timeoutError <= '0';
-      txReq <= '0';
-      txLockReq <= '0';
-      holdoff := 0;
-      t := 0;
-      data_re <= X"00";
-      
+  reset_eth_sync : process(eth_clk)
+  begin
+    if reset = '1' then
+      reset_eth_sync0 <= '1';
+      reset_eth_sync1 <= '1';
+      reset_eth_sync2 <= '1';
     else
-      
-      -- tx data acknowledge - rising edge detect
-      txAck_z <= txAck;
-      
-      if (holdoff > 0) then holdoff := holdoff -  1; end if;
-      
-      case state is
-        
-        when CHECK_IF_SEND_DATA => -- check for rx buffer full, or request to send local info
-          
-          i := 0;
-          t := 0;
-          address <= 0;
-          data_re <= X"00";
-          
-          bufferReadoutDone <= x"00";		
-          
-          timeoutError <= '0';
-          
-          getRamData := false;    -- flags used to indicate frame type required
-          getFIFOData := false;
-          getLocalData := false;
-          getParameter := false;
-          
-          if (dataFIFO_readReq = '1' and holdoff = 0) then
-              frameLen :=  to_integer(signed(data_occ(channel)));
-              getFIFOData := true;
-              -- advance to the first data word 
-              data_re_v := X"00";
-              data_re_v(channel) := '1';
-              data_re <= data_re_v;
-              state := BUS_REQUEST;
-          end if;
-
-          if (rxBuffer_readReq = '1' and holdoff = 0) then
-            if (rxDataLen(channel) > 0) then 
-              frameLen :=  rxDataLen(channel);
-              getRamData := true; 
-              state := BUS_REQUEST;
-            end if;				
-          end if;
-
-          if (localInfo_readRequest = '1' and holdoff = 0) then 
-            frameLen := 32;
-            getLocalData := true; 
-            state := BUS_REQUEST;						
-          end if;
-          
-          if (param_readReq = '1' and holdoff = 0) then 
-            frameLen := 1;
-            getParameter := true; 
-            state := BUS_REQUEST;						
-          end if;
-          
-        when BUS_REQUEST =>               
-          txLockReq <= '1';  -- request locking the usb bus in tx mode
-          data_re <= X"00";
-          if (txLockAck = '1') then
-            state := DATA_SEND; -- usb bus acknowledge, bus is now locked for tx use
-          end if;  
-
-        when DATA_SEND =>
-          -- choose the correct data depending on the frame type and index pos within the frame
-          data_re <= X"00";
-          if (getLocalData) then   
-            dout <= localData(i);
-          elsif getParameter then
-            dout <= paramMap(param_num);
-          elsif getRamData then
-            dout <= ramData(channel); --ram data                     
-            address <= address + 1; 
-          else -- getFIFOData
-            dout <= data_out(channel); --ram data                     
-            data_re_v := X"00";
-            data_re_v(channel) := '1';
-            data_re <= data_re_v;
-          end if;
-          txReq <= '1';   -- initiate the usb tx process
-          i := i + 1; -- increment the index   (= number of words done)            
-          t := 40000000;  -- set timeout delay 1s for data acknowledge
-          state := DATA_ACK;
-          
-        when DATA_ACK =>
-          txReq <= '0';
-          data_re <= X"00";
-          if (txAck_z = '0' and txAck = '1') then  -- rising edge detect means the new data was acked
-            t := 0; -- clear timeout
-            if (i >= frameLen) then
-              state := DONE;
-            else
-              state := DATA_SEND;
-            end if;
-          end if;
-          
-        when DONE => 
-          txLockReq <= '0';    -- this going low causes the packet end signal to be sent and gives chance for the read module to operate if necessary
-          if (txLockAck = '0') then                
-            if (getRamData) then bufferReadoutDone(channel) <= '1'; end if; -- flag that the buffer was read. This is used to reset the corresponding buffer write process
-            holdoff := 5;
-            state := CHECK_IF_SEND_DATA;
-          end if;
-          
-      end case;
-      
-      -- timeout error
-      
-      if (t > 0) then
-        t := t - 1;
-        if (t = 0) then 
-          timeoutError <= '1';   -- generate an output pulse to indicate the error
-          state := DONE; 
-        end if;     
-      else
-        timeoutError <= '0';
+      if rising_edge(eth_clk) then
+        reset_eth_sync0 <= reset;
+        reset_eth_sync1 <= reset_eth_sync0;
+        reset_eth_sync2 <= reset_eth_sync1;
       end if;
-      
     end if;
-    
-  end if;
-   
-   
-end process;
-               
-               
-               
-    
-    
-    
-               
+  end process;
 
+  data_re <= data_re_loc;
+  write_skidbuf <= or_reduce(data_re_loc) and not b_enable;
 
+  data_in_mux : process(all)
+  begin
+    if read_skidbuf = '1' then
+      data_muxed <= data_skidbuf;
+    else
+      data_muxed <= data_out(dataFIFO_chan);
+    end if;
+  end process;
 
+  DATA_HANDLER: process(eth_clk, reset_eth_sync2)
+    variable iWord : natural;
+    variable iChunk : natural;
+    variable dataBuf : std_logic_vector(63 downto 0);
+  begin
+    if reset_eth_sync2 = '1' then
+      state <= IDLE;
+      iWord := 0;
+      iChunk := 0;
+      data_re_loc <= X"00";
+      dataBuf := X"0000000000000000";
+      read_skidbuf <= '0';
+    else
+      if rising_edge(eth_clk) then
+        state <= state;
+        b_data       <= X"0000000000000000";
+        b_data_we    <= '0';
+        b_data_force <= '0';
+        data_re_loc <= X"00";
 
---------------------------------------------
--- LOCAL DATA FRAME
---------------------------------------------  
+        if write_skidbuf = '1' then
+          data_skidbuf <= data_out(dataFIFO_chan);
+          read_skidbuf <= '1';
+        end if;
 
-localData(0) <= x"1234";
-localData(1) <= x"AAAA";
-localData(2) <= firwareVersion.number;
-localData(3) <= firwareVersion.year;
-localData(4) <= firwareVersion.MMDD;
-localData(5) <= x"0000";
-localData(6) <= x"0000";
-localData(7) <= x"00" & acdcBoardDetect;
-localData(8) <= x"000" & "00" & trig.ppsMux_enable & trig.SMA_invert;
-localData(9) <= x"0000";
-localData(10) <= serialRx_statusWord(31 downto 16);
-localData(11) <= serialRx_statusWord(15 downto 0);
-localData(12) <= x"000" & "00" & pllLock & useExtRef;
-localData(13) <= x"00" & frame_received;
-localData(14) <= std_logic_vector(to_unsigned(rxDataLen(0),16));
-localData(15) <= std_logic_vector(to_unsigned(rxDataLen(1),16));
-localData(16) <= std_logic_vector(to_unsigned(rxDataLen(2),16));
-localData(17) <= std_logic_vector(to_unsigned(rxDataLen(3),16));
-localData(18) <= std_logic_vector(to_unsigned(rxDataLen(4),16));
-localData(19) <= std_logic_vector(to_unsigned(rxDataLen(5),16));
-localData(20) <= std_logic_vector(to_unsigned(rxDataLen(6),16));
-localData(21) <= std_logic_vector(to_unsigned(rxDataLen(7),16));
-localData(22) <= data_occ(0);
-localData(23) <= data_occ(1);
-localData(24) <= data_occ(2);
-localData(25) <= data_occ(3);
-localData(26) <= data_occ(4);
-localData(27) <= data_occ(5);
-localData(28) <= data_occ(6);
-localData(29) <= data_occ(7);
-localData(30) <= x"AAAA";
-localData(31) <= x"4321";
+        case state is
+          when IDLE =>
+            iWord := 0;
+            iChunk := 0;
+            if dataFIFO_readReq = '1' and to_integer(unsigned(data_occ(dataFIFO_chan))) >= 7696 then
+              state <= HEADER;
+              data_re_loc(dataFIFO_chan) <= '1';
+            end if;
 
-error_mapping : process(all)
-begin
-  for i in 0 to 15 loop
-    paramMap(i)      <= prbs_error_counts(i);
-    paramMap(16 + i) <= symbol_error_counts(i);
-    paramMap(32 + 1) <= byte_fifo_occ(i);
-  end loop;
-  for i in 0 to 7 loop
-    paramMap(48 + i) <= data_occ(i);
-  end loop;
+          when HEADER =>
+            if b_enable = '1' then
+              b_data       <= X"123456789abcdef0";
+              b_data_we    <= '1';
+              data_re_loc(dataFIFO_chan) <= '1';
+              iWord := 0;
+              iChunk := 0;
+              state <= HEADER2;
+            end if;
 
+          when HEADER2 =>
+            if b_enable = '1' then
+              --dataBuf(15 + (3 - iChunk)*16 downto 0 + (3 - iChunk)*16) := data_muxed;
+              dataBuf := dataBuf(47 downto 0) & data_muxed;
+              read_skidbuf <= '0';
+              
+              if iChunk < 4 - 1 then
+                iChunk := iChunk + 1;
+              else
+                iChunk := 0;
+                b_data     <= dataBuf;
+                b_data_we  <= '1';
+              end if;
 
-end process;
+              iWord := iWord + 1;
+              if iWord >= 16 then
+                iWord := 0;
+                iChunk := 0;
+                dataBuf(63 downto 60) := X"0";
+                state <= DATA;
+              end if;
 
-               
--- serial rx status       
-SERIAL_RX_STATUS: process(clock)
-begin
-	if (rising_edge(clock)) then
-		for i in 0 to 7 loop
-			serialRx_statusWord(i*4 + 0) <= serialRx.symbol_align_error(i);
-			serialRx_statusWord(i*4 + 1) <= serialRx.rx_clock_fail(i);
-			serialRx_statusWord(i*4 + 2) <= serialRx.disparity_error(i);
-			serialRx_statusWord(i*4 + 3) <= serialRx.symbol_code_error(i);
-		end loop;
-	end if;
-end process;
+              data_re_loc(dataFIFO_chan) <= '1';
+            end if;
 
+          when DATA =>
+            if b_enable = '1' then
+              --dataBuf(11 + (4 - iChunk)*12 downto 0 + (4 - iChunk)*12) := data_muxed(11 downto 0);
+              dataBuf := dataBuf(51 downto 0) & data_muxed(11 downto 0);
+              read_skidbuf <= '0';
+              
+              if iChunk < 5 - 1 then
+                iChunk := iChunk + 1;
+              else
+                iChunk := 0;
+                b_data     <= dataBuf;
+                b_data_we  <= '1';
+                dataBuf    := X"0000000000000000";
+              end if;
 
+              iWord := iWord + 1;
+              if iWord >= 7680 then
+                state <= DONE;
+                if iChunk /= 0 then
+                  b_data     <= dataBuf;
+                  b_data_we  <= '1';
+                end if;
+              elsif iWord = 7680 - 1 then
+                data_re_loc(dataFIFO_chan) <= '0';
+              else
+                data_re_loc(dataFIFO_chan) <= '1';
+              end if;
 
-               
-               
-               
-			
+            end if;
+              
+          when DONE =>
+            b_data_force <= '1';
+            state <= IDLE;
+            
+        end case;
+      end if;
+    end if;
+  end process;
+  			
 end vhdl;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

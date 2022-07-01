@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simPackage>
+ <file
+   path="simulation/submodules/eth_clk_ctrl_altclkctrl_0.vhd"
+   type="VHDL"
+   library="altclkctrl_0" />
+ <file path="simulation/eth_clk_ctrl.vhd" type="VHDL" />
+ <topLevel name="eth_clk_ctrl" />
+ <deviceFamily name="arriav" />
+</simPackage>

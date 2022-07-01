@@ -38,9 +38,9 @@ end record;
 --
 constant firwareVersion: firmwareVersion_type:= (
 	
-	number => 	x"0403", 
+	number => 	    x"0504", 
 	year => 		x"2022",	
-	MMDD => 		x"0325"		-- month, date		
+	MMDD => 		x"0531"		-- month, date		
 	
 );
 --
@@ -245,16 +245,14 @@ end record;
 --	RX BUFFER
 ------------------------------------
 type rxBuffer_type is record
-	dataLen    		:	naturalArray_16bit;
-	reset				:	std_logic_vector(N-1 downto 0);
-	readReq			:	std_logic;
-	resetReq			:	std_logic_vector(N-1 downto 0);
-	empty				:	std_logic_vector(N-1 downto 0);
-	frame_received	:	std_logic_vector(N-1 downto 0);
-	ramReadEn 		:std_logic_vector(N-1 downto 0);
-	ramReadDone 	:std_logic_vector(N-1 downto 0);
-	ramAddress		:	std_logic_vector(transceiver_mem_depth-1 downto 0);--ram address
-	ramDataOut		:rx_ram_data_type;
+	dataLen    	   : Array_16bit;
+	reset		   : std_logic_vector(N-1 downto 0);
+	readReq		   : std_logic;
+	resetReq	   : std_logic_vector(N-1 downto 0);
+	empty		   : std_logic_vector(N-1 downto 0);
+	frame_received : std_logic_vector(N-1 downto 0);
+	fifoReadEn 	   : std_logic_vector(N-1 downto 0);
+	fifoDataOut	   : Array_16bit;
 end record;
 
 
@@ -341,8 +339,45 @@ type usb_type is record
 end record;
 
 		
+------------------------------------
+--	config regesters
+------------------------------------
+type config_type is record
+    localInfo_readReq      : std_logic;
+    rxBuffer_resetReq      : std_logic_vector(7 downto 0);
+    rxBuffer_readReq	   : std_logic;
+    dataFIFO_readReq       : std_logic;
+    globalResetReq         : std_logic;
+    trig		           : trigSetup_type;
+    readChannel            : natural range 0 to 15;
+    ledSetup			   : LEDSetup_type;
+    ledPreset			   : LEDPreset_type;
+    extCmd                 : extCmd_type;
+    testCmd				   : testCmd_type;
+    delayCommand           : std_logic_vector(11 downto 0);
+    delayCommandSet        : std_logic;
+    delayCommandMask       : std_logic_vector(15 downto 0);
+    count_reset            : std_logic;
+    phaseUpdate            : std_logic;
+    updn                   : std_logic;
+    cntsel                 : std_logic_vector(4 downto 0);
+    train_manchester_links : std_logic;
+    backpressure_threshold : std_logic_vector(11 downto 0);
+    rxFIFO_resetReq        : std_logic_vector(N-1 downto 0);
+end record;
 
-
+type readback_reg_type is record
+  byte_fifo_occ                 : DoubleArray_16bit;
+  prbs_error_counts             : DoubleArray_16bit;
+  symbol_error_counts           : DoubleArray_16bit;
+  data_occ                      : Array_16bit;
+  rxDataLen	                    : Array_16bit;
+  serialRX_rx_clock_fail        : std_logic_vector(N-1 downto 0);
+  serialRX_symbol_align_error   : std_logic_vector(N-1 downto 0);
+  serialRX_symbol_code_error    : std_logic_vector(N-1 downto 0);
+  serialRX_disparity_error      : std_logic_vector(N-1 downto 0);
+  pllLock                       : std_logic_Vector(3 downto 0);
+end record;
 
 
 end defs;

@@ -23,51 +23,42 @@ package components is
 
 
 component serialTx_buffer is
-	port(
-		clock				: in	std_logic;	--system clock		 
-      din				: in	std_logic_vector(31 downto 0);
-		din_txReq		: in	std_logic;		 
-		din_txAck		: out	std_logic;		 
-		dout				: out	std_logic_vector(7 downto 0);
-		dout_txReq		: out	std_logic;
-		dout_txAck		: in	std_logic
-		);			
-end component;
+  port (
+    clock      : in  std_logic;
+    eth_clk    : in  std_logic;
+    din        : in  std_logic_vector(31 downto 0);
+    din_txReq  : in  std_logic;
+    dout       : out std_logic_vector(7 downto 0);
+    dout_txReq : out std_logic;
+    dout_txAck : in  std_logic);
+end component serialTx_buffer;
 
 
 component serialRx_buffer is
-	port(
-		reset				: in	std_logic;	--buffer reset and/or global reset
-		clock				: in	std_logic;	--system clock		 
-      din				: in	std_logic_vector(7 downto 0);--input data 16 bits
-		din_valid		: in	std_logic;		 
-      read_enable		: in	std_logic; 	--enable reading from RAM block
-		read_address	: in	std_logic_vector(transceiver_mem_depth-1 downto 0);--ram address
-		buffer_empty	: out std_logic;
-		frame_received	: buffer std_logic;
-		dataLen			: out natural range 0 to 65535;
-		dout				: out	std_logic_vector(transceiver_mem_width-1 downto 0)--ram data out
-		);	
-end component;
+  port (
+    reset        : in  std_logic;
+    clock        : in  std_logic;
+    eth_clk      : in  std_logic;
+    din          : in  std_logic_vector(7 downto 0);
+    din_valid    : in  std_logic;
+    read_enable  : in  std_logic;
+    buffer_empty : out std_logic;
+    dataLen      : out std_logic_vector(15 downto 0);
+    dout         : out std_logic_vector(15 downto 0)); 
+end component serialRx_buffer;
 
 
-
-
-
-
-component txFifo IS
-	PORT
-	(
-		clock		: IN STD_LOGIC ;
-		data		: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
-		rdreq		: IN STD_LOGIC ;
-		wrreq		: IN STD_LOGIC ;
-		empty		: OUT STD_LOGIC ;
-		full		: OUT STD_LOGIC ;
-		q		: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-		usedw		: OUT STD_LOGIC_VECTOR (9 DOWNTO 0)
-	);
-END component;
+component txFifo is
+  port (
+    data    : IN  STD_LOGIC_VECTOR (31 DOWNTO 0);
+    rdclk   : IN  STD_LOGIC;
+    rdreq   : IN  STD_LOGIC;
+    wrclk   : IN  STD_LOGIC;
+    wrreq   : IN  STD_LOGIC;
+    q       : OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
+    rdempty : OUT STD_LOGIC;
+    wrfull  : OUT STD_LOGIC);
+end component txFifo;
 
 		
 component trigger is
@@ -84,7 +75,6 @@ component trigger is
 end component;
 
 
-
 component pll is
 	port (
 		refclk   : in  std_logic := '0'; --  refclk.clk
@@ -96,7 +86,6 @@ component pll is
 	);
 end component;
 	
-		
 		
 component ClockGenerator is
 	Port(
@@ -112,9 +101,6 @@ component ClockGenerator is
 	);
 end component;
 		
-		
-		
-     
       
 component LED_driver is
 	port (
@@ -124,87 +110,45 @@ component LED_driver is
 	);
 end component;
      
-      
-      
-      
-      
+
 ------------------------------------------		
 -- command & data processing components
 ------------------------------------------
 
-
-
 component commandHandler is
-	port (
-		reset						: 	in   	std_logic;
-		clock				      : 	in		clock_type;        
-      din		      	   :  in    std_logic_vector(31 downto 0);
-      din_valid				:  in    std_logic;
-		localInfo_readReq    :  out   std_logic;
-		rxBuffer_resetReq    :  out   std_logic_vector(7 downto 0);
-		rxBuffer_readReq		:	out	std_logic;
-        dataFIFO_readReq     : out std_logic;
-        param_readReq        : out std_logic;
-        param_num            : out natural range 0 to 255;
-		globalResetReq       :  out   std_logic;
-      trig		            :	out	trigSetup_type;
-      readcHANNEL          :	out	natural range 0 to 15;
-		ledSetup					: 	out	LEDSetup_type;
-		ledPreset				: 	in		LEDPreset_type;
-		extCmd			      : 	out 	extCmd_type;
-		testCmd					: 	out	testCmd_type;
-    delayCommand            : out std_logic_vector(11 downto 0);
-    delayCommandSet         : out std_logic;
-    delayCommandMask        : out std_logic_vector(15 downto 0);
-    count_reset             : out std_logic;
-    phaseUpdate            : out std_logic;
-    updn                   : out std_logic;
-    cntsel                 : out std_logic_vector(4 downto 0);
-    train_manchester_links : out std_logic;
-    backpressure_threshold : out std_logic_vector(11 downto 0);
-    rxFIFO_resetReq        : out std_logic_vector(N-1 downto 0)
-);
-end component;
+  port (
+    reset         : in  std_logic;
+    clock         : in  clock_type;
+    eth_clk       : in  std_logic;
+    rx_addr       : in  std_logic_vector (31 downto 0);
+    rx_data       : in  std_logic_vector (63 downto 0);
+    rx_wren       : in  std_logic;
+    tx_data       : out std_logic_vector (63 downto 0);
+    tx_rden       : in  std_logic;
+    config        : out config_type;
+    regs          : in  readback_reg_type;
+    extCmd        : out extCmd_type;
+    serialRX_data : in  Array_16bit;
+    serialRX_rden : out std_logic_vector(N-1 downto 0));
+end component commandHandler;
 
 
 component dataHandler is
-	port (
-		reset						: 	in   	std_logic;
-		clock				      : 	in		std_logic;        
-		serialRx					:	in		serialRx_type;
-		pllLock					:  in std_logic;
-		trig						: in trigSetup_type;
-		channel          		: in natural;
-      ramReadEnable        : 	out 	std_logic_vector(7 downto 0);
-      ramAddress           :  out   std_logic_vector(transceiver_mem_depth-1 downto 0);
-      ramData              :  in    rx_ram_data_type;
-      rxDataLen				:  in  	naturalArray_16bit;
-		frame_received    	:  in   std_logic_vector(7 downto 0);
-      bufferReadoutDone    :  buffer  std_logic_vector(7 downto 0);
-      dataFIFO_readReq : in std_logic;
-      data_out        : in  Array_16bit;
-      data_occ        : in  Array_16bit;
-      data_re         : out std_logic_vector(N-1 downto 0);
-      param_readReq        : in std_logic;
-      param_num            : in natural range 0 to 255;
-        dout 		            : 	out	std_logic_vector(15 downto 0);
-		txReq					   : 	out	std_logic;
-      txAck                : 	in 	std_logic;
-      txLockReq            : 	out	std_logic;
-      txLockAck            : 	in  	std_logic;
-		rxBuffer_readReq		:	in	std_logic;
-      localInfo_readRequest: in std_logic;      
-      acdcBoardDetect      : in std_logic_vector(7 downto 0);    
-		useExtRef				: in std_logic;   
-        prbs_error_counts  : in DoubleArray_16bit;
-        symbol_error_counts  : in DoubleArray_16bit;
-      byte_fifo_occ       : out DoubleArray_16bit;
-        
-      -- error
-      timeoutError  			:	out	std_logic 
-);
-end component;
-		
+  port (
+    reset            : in  std_logic;
+    clock            : in  std_logic;
+    eth_clk          : in  std_logic;
+    b_data           : out std_logic_vector (63 downto 0);
+    b_data_we        : out std_logic;
+    b_data_force     : out std_logic;
+    b_enable         : in  std_logic;
+    dataFIFO_readReq : in  std_logic;
+    dataFIFO_chan    : in  natural range 0 to 15;
+    data_out         : in  Array_16bit;
+    data_occ         : in  Array_16bit;
+    data_re          : out std_logic_vector(N-1 downto 0));
+end component dataHandler;
+
 
 component rx_data_ram
 	port (
@@ -332,6 +276,7 @@ component serialRx_dataBuffer is
   port (
     clock                  : in  clock_type;
     reset                  : in  reset_type;
+    eth_clk                : in  std_logic;
     rxFIFO_resetReq        : in  std_logic_vector(N-1 downto 0);
     delayCommand           : in  std_logic_vector(11 downto 0);
     delayCommandSet        : in  std_logic;
@@ -347,6 +292,7 @@ component serialRx_dataBuffer is
     backpressure_out       : out std_logic_vector(N-1 downto 0);
     count_reset            : in  std_logic;
     trig_out               : out std_logic_vector(N-1 downto 0);
+    ACDC_backpressure_out  : out std_logic_vector(N-1 downto 0);
     io_config_clkena       : out std_logic_vector(15 downto 0);
     io_config_datain       : out std_logic;
     io_config_update       : out std_logic);
@@ -406,12 +352,23 @@ end component serialRX_data_fifo;
 
 component ethernet_adapter is
   port (
-    clock   : in  clock_type;
-    reset   : in  std_logic;
-    ETH_in  : in  ETH_in_type;
-    ETH_out : out ETH_out_type;
-    ETH_mdc  : inout std_logic;
-    ETH_mdio : inout std_logic);
+    clock        : in    clock_type;
+    reset        : in    std_logic;
+    ETH_in       : in    ETH_in_type;
+    ETH_out      : out   ETH_out_type;
+    ETH_mdc      : inout std_logic;
+    ETH_mdio     : inout std_logic;
+    user_addr	 : in    std_logic_vector (7 downto 0);
+    eth_clk      : out   std_logic;
+    rx_addr      : out   std_logic_vector (31 downto 0);
+    rx_data      : out   std_logic_vector (63 downto 0);
+    rx_wren      : out   std_logic;
+    tx_data      : in    std_logic_vector (63 downto 0);
+    tx_rden      : out   std_logic;
+    b_data       : in    std_logic_vector (63 downto 0);
+    b_data_we    : in    std_logic;
+    b_data_force : in    std_logic;
+    b_enable     : out   std_logic); 
 end component ethernet_adapter;
 
 
@@ -448,6 +405,32 @@ component IOBuf_openCollector_iobuf_bidir_cfo is
     oe      : IN    STD_LOGIC_VECTOR (0 DOWNTO 0));
 end component IOBuf_openCollector_iobuf_bidir_cfo;
 
+component commandSync is
+  port (
+    reset     : in  std_logic;
+    clock     : in  clock_type;
+    eth_clk   : in  std_logic;
+    eth_reset : in  std_logic;
+    config_z  : in  config_type;
+    config    : out config_type;
+    reg       : in  readback_reg_type;
+    reg_z     : out readback_reg_type);
+end component commandSync;
+
+
+component rx_data_fifo is
+  port (
+    aclr    : IN  STD_LOGIC := '0';
+    data    : IN  STD_LOGIC_VECTOR (15 DOWNTO 0);
+    rdclk   : IN  STD_LOGIC;
+    rdreq   : IN  STD_LOGIC;
+    wrclk   : IN  STD_LOGIC;
+    wrreq   : IN  STD_LOGIC;
+    q       : OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
+    rdempty : OUT STD_LOGIC;
+    rdusedw : OUT STD_LOGIC_VECTOR (8 DOWNTO 0);
+    wrfull  : OUT STD_LOGIC);
+end component rx_data_fifo;
 
 end components;
 

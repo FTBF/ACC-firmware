@@ -16,6 +16,8 @@ entity serialRx_dataBuffer is
     clock  : in clock_type;
     reset  : in reset_type;
 
+    eth_clk : in std_logic;
+
     rxFIFO_resetReq    : in std_logic_vector(N-1 downto 0);
 
     delayCommand       : in std_logic_vector(11 downto 0);
@@ -36,6 +38,7 @@ entity serialRx_dataBuffer is
     count_reset   : in std_logic;
 
     trig_out         : out std_logic_vector(N-1 downto 0);
+    ACDC_backpressure_out : out std_logic_vector(N-1 downto 0);
     
     io_config_clkena : out std_logic_vector(2*N-1 downto 0);
     io_config_datain : out std_logic;
@@ -52,8 +55,6 @@ architecture vhdl of serialRx_dataBuffer is
   
   attribute PRESERVE          : boolean;
   signal serialRX_hs        : serialRx_hs_array;
-  signal prbs_error_counts_z    : DoubleArray_16bit;
-  signal symbol_error_counts_z  : DoubleArray_16bit;
   signal nreset             : std_logic;
   signal reset_sync0       : std_logic;
   signal reset_sync1       : std_logic;
@@ -77,6 +78,10 @@ architecture vhdl of serialRx_dataBuffer is
   signal serialRX_deser_8bit : serialRx_hs_8bit_array;
   signal serialRX_deser_8bit_kout : std_logic_vector(2*N-1 downto 0);
   signal serialRX_deser_8bit_valid : std_logic_vector(2*N-1 downto 0);
+
+  signal reset_eth_sync0 : std_logic;
+  signal reset_eth_sync1 : std_logic;
+  signal reset_eth_sync2 : std_logic;
 
 begin  -- architecture vhdl
 
@@ -112,32 +117,21 @@ begin  -- architecture vhdl
     end if;
   end process;
 
-  prbs_error_count_sync : for i in 0 to 2*N-1 generate
-    param_handshake_sync_errorCount: param_handshake_sync
-      generic map (
-        WIDTH => 16)
-      port map (
-        src_clk      => clock.serial25,
-        src_params   => prbs_error_counts_z(i),
-        src_aresetn  => not resetFast_sync2,
-        dest_clk     => clock.sys,
-        dest_params  => prbs_error_counts(i),
-        dest_aresetn => nreset);
-  end generate;
-  
-  symbol_error_count_sync : for i in 0 to 2*N-1 generate
-    param_handshake_sync_errorCount: param_handshake_sync
-      generic map (
-        WIDTH => 16)
-      port map (
-        src_clk      => clock.serial25,
-        src_params   => symbol_error_counts_z(i),
-        src_aresetn  => not resetFast_sync2,
-        dest_clk     => clock.sys,
-        dest_params  => symbol_error_counts(i),
-        dest_aresetn => nreset);
-  end generate;
-  
+  reset_eth_sync : process(eth_clk)
+  begin
+    if reset_sync2 = '1' then
+      reset_eth_sync0 <= '1';
+      reset_eth_sync1 <= '1';
+      reset_eth_sync2 <= '1';
+    else
+      if rising_edge(eth_clk) then
+        reset_eth_sync0 <= reset_sync2;
+        reset_eth_sync1 <= reset_eth_sync0;
+        reset_eth_sync2 <= reset_eth_sync1;
+      end if;
+    end if;
+  end process;
+
   serial_remapping: for i in 2*N-1 downto 0 generate
     signal resetFast_ddr   : std_logic;
     signal fifoEmpty       : std_logic;
@@ -223,7 +217,7 @@ begin  -- architecture vhdl
     end if;
   end process;
 
-  serial_hs_controldecode : process(all)
+  serial_hs_trigger_controldecode : process(all)
   begin
     for iLink in 0 to N-1 loop
       if serialRX_deser_10bit_z(2*iLink) = "0001011011" or serialRX_deser_10bit_z(2*iLink) = "1110100100" then --FB k-code for trigger 
@@ -234,6 +228,21 @@ begin  -- architecture vhdl
     end loop;
   end process;
 
+  serial_hs_backpressure_controldecode : process(clock.serial25)
+  begin
+    for iLink in 0 to N-1 loop
+      if rising_edge(clock.serial25) then
+        if reset_sync2 = '1' then
+          ACDC_backpressure_out(iLink) <= '0';
+        elsif serialRX_deser_10bit_z(2*iLink) = "1001111100" or serialRX_deser_10bit_z(2*iLink) = "0110000011" then --3C k-code for backpressure enable 
+          ACDC_backpressure_out(iLink) <= '1';
+        elsif serialRX_deser_10bit_z(2*iLink) = "1010111100" or serialRX_deser_10bit_z(2*iLink) = "0101000011" then --5C k-code for backpressure disenable 
+          ACDC_backpressure_out(iLink) <= '0';
+        end if;
+      end if;
+    end loop;
+  end process;
+  
   -- synchronize to 25 Mz domain
   serialRX_deser_sync : process(clock.serial25)
   begin
@@ -261,10 +270,10 @@ begin  -- architecture vhdl
     begin
       if rising_edge(clock.serial25) then
         if(reset_sync2 = '1' or count_reset = '1') then
-          symbol_error_counts_z(iLink) <= X"0000";
+          symbol_error_counts(iLink) <= X"0000";
         else
-          if(symbol_error = '1' and symbol_error_counts_z(iLink) /= X"ffff") then
-            symbol_error_counts_z(iLink) <= std_logic_vector(unsigned(symbol_error_counts_z(iLink)) + 1);
+          if(symbol_error = '1' and symbol_error_counts(iLink) /= X"ffff") then
+            symbol_error_counts(iLink) <= std_logic_vector(unsigned(symbol_error_counts(iLink)) + 1);
           end if;
         end if;
       end if;
@@ -277,7 +286,7 @@ begin  -- architecture vhdl
       clk           => clock.serial25,
       reset         => resetFast_sync2,
       data          => serialRX_deser_8bit,
-      error_counts  => prbs_error_counts_z,
+      error_counts  => prbs_error_counts,
       count_reset   => count_reset);
 
   -- data buffer
@@ -368,9 +377,9 @@ begin  -- architecture vhdl
     -- shallow byte alignment FIFOs
     pulseSync2_rxFIFO_resetReq: pulseSync2
       port map (
-        src_clk      => clock.sys,
+        src_clk      => eth_clk,
         src_pulse    => rxFIFO_resetReq(iACDC),
-        src_aresetn  => nreset,
+        src_aresetn  => reset_eth_sync2,
         dest_clk     => clock.serial25,
         dest_pulse   => rxFIFO_resetReq_sync,
         dest_aresetn => not reset_sync2);
@@ -436,7 +445,7 @@ begin  -- architecture vhdl
 	PORT MAP (
 		aclr => reset.global or rxFIFO_resetReq(iACDC),
 		data => data_out_msb & data_out_lsb,
-		rdclk => clock.sys,
+		rdclk => eth_clk,
 		rdreq => data_re(iACDC),
 		wrclk => clock.serial25,
 		wrreq => writeBuffer,
@@ -458,7 +467,7 @@ begin  -- architecture vhdl
 --        rdempty => open,
 --        rdusedw => data_occ_loc(iACDC)(14 downto 0),
 --        wrfull  => open);
-
+    
     backpressure_gen : process( clock.serial25 )
     begin
       if rising_edge(clock.serial25) then

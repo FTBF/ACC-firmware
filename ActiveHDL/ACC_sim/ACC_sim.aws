@@ -3,6 +3,7 @@ Version=12.0
 [Designs]
 acc_full_sim=.\ACC_full_sim\ACC_full_sim.adf
 acdc_full_sim=.\ACDC_full_sim\ACDC_full_sim.adf
+synctest=.\SyncTest.adf
 [Browser]
 sort=order
 mode=none
@@ -12,6 +13,7 @@ macro=
 [Expand]
 acc_full_sim=1
 acdc_src=0
-acdc_full_sim=0
+acdc_full_sim=1
+synctest=0
 [Settings]
 Active=acc_full_sim

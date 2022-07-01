@@ -64,7 +64,7 @@ architecture sim of ACC_main_tb is
 
 
   -- constants 
-  constant OSC_PERIOD : time := 40 ns;
+  constant OSC_PERIOD : time := 8 ns;
   constant JCPLL_PERIOD : time := 25 ns;
   constant USB_PERIOD : time := 20.8 ns; 
   constant WR_PERIOD : time := 10 ns; 
@@ -115,6 +115,9 @@ architecture sim of ACC_main_tb is
   signal prbs         : std_logic_vector(15 downto 0); 
   
   signal tmpEthData   : std_logic_vector(4 downto 0);
+  --signal CRC  : std_logic_vector(31 downto 0);
+  --signal notCRC  : std_logic_vector(31 downto 0);
+  --signal CRC_dumb  : std_logic_vector(31 downto 0);
   
   type trig_type is array (4 downto 0) of std_logic_vector(5 downto 0);
   signal selftrig : trig_type;
@@ -138,12 +141,58 @@ architecture sim of ACC_main_tb is
 	wait for 10 ns;
 	
 	--word_out <= "ZZZZZZZZZZZZZZZZ";
-  end sendword;	
+  end sendword;
+
+  procedure  NextCRC
+  (
+  constant D : in std_logic_vector(7 downto 0);
+  constant C : in std_logic_vector(31 downto 0);
+      variable NewCRC : out std_logic_vector(31 downto 0)) is
+  begin
+    NewCRC(0) :=C(24) xor C(30) xor D(1 ) xor D(7 );
+    NewCRC(1) :=C(25) xor C(31) xor D(0 ) xor D(6 ) xor C(24) xor C(30) xor D(1 ) xor D(7 );
+    NewCRC(2) :=C(26) xor D(5 ) xor C(25) xor C(31) xor D(0 ) xor D(6 ) xor C(24) xor C(30) xor D(1) xor D(7);
+    NewCRC(3) :=C(27) xor D(4 ) xor C(26) xor D(5 ) xor C(25) xor C(31) xor D(0 ) xor D(6 );
+    NewCRC(4) :=C(28) xor D(3 ) xor C(27) xor D(4 ) xor C(26) xor D(5 ) xor C(24) xor C(30) xor D(1 ) xor D(7 );
+    NewCRC(5) :=C(29) xor D(2 ) xor C(28) xor D(3 ) xor C(27) xor D(4 ) xor C(25) xor C(31) xor D(0 ) xor D(6 ) xor C(24) xor C(30) xor D(1) xor D(7);
+    NewCRC(6) :=C(30) xor D(1 ) xor C(29) xor D(2 ) xor C(28) xor D(3 ) xor C(26) xor D(5 ) xor C(25) xor C(31) xor D(0 ) xor D(6);
+    NewCRC(7) :=C(31) xor D(0 ) xor C(29) xor D(2 ) xor C(27) xor D(4 ) xor C(26) xor D(5 ) xor C(24) xor D(7 );
+    NewCRC(8) :=C(0 ) xor C(28) xor D(3 ) xor C(27) xor D(4 ) xor C(25) xor D(6 ) xor C(24) xor D(7 );
+    NewCRC(9) :=C(1 ) xor C(29) xor D(2 ) xor C(28) xor D(3 ) xor C(26) xor D(5 ) xor C(25) xor D(6 );
+    NewCRC(10):=C(2 ) xor C(29) xor D(2 ) xor C(27) xor D(4 ) xor C(26) xor D(5 ) xor C(24) xor D(7 );
+    NewCRC(11):=C(3 ) xor C(28) xor D(3 ) xor C(27) xor D(4 ) xor C(25) xor D(6 ) xor C(24) xor D(7 );
+    NewCRC(12):=C(4 ) xor C(29) xor D(2 ) xor C(28) xor D(3 ) xor C(26) xor D(5 ) xor C(25) xor D(6 ) xor C(24) xor C(30) xor D(1) xor D(7);
+    NewCRC(13):=C(5 ) xor C(30) xor D(1 ) xor C(29) xor D(2 ) xor C(27) xor D(4 ) xor C(26) xor D(5 ) xor C(25) xor C(31) xor D(0) xor D(6);
+    NewCRC(14):=C(6 ) xor C(31) xor D(0 ) xor C(30) xor D(1 ) xor C(28) xor D(3 ) xor C(27) xor D(4 ) xor C(26) xor D(5 );
+    NewCRC(15):=C(7 ) xor C(31) xor D(0 ) xor C(29) xor D(2 ) xor C(28) xor D(3 ) xor C(27) xor D(4 );
+    NewCRC(16):=C(8 ) xor C(29) xor D(2 ) xor C(28) xor D(3 ) xor C(24) xor D(7 );
+    NewCRC(17):=C(9 ) xor C(30) xor D(1 ) xor C(29) xor D(2 ) xor C(25) xor D(6 );
+    NewCRC(18):=C(10) xor C(31) xor D(0 ) xor C(30) xor D(1 ) xor C(26) xor D(5 );
+    NewCRC(19):=C(11) xor C(31) xor D(0 ) xor C(27) xor D(4 );
+    NewCRC(20):=C(12) xor C(28) xor D(3 );
+    NewCRC(21):=C(13) xor C(29) xor D(2 );
+    NewCRC(22):=C(14) xor C(24) xor D(7 );
+    NewCRC(23):=C(15) xor C(25) xor D(6 ) xor C(24) xor C(30) xor D(1 ) xor D(7 );
+    NewCRC(24):=C(16) xor C(26) xor D(5 ) xor C(25) xor C(31) xor D(0 ) xor D(6 );
+    NewCRC(25):=C(17) xor C(27) xor D(4 ) xor C(26) xor D(5 );
+    NewCRC(26):=C(18) xor C(28) xor D(3 ) xor C(27) xor D(4 ) xor C(24) xor C(30) xor D(1) xor D(7);
+    NewCRC(27):=C(19) xor C(29) xor D(2 ) xor C(28) xor D(3 ) xor C(25) xor C(31) xor D(0) xor D(6);
+    NewCRC(28):=C(20) xor C(30) xor D(1 ) xor C(29) xor D(2 ) xor C(26) xor D(5 );
+    NewCRC(29):=C(21) xor C(31) xor D(0 ) xor C(30) xor D(1 ) xor C(27) xor D(4 );
+    NewCRC(30):=C(22) xor C(31) xor D(0 ) xor C(28) xor D(3 );
+    NewCRC(31):=C(23) xor C(29) xor D(2 );
+    --NextCRC=NewCRC;
+    end	NextCRC;	
   
   procedure ethSend
   ( constant word : in std_logic_vector(7 downto 0);
-  signal word_out : out std_logic_vector(4 downto 0)) is
+  signal word_out : out std_logic_vector(4 downto 0);
+  variable CRC      : inout std_logic_vector(31 downto 0)) is	
+    variable CRC_tmp : std_logic_vector(31 downto 0);
   begin
+	NextCRC(word, CRC, CRC_tmp);
+	CRC := CRC_tmp;
+	  
 	word_out(4) <= '1';
 	word_out(3 downto 0) <= word(3 downto 0);
 	wait for ETH_PERIOD / 2;
@@ -151,9 +200,153 @@ architecture sim of ACC_main_tb is
 	word_out(4) <= '1';
 	word_out(3 downto 0) <= word(7 downto 4);
 	wait for ETH_PERIOD / 2;
-  end ethSend;
+  end ethSend; 
 
-
+ 
+	procedure ethSendCom
+  	( constant addr : in std_logic_vector(35 downto 0);
+	  constant word : in std_logic_vector(31 downto 0);
+  	  signal tmpEthData : out std_logic_vector(4 downto 0)) is	
+      variable CRC_tmp : std_logic_vector(31 downto 0);
+	  variable CRC : std_logic_vector(31 downto 0);
+	  variable notCRC : std_logic_vector(31 downto 0);
+	  variable CRC_dumb : std_logic_vector(31 downto 0);
+    begin
+		
+		  		  	
+	CRC := X"ffffffff";
+	
+	--preamble
+    ethSend(X"55", tmpEthData, CRC_dumb);
+	ethSend(X"55", tmpEthData, CRC_dumb);
+	ethSend(X"55", tmpEthData, CRC_dumb);
+	ethSend(X"55", tmpEthData, CRC_dumb);
+	ethSend(X"55", tmpEthData, CRC_dumb);
+	ethSend(X"55", tmpEthData, CRC_dumb);
+	ethSend(X"55", tmpEthData, CRC_dumb);
+	
+	--end of preamble
+	ethSend(X"D5", tmpEthData, CRC_dumb);
+	
+	--start of ethernet packet
+	--destination MAC
+    ethSend(X"00", tmpEthData, CRC);
+    ethSend(X"80", tmpEthData, CRC);
+    ethSend(X"55", tmpEthData, CRC);
+    ethSend(X"ec", tmpEthData, CRC);
+    ethSend(X"00", tmpEthData, CRC);
+    ethSend(X"6b", tmpEthData, CRC);
+	
+	--host MAC
+    ethSend(X"d0", tmpEthData, CRC);
+    ethSend(X"8e", tmpEthData, CRC);
+    ethSend(X"79", tmpEthData, CRC);
+    ethSend(X"d7", tmpEthData, CRC);
+    ethSend(X"b5", tmpEthData, CRC);
+    ethSend(X"e0", tmpEthData, CRC);
+	
+	--Ethertype (IPv4)
+    ethSend(X"08", tmpEthData, CRC);
+    ethSend(X"00", tmpEthData, CRC);
+	
+	--start of IP packet
+	--IP version (4) and header length (5) 
+    ethSend(X"45", tmpEthData, CRC);
+	
+	--DSCP/ECN
+    ethSend(X"00", tmpEthData, CRC);
+    
+	--total length of IP packet (including header)
+	ethSend(X"00", tmpEthData, CRC);
+    ethSend(X"2e", tmpEthData, CRC);
+    
+	--Identification 
+	ethSend(X"6e", tmpEthData, CRC);
+    ethSend(X"5e", tmpEthData, CRC);
+    
+	--fragmentation/offset
+	ethSend(X"00", tmpEthData, CRC);
+	ethSend(X"00", tmpEthData, CRC);
+						 
+	--TTL
+    ethSend(X"80", tmpEthData, CRC);
+	
+	--protocol (UDP)
+    ethSend(X"11", tmpEthData, CRC);
+	
+	--IP header checksum 
+    ethSend(X"00", tmpEthData, CRC);
+    ethSend(X"00", tmpEthData, CRC);
+	
+	--source IP
+    ethSend(X"c0", tmpEthData, CRC);
+    ethSend(X"a8", tmpEthData, CRC);
+    ethSend(X"2e", tmpEthData, CRC);
+    ethSend(X"01", tmpEthData, CRC);
+    
+	--destination IP
+	ethSend(X"c0", tmpEthData, CRC);
+    ethSend(X"a8", tmpEthData, CRC);
+    ethSend(X"2e", tmpEthData, CRC);
+    ethSend(X"6b", tmpEthData, CRC);
+    
+	--UDP datagram starts 
+	--source port
+	ethSend(X"df", tmpEthData, CRC);
+    ethSend(X"78", tmpEthData, CRC);
+	
+	--destination port 
+    ethSend(X"07", tmpEthData, CRC);
+    ethSend(X"d7", tmpEthData, CRC);
+	
+	--length
+    ethSend(X"00", tmpEthData, CRC);
+    ethSend(X"1a", tmpEthData, CRC);
+	
+	--UDP checksum 
+    ethSend(X"8b", tmpEthData, CRC);
+    ethSend(X"e9", tmpEthData, CRC);
+	
+	--otsdaq packet
+	--r/w + flags (write)
+	ethSend(X"01", tmpEthData, CRC);
+	--data length (number of 64 bit words)
+    ethSend(X"01", tmpEthData, CRC);
+	
+	--register address
+	ethSend(addr(7 downto 0),   tmpEthData, CRC);
+    ethSend(addr(15 downto 8),  tmpEthData, CRC);
+    ethSend(addr(23 downto 16), tmpEthData, CRC);
+    ethSend(addr(31 downto 24), tmpEthData, CRC);
+    ethSend(X"0"&addr(35 downto 32), tmpEthData, CRC);
+    ethSend(X"00", tmpEthData, CRC);
+	ethSend(X"00", tmpEthData, CRC);
+	ethSend(X"00", tmpEthData, CRC);
+    
+	--data word(s)
+	ethSend(word(7 downto 0),   tmpEthData, CRC);
+	ethSend(word(15 downto 8),  tmpEthData, CRC);
+    ethSend(word(23 downto 16), tmpEthData, CRC);
+    ethSend(word(31 downto 24), tmpEthData, CRC);
+    ethSend(X"00", tmpEthData, CRC);
+    ethSend(X"00", tmpEthData, CRC);
+    ethSend(X"00", tmpEthData, CRC);
+    ethSend(X"00", tmpEthData, CRC);
+	
+	bitFlip : for i in 0 to 31 loop
+  	  notCRC(i) := not CRC(31-i);
+    end loop;
+	
+	--ethernet header 
+    ethSend(notCRC(7 downto 0), tmpEthData, CRC_dumb);
+	ethSend(notCRC(15 downto 8), tmpEthData, CRC_dumb);
+	ethSend(notCRC(23 downto 16), tmpEthData, CRC_dumb);
+	ethSend(notCRC(31 downto 24), tmpEthData, CRC_dumb);
+	tmpEthData <= "0" & X"a";
+	
+	--wait for 4*ETH_PERIOD;
+  end ethSendCom;
+  
 begin  -- architecture sim
 
   -- component instantiation
@@ -319,181 +512,70 @@ begin  -- architecture sim
   end generate;
   
   ETH_in.rx_dat <= transport tmpEthData(3 downto 0) after 6 ns;	
-  ETH_in.rx_ctl <= transport tmpEthData(4) after 6 ns;
+  ETH_in.rx_ctl <= transport tmpEthData(4) after 6 ns; 
+  
+
   
   eth_process : process
   begin
-	tmpEthData <= "0" & X"d";
+	DIPswitch <= "00"&x"6b";
+	tmpEthData <= "0" & X"d"; 
 	
-	wait for 50 us;	
-
-    ethSend(X"55", tmpEthData);
-	ethSend(X"55", tmpEthData);
-	ethSend(X"55", tmpEthData);
-	ethSend(X"55", tmpEthData);
-	ethSend(X"55", tmpEthData);
-	ethSend(X"55", tmpEthData);
-	ethSend(X"55", tmpEthData);
+	wait for 120 us;	 
 	
-	ethSend(X"D5", tmpEthData);
+	ethSendCom(X"100000009", X"00000001", tmpEthData);
+	wait for 1 us;
+	ethSendCom(X"000000030", X"00000001", tmpEthData);
+	wait for 1 us;
+	ethSendCom(X"000000031", X"00000001", tmpEthData);
+	wait for 1 us;
+	ethSendCom(X"000000032", X"00000001", tmpEthData);
+	wait for 1 us;
+	ethSendCom(X"000000033", X"00000001", tmpEthData);
+	wait for 1 us;
+	ethSendCom(X"000000034", X"00000001", tmpEthData);
+	wait for 1 us;
+	ethSendCom(X"000000035", X"00000001", tmpEthData);
+	wait for 1 us;
+	ethSendCom(X"000000036", X"00000001", tmpEthData);
+	wait for 1 us;
+	ethSendCom(X"000000037", X"00000001", tmpEthData);
+	wait for 1 us;
 	
-	ethSend(X"FF", tmpEthData);
-	ethSend(X"FF", tmpEthData);
-	ethSend(X"FF", tmpEthData);
-	ethSend(X"FF", tmpEthData);
-	ethSend(X"FF", tmpEthData);
-	ethSend(X"FF", tmpEthData);
+	ethSendCom(X"000000100", X"FFB1003f", tmpEthData);
+	wait for 1 us;
+	ethSendCom(X"000000100", X"FFB2003f", tmpEthData);
+	wait for 1 us;
 	
-	ethSend(X"DC", tmpEthData);
-	ethSend(X"A6", tmpEthData);
-	ethSend(X"32", tmpEthData);
-	ethSend(X"78", tmpEthData);
-	ethSend(X"07", tmpEthData);
-	ethSend(X"B4", tmpEthData);
+	ethSendCom(X"000000060", X"00000000", tmpEthData);
+	wait for 30 us;
 	
-	ethSend(X"08", tmpEthData);
-	ethSend(X"06", tmpEthData);
+	ethSendCom(X"000000100", X"FFB00001", tmpEthData);
+	wait for 1 us;
 	
-	ethSend(X"00", tmpEthData);
-	ethSend(X"01", tmpEthData);
-	ethSend(X"08", tmpEthData);
-	ethSend(X"00", tmpEthData);
-	ethSend(X"06", tmpEthData);
-	ethSend(X"04", tmpEthData);
-	ethSend(X"00", tmpEthData);
-	ethSend(X"01", tmpEthData);
+	ethSendCom(X"000000100", X"FFF60003", tmpEthData);
+	wait for 10 us;
 	
-	ethSend(X"DC", tmpEthData);
-	ethSend(X"A6", tmpEthData);
-	ethSend(X"32", tmpEthData);
-	ethSend(X"78", tmpEthData);
-	ethSend(X"07", tmpEthData);
-	ethSend(X"B4", tmpEthData);
+	for v in 0 to 100 loop
+		ethSendCom(X"000000010", X"000000FF", tmpEthData);
+		wait for 25 us;
+	end loop;
 	
-	ethSend(X"C0", tmpEthData);
-	ethSend(X"A8", tmpEthData);
-	ethSend(X"85", tmpEthData);
-	ethSend(X"16", tmpEthData);
+	ethSendCom(X"000000022", X"00000000", tmpEthData);
+	wait for 100 us;
 	
-	ethSend(X"00", tmpEthData);
-	ethSend(X"00", tmpEthData);
-	ethSend(X"00", tmpEthData);
-	ethSend(X"00", tmpEthData);
-	ethSend(X"00", tmpEthData);
-	ethSend(X"00", tmpEthData);
+	ethSendCom(X"000000010", X"000000FF", tmpEthData);
+	wait for 400 us;
 	
-	ethSend(X"C0", tmpEthData);
-	ethSend(X"A8", tmpEthData);
-	ethSend(X"01", tmpEthData);
-	ethSend(X"01", tmpEthData);
+	ethSendCom(X"000000022", X"00000000", tmpEthData);
 	
-	ethSend(X"00", tmpEthData);
-	ethSend(X"00", tmpEthData);
-	ethSend(X"00", tmpEthData);
-	ethSend(X"00", tmpEthData);
-	ethSend(X"00", tmpEthData);
-	ethSend(X"00", tmpEthData);
-	ethSend(X"00", tmpEthData);
-	ethSend(X"00", tmpEthData);
-	ethSend(X"00", tmpEthData);
-	ethSend(X"00", tmpEthData);
-	ethSend(X"00", tmpEthData);
-	ethSend(X"00", tmpEthData);
-	ethSend(X"00", tmpEthData);
-	ethSend(X"00", tmpEthData);
-	ethSend(X"00", tmpEthData);
-	ethSend(X"00", tmpEthData);
-	ethSend(X"00", tmpEthData);
-	ethSend(X"00", tmpEthData);
+	--ethSendCom(X"00000100", X"FFF45557", tmpEthData);
+	--wait for 1 us;
 	
-	ethSend(X"D6", tmpEthData);
-	ethSend(X"EF", tmpEthData);
-	ethSend(X"F9", tmpEthData);
-	ethSend(X"B6", tmpEthData);
+	--ethSendCom(X"00000100", X"FFF50000", tmpEthData);
+	--wait for 1 us;
 	
-	tmpEthData <= "0" & X"d";
-
-    wait for 20 us;
-    
-    ethSend(X"55", tmpEthData);
-	ethSend(X"55", tmpEthData);
-	ethSend(X"55", tmpEthData);
-	ethSend(X"55", tmpEthData);
-	ethSend(X"55", tmpEthData);
-	ethSend(X"55", tmpEthData);
-	ethSend(X"55", tmpEthData);
-	
-	ethSend(X"D5", tmpEthData);
-	
-    ethSend(X"00", tmpEthData);
-    ethSend(X"80", tmpEthData);
-    ethSend(X"55", tmpEthData);
-    ethSend(X"ec", tmpEthData);
-    ethSend(X"00", tmpEthData);
-    ethSend(X"6b", tmpEthData);
-
-    ethSend(X"d0", tmpEthData);
-    ethSend(X"8e", tmpEthData);
-    ethSend(X"79", tmpEthData);
-    ethSend(X"d7", tmpEthData);
-    ethSend(X"b5", tmpEthData);
-    ethSend(X"e0", tmpEthData);
-
-    ethSend(X"08", tmpEthData);
-    ethSend(X"00", tmpEthData);
-    ethSend(X"45", tmpEthData);
-    ethSend(X"00", tmpEthData);
-    ethSend(X"00", tmpEthData);
-    ethSend(X"2e", tmpEthData);
-    ethSend(X"0f", tmpEthData);
-    ethSend(X"48", tmpEthData);
-    ethSend(X"00", tmpEthData);
-    ethSend(X"00", tmpEthData);
-    ethSend(X"80", tmpEthData);
-    ethSend(X"11", tmpEthData);
-    ethSend(X"00", tmpEthData);
-    ethSend(X"00", tmpEthData);
-    ethSend(X"c0", tmpEthData);
-    ethSend(X"a8", tmpEthData);
-    ethSend(X"85", tmpEthData);
-    ethSend(X"01", tmpEthData);
-    ethSend(X"c0", tmpEthData);
-    ethSend(X"a8", tmpEthData);
-    ethSend(X"85", tmpEthData);
-    ethSend(X"6b", tmpEthData);
-    ethSend(X"e5", tmpEthData);
-    ethSend(X"c0", tmpEthData);
-    ethSend(X"07", tmpEthData);
-    ethSend(X"d7", tmpEthData);
-    ethSend(X"00", tmpEthData);
-    ethSend(X"1a", tmpEthData);
-    ethSend(X"8b", tmpEthData);
-    ethSend(X"e9", tmpEthData);
-    ethSend(X"01", tmpEthData);
-    ethSend(X"01", tmpEthData);
-    ethSend(X"09", tmpEthData);
-    ethSend(X"00", tmpEthData);
-    ethSend(X"00", tmpEthData);
-    ethSend(X"00", tmpEthData);
-    ethSend(X"01", tmpEthData);
-    ethSend(X"00", tmpEthData);
-    ethSend(X"00", tmpEthData);
-    ethSend(X"00", tmpEthData);
-    ethSend(X"01", tmpEthData);
-    ethSend(X"00", tmpEthData);
-    ethSend(X"00", tmpEthData);
-    ethSend(X"00", tmpEthData);
-    ethSend(X"00", tmpEthData);
-    ethSend(X"00", tmpEthData);
-    ethSend(X"00", tmpEthData);
-    ethSend(X"00", tmpEthData);
-
-    ethSend(X"56", tmpEthData);
-    ethSend(X"fa", tmpEthData);
-    ethSend(X"07", tmpEthData);
-    ethSend(X"e1", tmpEthData);
-    
-	tmpEthData <= "0" & X"d";
+	--ethSendCom(X"00000100", X"FFF10000", tmpEthData);
 	
 	wait;
 	
