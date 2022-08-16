@@ -379,7 +379,7 @@ begin  -- architecture vhdl
       port map (
         src_clk      => eth_clk,
         src_pulse    => rxFIFO_resetReq(iACDC),
-        src_aresetn  => reset_eth_sync2,
+        src_aresetn  => not reset_eth_sync2,
         dest_clk     => clock.serial25,
         dest_pulse   => rxFIFO_resetReq_sync,
         dest_aresetn => not reset_sync2);
