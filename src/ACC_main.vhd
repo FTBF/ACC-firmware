@@ -121,6 +121,7 @@ TRIG_MAP: trigger Port map(
 		pps		=> pps,
 		hw_trig	=> SMA(6) xor config.trig.SMA_invert,
 		beamGate_trig => beamgate_trig,
+        ACDC_triggers => ACDC_triggers,
 		trig_out	=> trig_out,
         self_trig   => self_trig
 		);
@@ -303,6 +304,7 @@ dataHandler_inst: dataHandler
     b_enable         => b_enable,
     dataFIFO_readReq => config.dataFIFO_readReq,
     dataFIFO_chan    => config.readChannel,
+    dataFIFO_auto    => config.dataFIFO_auto,
     data_out         => data_out,
     data_occ         => data_occ,
     data_re          => data_re);

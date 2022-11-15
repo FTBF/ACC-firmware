@@ -40,7 +40,7 @@ use work.components.all;
 use work.defs.all;
 use work.LibDG.all;
 
-
+use ieee.std_logic_misc.all;
 
 
 entity trigger is
@@ -51,6 +51,7 @@ entity trigger is
 		pps		: in std_logic;
 		hw_trig	: in std_logic;
 		beamGate_trig: in std_logic;
+        ACDC_triggers   : in std_logic_vector(N-1 downto 0);
 		trig_out		:  out std_logic_vector(7 downto 0);
         self_trig       :  out std_logic
 		);
@@ -69,6 +70,10 @@ architecture vhdl of trigger is
   signal beamGate_pps_mux: std_logic;
   signal beamGate_trig_risingEdge: std_logic;
 
+  signal pulseStretch_count : naturalArray_16bit;
+  signal pulseStretch_signal : std_logic_vector(7 downto 0);
+  signal pulseDelay_sr : Array_16bit;
+  signal coincident_trig : std_logic;
 begin
 
 
@@ -96,7 +101,7 @@ begin
   end process;
 
   
-TRIG_MULTIPLEXER: process(trig, hw_trig, pps_divided, beamGate_pps_mux)
+TRIG_MULTIPLEXER: process(all)
 begin
 	for i in 0 to 7 loop
 		case trig.source(i) is
@@ -104,12 +109,55 @@ begin
 			when 1 => trig_out(i) <= trig.sw(i);		-- software trigger
 			when 2 => trig_out(i) <= hw_trig;		    -- hardware trigger
 			when 3 => trig_out(i) <= pps_divided;		-- divided down version of pulse per second trigger 
-			when 4 => trig_out(i) <= beamGate_pps_mux;		-- beam gate / pps
+            when 4 => trig_out(i) <= beamGate_pps_mux;		-- beam gate / pps
+            when 5 => trig_out(i) <= coincident_trig;
 			when others => trig_out(i) <= '0';
 		end case;
 	end loop;
 end process;
 
+
+-- ACDC confirm logic
+
+-- pulse stretchers
+pulse_stretch: process(clock.sys)
+begin
+  if rising_edge(clock.sys) then
+    if reset = '1' then
+      for i in 0 to 7 loop
+        pulseDelay_sr(i) <= x"0000";
+        pulseStretch_count(i) <= 0;
+        pulseStretch_signal(i) <= '0';
+      end loop;      
+    else
+      for i in 0 to 7 loop
+        pulseDelay_sr(i)(15) <= '0';
+        for j in 0 to 14 loop
+          if j = trig.coincidentDelay(i) then
+            pulseDelay_sr(i)(j) <= ACDC_triggers(i);
+          else
+            pulseDelay_sr(i)(j) <= pulseDelay_sr(i)(j+1);
+          end if;
+        end loop;
+      end loop;
+
+      for i in 0 to 7 loop
+        if(pulseDelay_sr(i)(0) = '1') then
+          pulseStretch_signal(i) <= '1';
+          pulseStretch_count(i) <= trig.coincidentStretch(i);
+        elsif(pulseStretch_count(i) > 0) then
+          pulseStretch_signal(i) <= '1';
+          pulseStretch_count(i) <= pulseStretch_count(i) - 1;
+        else
+          pulseStretch_signal(i) <= '0';
+        end if;
+      end loop;
+    end if;
+  end if;
+end process;
+
+-- coincidence logic
+coincident_trig <= '1' when (and_reduce((not trig.coincidentMask) or pulseStretch_signal)) else '0';
 
 
 -----------------------------------

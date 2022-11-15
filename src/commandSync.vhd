@@ -49,9 +49,10 @@ architecture vhdl of commandSync is
 
   signal trigWindow_z :  std_logic_vector(31 downto 0);
   signal trigWindow   :  std_logic_vector(31 downto 0);
-  
 begin
 
+  config.dataFIFO_auto <= config_z.dataFIFO_auto;
+  
   -- synchronizers
   nreset <= not reset;
   reset_sync : process(clock.serial25, clock.serialpllLock)
@@ -141,8 +142,46 @@ begin
       dest_aresetn => nreset);
 
   config.rxFIFO_resetReq <= config_z.rxFIFO_resetReq;
-  
+
+  param_handshake_coincidentMask: param_handshake_sync
+    generic map (
+      WIDTH => config_z.trig.coincidentMask'length)
+    port map (
+      src_clk      => eth_clk,
+      src_params   => config_z.trig.coincidentMask,
+      src_aresetn  => eth_reset,
+      dest_clk     => clock.sys,
+      dest_params  => config.trig.coincidentMask,
+      dest_aresetn => nreset);
+
   loop_gen : for i in 0 to N-1 generate
+    signal coincidentDelay_z : std_logic_vector(15 downto 0);
+    signal coincidentStretch_z : std_logic_vector(15 downto 0);
+  begin
+    param_handshake_coincientDelay: param_handshake_sync
+      generic map (
+        WIDTH => 16)
+      port map (
+        src_clk      => eth_clk,
+        src_params   => std_logic_vector(to_unsigned(config_z.trig.coincidentDelay(i), 16)),
+        src_aresetn  => eth_reset,
+        dest_clk     => clock.sys,
+        dest_params  => coincidentDelay_z,
+        dest_aresetn => nreset);
+    config.trig.coincidentDelay(i) <= to_integer(unsigned(coincidentDelay_z));
+
+    param_handshake_coincidentStretch: param_handshake_sync
+      generic map (
+        WIDTH => 16)
+      port map (
+        src_clk      => eth_clk,
+        src_params   => std_logic_vector(to_unsigned(config_z.trig.coincidentStretch(i), 16)),
+        src_aresetn  => eth_reset,
+        dest_clk     => clock.sys,
+        dest_params  => coincidentStretch_z,
+        dest_aresetn => nreset);
+    config.trig.coincidentStretch(i) <= to_integer(unsigned(coincidentStretch_z));
+      
     pulseSync2_rxBuffer_resetReq: pulseSync2
       port map (
         src_clk      => eth_clk,

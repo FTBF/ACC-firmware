@@ -290,6 +290,7 @@ set_location_assignment PIN_AB11 -to ETH_out.tx_dat[3]
 set_location_assignment PIN_AL11 -to ETH_out.resetn
 set_location_assignment PIN_AJ11 -to ETH_mdc
 set_location_assignment PIN_AH11 -to ETH_mdio
+set_global_assignment -name VHDL_FILE src/data_readout_auto_controller.vhd
 set_global_assignment -name VHDL_FILE src/commandSync.vhd
 set_global_assignment -name QIP_FILE src/QIPcomponents/eth_clk_ctrl/synthesis/eth_clk_ctrl.qip
 set_global_assignment -name QIP_FILE src/QIPcomponents/ETH_pll.qip

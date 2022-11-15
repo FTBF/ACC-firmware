@@ -61,6 +61,8 @@ architecture vhdl of commandHandler is
   signal nreset_eth_sync1 : std_logic;
   signal nreset_eth_sync2 : std_logic;
 
+  signal tx_data_z     : std_logic_vector (63 downto 0);
+
 begin
 
 -- note
@@ -108,6 +110,8 @@ begin
 
           for j in 0 to N-1 loop
             config_z.trig.source(j) <= 0;
+            config_z.trig.coincidentDelay(j) <= 0;
+            config_z.trig.coincidentStretch(j) <= 5;
           end loop;
 
           -----------------------------------
@@ -117,12 +121,14 @@ begin
           config_z.trig.windowLen <= 2000;		-- 50us
           config_z.trig.ppsDivRatio <= 1;
           config_z.trig.ppsMux_enable <= '1';
+          config_z.trig.coincidentMask <= "00001111";
           config_z.testCmd.channel <= 1;
           config_z.delayCommand <= X"000";
           config_z.delayCommandMask <= X"0000";
           config_z.updn    <= '0';
           config_z.cntsel  <= "00000";
           config_z.backpressure_threshold <= X"07f";
+          config_z.dataFIFO_auto <= '0';
 
         end if;
 
@@ -163,6 +169,8 @@ begin
           when x"00000022" =>
             config_z.dataFIFO_readReq <= '1';
             config_z.readChannel <= to_integer(unsigned(rx_data(3 downto 0)));
+          when x"00000023" =>
+            config_z.dataFIFO_auto <= rx_data(0);
 
           -- trigger setup
           -- set trigger mode for the specified acdc boards
@@ -183,6 +191,27 @@ begin
           when x"0000003b" =>  config_z.trig.windowLen     <= to_integer(unsigned(rx_data(15 downto 0)));
           when x"0000003c" =>  config_z.trig.ppsDivRatio   <= to_integer(unsigned(rx_data(15 downto 0)));
           when x"0000003d" =>  config_z.trig.ppsMux_enable <= rx_data(0);
+
+          when x"0000003f" =>  config_z.trig.coincidentMask <= rx_data(N-1 downto 0);
+
+          when x"00000040" =>  config_z.trig.coincidentDelay(0) <= to_integer(unsigned(rx_data(3 downto 0)));
+          when x"00000041" =>  config_z.trig.coincidentDelay(1) <= to_integer(unsigned(rx_data(3 downto 0)));
+          when x"00000042" =>  config_z.trig.coincidentDelay(2) <= to_integer(unsigned(rx_data(3 downto 0)));
+          when x"00000043" =>  config_z.trig.coincidentDelay(3) <= to_integer(unsigned(rx_data(3 downto 0)));
+          when x"00000044" =>  config_z.trig.coincidentDelay(4) <= to_integer(unsigned(rx_data(3 downto 0)));
+          when x"00000045" =>  config_z.trig.coincidentDelay(5) <= to_integer(unsigned(rx_data(3 downto 0)));
+          when x"00000046" =>  config_z.trig.coincidentDelay(6) <= to_integer(unsigned(rx_data(3 downto 0)));
+          when x"00000047" =>  config_z.trig.coincidentDelay(7) <= to_integer(unsigned(rx_data(3 downto 0)));
+
+          when x"00000048" =>  config_z.trig.coincidentStretch(0) <= to_integer(unsigned(rx_data(15 downto 0)));
+          when x"00000049" =>  config_z.trig.coincidentStretch(1) <= to_integer(unsigned(rx_data(15 downto 0)));
+          when x"0000004a" =>  config_z.trig.coincidentStretch(2) <= to_integer(unsigned(rx_data(15 downto 0)));
+          when x"0000004b" =>  config_z.trig.coincidentStretch(3) <= to_integer(unsigned(rx_data(15 downto 0)));
+          when x"0000004c" =>  config_z.trig.coincidentStretch(4) <= to_integer(unsigned(rx_data(15 downto 0)));
+          when x"0000004d" =>  config_z.trig.coincidentStretch(5) <= to_integer(unsigned(rx_data(15 downto 0)));
+          when x"0000004e" =>  config_z.trig.coincidentStretch(6) <= to_integer(unsigned(rx_data(15 downto 0)));
+          when x"0000004f" =>  config_z.trig.coincidentStretch(7) <= to_integer(unsigned(rx_data(15 downto 0)));
+                               
 
           -- serialRx high speed controls
           when x"00000050" => config_z.delayCommandSet <= '1';
@@ -213,96 +242,132 @@ begin
   end process;
 
 
-  -- read back mux
-  readback_mux : process(all)
+  -- readback mux
+  readback_mux : process(eth_clk)
   begin
     tx_data <= X"0000000000000000";
     serialRX_rden <= X"00";
-    
-    if unsigned(rx_addr) < X"00001100" then
-      case rx_addr is
 
-        -- trigger setup
-        -- set trigger mode for the specified acdc boards
-        -- mode 0 = trigger off
-        -- mode 1 = software trigger
-        -- mode 2 = acc sma trigger
-        when x"00000030" =>  tx_data(3 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.source(0), 4));
-        when x"00000031" =>  tx_data(3 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.source(1), 4));
-        when x"00000032" =>  tx_data(3 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.source(2), 4));
-        when x"00000033" =>  tx_data(3 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.source(3), 4));
-        when x"00000034" =>  tx_data(3 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.source(4), 4));
-        when x"00000035" =>  tx_data(3 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.source(5), 4));
-        when x"00000036" =>  tx_data(3 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.source(6), 4));
-        when x"00000037" =>  tx_data(3 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.source(7), 4));
+    if unsigned(rx_addr) < X"00001200" then
+      tx_data <= tx_data_z;
+    else
+      -- 0x00001200 block reserved for slow serial RX FIFO readout
+      if unsigned(rx_addr) = X"00001200" then
+        tx_data(15 downto 0) <= serialRX_data(0);
+        serialRX_rden(0) <= tx_rden;
+      elsif unsigned(rx_addr) = X"00001201" then
+        tx_data(15 downto 0) <= serialRX_data(1);
+        serialRX_rden(1) <= tx_rden;
+      elsif unsigned(rx_addr) = X"00001202" then
+        tx_data(15 downto 0) <= serialRX_data(2);
+        serialRX_rden(2) <= tx_rden;
+      elsif unsigned(rx_addr) = X"00001203" then
+        tx_data(15 downto 0) <= serialRX_data(3);
+        serialRX_rden(3) <= tx_rden;
+      elsif unsigned(rx_addr) = X"00001204" then
+        tx_data(15 downto 0) <= serialRX_data(4);
+        serialRX_rden(4) <= tx_rden;
+      elsif unsigned(rx_addr) = X"00001205" then
+        tx_data(15 downto 0) <= serialRX_data(5);
+        serialRX_rden(5) <= tx_rden;
+      elsif unsigned(rx_addr) = X"00001206" then
+        tx_data(15 downto 0) <= serialRX_data(6);
+        serialRX_rden(6) <= tx_rden;
+      elsif unsigned(rx_addr) = X"00001207" then
+        tx_data(15 downto 0) <= serialRX_data(7);
+        serialRX_rden(7) <= tx_rden;
+      end if;
+    end if;
+  end process;
 
-        when x"00000038" =>  tx_data(0) <= config_z.trig.SMA_invert;
-        when x"0000003a" =>  tx_data(15 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.windowStart, 16));
-        when x"0000003b" =>  tx_data(15 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.windowLen, 16));
+  -- read back mux - buffered (for not FIFO readpack values)
+  readback_mux_buffered : process(eth_clk)
+  begin
+	if (rising_edge(eth_clk)) then
+      tx_data_z <= X"0000000000000000";
+      
+      if unsigned(rx_addr) < X"00001100" then
+        case rx_addr is
 
-        -- serialRx high speed controls
-        when x"00000051" => tx_data(11 downto 0) <= config_z.delayCommand;
-        when x"00000052" => tx_data(2*N-1 downto 0) <= config_z.delayCommandMask;
-        when x"00000054" => tx_data(0) <= config_z.updn;
-        when x"00000055" => tx_data(4 downto 0) <= config_z.cntsel;
-        when x"00000057" => tx_data(11 downto 0) <= config_z.backpressure_threshold;
+          when x"00000023" =>  tx_data_z(0) <= config_z.dataFIFO_auto;
 
-        -- read only registers 
-        when x"00001000" => tx_data(15 downto 0) <= firwareVersion.number;
-        when x"00001001" => tx_data(31 downto 0) <= firwareVersion.year & firwareVersion.MMDD;
-        when x"00001002" => tx_data( 3 downto 0) <= regs_z.pllLock;
+                               
+          -- trigger setup
+          -- set trigger mode for the specified acdc boards
+          -- mode 0 = trigger off
+          -- mode 1 = software trigger
+          -- mode 2 = acc sma trigger
+          when x"00000030" =>  tx_data_z(3 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.source(0), 4));
+          when x"00000031" =>  tx_data_z(3 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.source(1), 4));
+          when x"00000032" =>  tx_data_z(3 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.source(2), 4));
+          when x"00000033" =>  tx_data_z(3 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.source(3), 4));
+          when x"00000034" =>  tx_data_z(3 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.source(4), 4));
+          when x"00000035" =>  tx_data_z(3 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.source(5), 4));
+          when x"00000036" =>  tx_data_z(3 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.source(6), 4));
+          when x"00000037" =>  tx_data_z(3 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.source(7), 4));
 
-        when x"00001010" => tx_data(N-1 downto 0) <= regs_z.serialRX_rx_clock_fail;
-        when x"00001011" => tx_data(N-1 downto 0) <= regs_z.serialRX_symbol_align_error;
-        when x"00001012" => tx_data(N-1 downto 0) <= regs_z.serialRX_symbol_code_error;
-        when x"00001013" => tx_data(N-1 downto 0) <= regs_z.serialRX_disparity_error;
-                          
-                            
-        when others => null;
+          when x"00000038" =>  tx_data_z(0) <= config_z.trig.SMA_invert;
+          when x"0000003a" =>  tx_data_z(15 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.windowStart, 16));
+          when x"0000003b" =>  tx_data_z(15 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.windowLen, 16));
 
-      end case;
+          when x"0000003f" =>  tx_data_z(N-1 downto 0) <= config_z.trig.coincidentMask;
 
-    elsif unsigned(rx_addr) < X"00001110" then
-      tx_data(15 downto 0) <= regs_z.byte_fifo_occ(to_integer(unsigned(rx_addr(3 downto 0))));
+          when x"00000040" =>  tx_data_z(15 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.coincidentDelay(0), 16));
+          when x"00000041" =>  tx_data_z(15 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.coincidentDelay(1), 16));
+          when x"00000042" =>  tx_data_z(15 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.coincidentDelay(2), 16));
+          when x"00000043" =>  tx_data_z(15 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.coincidentDelay(3), 16));
+          when x"00000044" =>  tx_data_z(15 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.coincidentDelay(4), 16));
+          when x"00000045" =>  tx_data_z(15 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.coincidentDelay(5), 16));
+          when x"00000046" =>  tx_data_z(15 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.coincidentDelay(6), 16));
+          when x"00000047" =>  tx_data_z(15 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.coincidentDelay(7), 16));
 
-    elsif unsigned(rx_addr) < X"00001120" then
-      tx_data(15 downto 0) <= regs_z.prbs_error_counts(to_integer(unsigned(rx_addr(3 downto 0))));
+          when x"00000048" =>  tx_data_z(15 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.coincidentStretch(0), 16));
+          when x"00000049" =>  tx_data_z(15 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.coincidentStretch(1), 16));
+          when x"0000004a" =>  tx_data_z(15 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.coincidentStretch(2), 16));
+          when x"0000004b" =>  tx_data_z(15 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.coincidentStretch(3), 16));
+          when x"0000004c" =>  tx_data_z(15 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.coincidentStretch(4), 16));
+          when x"0000004d" =>  tx_data_z(15 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.coincidentStretch(5), 16));
+          when x"0000004e" =>  tx_data_z(15 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.coincidentStretch(6), 16));
+          when x"0000004f" =>  tx_data_z(15 downto 0) <= std_logic_vector(to_unsigned(config_z.trig.coincidentStretch(7), 16));
 
-    elsif unsigned(rx_addr) < X"00001130" then
-      tx_data(15 downto 0) <= regs_z.symbol_error_counts(to_integer(unsigned(rx_addr(3 downto 0))));
+          -- serialRx high speed controls
+          when x"00000051" => tx_data_z(11 downto 0) <= config_z.delayCommand;
+          when x"00000052" => tx_data_z(2*N-1 downto 0) <= config_z.delayCommandMask;
+          when x"00000054" => tx_data_z(0) <= config_z.updn;
+          when x"00000055" => tx_data_z(4 downto 0) <= config_z.cntsel;
+          when x"00000057" => tx_data_z(11 downto 0) <= config_z.backpressure_threshold;
 
-    elsif unsigned(rx_addr) < X"00001138" then
-      tx_data(15 downto 0) <= regs_z.data_occ(to_integer(unsigned(rx_addr(2 downto 0))));
+          -- read only registers 
+          when x"00001000" => tx_data_z(15 downto 0) <= firwareVersion.number;
+          when x"00001001" => tx_data_z(31 downto 0) <= firwareVersion.year & firwareVersion.MMDD;
+          when x"00001002" => tx_data_z( 3 downto 0) <= regs_z.pllLock;
 
-    elsif unsigned(rx_addr) < X"00001140" then
-      tx_data(15 downto 0) <= regs_z.rxDataLen(to_integer(unsigned(rx_addr(2 downto 0))));
+          when x"00001010" => tx_data_z(N-1 downto 0) <= regs_z.serialRX_rx_clock_fail;
+          when x"00001011" => tx_data_z(N-1 downto 0) <= regs_z.serialRX_symbol_align_error;
+          when x"00001012" => tx_data_z(N-1 downto 0) <= regs_z.serialRX_symbol_code_error;
+          when x"00001013" => tx_data_z(N-1 downto 0) <= regs_z.serialRX_disparity_error;
+                              
+                              
+          when others => null;
 
-    -- 0x00001200 block reserved for slow serial RX FIFO readout
-    elsif unsigned(rx_addr) = X"00001200" then
-      tx_data(15 downto 0) <= serialRX_data(0);
-      serialRX_rden(0) <= tx_rden;
-    elsif unsigned(rx_addr) = X"00001201" then
-      tx_data(15 downto 0) <= serialRX_data(1);
-      serialRX_rden(1) <= tx_rden;
-    elsif unsigned(rx_addr) = X"00001202" then
-      tx_data(15 downto 0) <= serialRX_data(2);
-      serialRX_rden(2) <= tx_rden;
-    elsif unsigned(rx_addr) = X"00001203" then
-      tx_data(15 downto 0) <= serialRX_data(3);
-      serialRX_rden(3) <= tx_rden;
-    elsif unsigned(rx_addr) = X"00001204" then
-      tx_data(15 downto 0) <= serialRX_data(4);
-      serialRX_rden(4) <= tx_rden;
-    elsif unsigned(rx_addr) = X"00001205" then
-      tx_data(15 downto 0) <= serialRX_data(5);
-      serialRX_rden(5) <= tx_rden;
-    elsif unsigned(rx_addr) = X"00001206" then
-      tx_data(15 downto 0) <= serialRX_data(6);
-      serialRX_rden(6) <= tx_rden;
-    elsif unsigned(rx_addr) = X"00001207" then
-      tx_data(15 downto 0) <= serialRX_data(7);
-      serialRX_rden(7) <= tx_rden;
-    
+        end case;
+
+      elsif unsigned(rx_addr) < X"00001110" then
+        tx_data_z(15 downto 0) <= regs_z.byte_fifo_occ(to_integer(unsigned(rx_addr(3 downto 0))));
+
+      elsif unsigned(rx_addr) < X"00001120" then
+        tx_data_z(15 downto 0) <= regs_z.prbs_error_counts(to_integer(unsigned(rx_addr(3 downto 0))));
+
+      elsif unsigned(rx_addr) < X"00001130" then
+        tx_data_z(15 downto 0) <= regs_z.symbol_error_counts(to_integer(unsigned(rx_addr(3 downto 0))));
+
+      elsif unsigned(rx_addr) < X"00001138" then
+        tx_data_z(15 downto 0) <= regs_z.data_occ(to_integer(unsigned(rx_addr(2 downto 0))));
+
+      elsif unsigned(rx_addr) < X"00001140" then
+        tx_data_z(15 downto 0) <= regs_z.rxDataLen(to_integer(unsigned(rx_addr(2 downto 0))));
+
+      end if;
     end if;
   end process;
   
