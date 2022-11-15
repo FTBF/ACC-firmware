@@ -20,7 +20,7 @@ LANGUAGE=VHDL
 REFRESH_FLOW=1
 FLOWTOOLS=NONE
 FAMILY=Intel ArriaV
-fileopenfolder=C:\Users\pastika\TOF\firmware\ACC\ACC-firmware\lib
+fileopenfolder=C:\Users\pastika\TOF\firmware\ACC\ACC-firmware\src
 WireDelay=2
 AccessACCB=0
 AccessACCR=0
@@ -55,7 +55,7 @@ IncrementalCompilation=0
 AdditionalOptions=
 
 [HierarchyViewer]
-HierarchyInformation=acc_main_tb|sim|0                  
+HierarchyInformation=acc_main_tb|sim|0  
 ShowHide=ShowTopLevel
 Selected=
 
@@ -87,6 +87,35 @@ Global=
 
 [LocalVerilogDirs]
 Count=0
+
+[Folders]
+Name0=Event Lists
+Directory0=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension0=lst
+Name1=Logs
+Directory1=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension1=log;htm;xml;txt
+Name2=Waveforms
+Directory2=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension2=asdb;awc;asdbc;asdbe
+Name3=Makefiles
+Directory3=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension3=mak
+Name4=Memory
+Directory4=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension4=mem;mif;hex
+Name5=Dll Libraries
+Directory5=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension5=dll
+Name6=PDF
+Directory6=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension6=pdf
+Name7=HTML
+Directory7=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension7=htm;html
+Name8=ALINT-PRO Workspaces
+Directory8=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
+Extension8=alintws
 
 [Files.Data]
 .\..\..\..\src\QIPcomponents\altlvds_rx0.vhd=VHDL Source Code
@@ -139,7 +168,6 @@ Count=0
 .\..\..\..\src\QIPcomponents\serialRX_dpa_fifo.vhd=VHDL Source Code
 .\..\..\..\src\QIPcomponents\serialRX_InterByteAlign_fifo.vhd=VHDL Source Code
 .\..\..\..\src\QIPcomponents\serialRX_data_fifo.vhd=VHDL Source Code
-.\..\..\..\lib\manchester_encoder.vhd=VHDL Source Code
 .\src\test.asdb=Accelerated Waveform File
 .\src\test.awc=Accelerated Waveform Configuration
 .\..\..\..\src\ethernet_adapter.vhd=VHDL Source Code
@@ -180,7 +208,9 @@ Count=0
 .\..\..\..\src\QIPcomponents\eth_clk_ctrl\synthesis\eth_clk_ctrl.vhd=VHDL Source Code
 .\..\..\..\src\QIPcomponents\eth_clk_ctrl\synthesis\submodules\eth_clk_ctrl_altclkctrl_0.v=Verilog Source Code
 .\..\..\..\src\commandSync.vhd=VHDL Source Code
+.\..\..\..\lib\manchester_encoder.vhd=VHDL Source Code
 .\..\..\..\lib\skid_buffer.vhd=VHDL Source Code
+.\..\..\..\src\data_readout_auto_controller.vhd=VHDL Source Code
 
 [Files]
 /..\..\..\..\src\QIPcomponents\altlvds_rx0.vhd=-1
@@ -207,6 +237,7 @@ Count=0
 /..\..\..\..\lib\encoder_8b10b.vhd=-1
 /..\..\..\..\lib\prbsGenerator.vhd=-1
 /..\..\..\..\lib\synchronousTx_8b10b.vhd=-1
+/..\..\..\..\src\data_readout_auto_controller.vhd=-1
 /..\..\..\..\src\DataHandler.vhd=-1
 /..\..\..\..\src\usbDriver.vhd=-1
 /..\..\..\..\src\components.vhd=-1
@@ -276,31 +307,3 @@ Count=0
 /..\..\..\..\lib\manchester_encoder.vhd=-1
 /..\..\..\..\lib\skid_buffer.vhd=-1
 
-[Folders]
-Name0=Event Lists
-Directory0=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension0=lst
-Name1=Logs
-Directory1=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension1=log;htm;xml;txt
-Name2=Waveforms
-Directory2=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension2=asdb;awc;asdbc;asdbe
-Name3=Makefiles
-Directory3=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension3=mak
-Name4=Memory
-Directory4=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension4=mem;mif;hex
-Name5=Dll Libraries
-Directory5=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension5=dll
-Name6=PDF
-Directory6=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension6=pdf
-Name7=HTML
-Directory7=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension7=htm;html
-Name8=ALINT-PRO Workspaces
-Directory8=C:\Users\Pastika\Documents\Quartus\ACC-firmware\ActiveHDL\ACC_sim\ACC_full_sim\
-Extension8=alintws

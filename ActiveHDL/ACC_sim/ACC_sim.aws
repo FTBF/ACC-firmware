@@ -13,7 +13,7 @@ macro=
 [Expand]
 acc_full_sim=1
 acdc_src=0
-acdc_full_sim=1
+acdc_full_sim=0
 synctest=0
 [Settings]
 Active=acc_full_sim

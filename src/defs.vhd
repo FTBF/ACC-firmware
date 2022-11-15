@@ -38,9 +38,9 @@ end record;
 --
 constant firwareVersion: firmwareVersion_type:= (
 	
-	number => 	    x"0505", 
+	number => 	    x"0506", 
 	year => 		x"2022",	
-	MMDD => 		x"0816"		-- month, date		
+	MMDD => 		x"1115"		-- month, date		
 	
 );
 --
@@ -73,6 +73,7 @@ constant N	:	natural := 8; --number of front-end boards (either 4 or 8, dependin
 constant	transceiver_mem_depth	:	integer := 15; --ram address size
 constant	transceiver_mem_width	:	integer := 16; --data size
 
+constant    EVENT_SIZE : integer := 7696;
 
 --type definitions
 type rx_ram_data_type is array(N-1 downto 0) of	std_logic_vector(transceiver_mem_width-1 downto 0);
@@ -194,6 +195,9 @@ type trigSetup_type is record
 	windowLen: natural;
 	SMA_invert: std_logic;
 	sw:		std_logic_vector(N-1 downto 0);
+    coincidentMask : std_logic_vector(N-1 downto 0);
+    coincidentDelay : naturalArray_16bit;
+    coincidentStretch : naturalArray_16bit;
 end record;
 
 
@@ -347,6 +351,7 @@ type config_type is record
     rxBuffer_resetReq      : std_logic_vector(7 downto 0);
     rxBuffer_readReq	   : std_logic;
     dataFIFO_readReq       : std_logic;
+    dataFIFO_auto          : std_logic;
     globalResetReq         : std_logic;
     trig		           : trigSetup_type;
     readChannel            : natural range 0 to 15;

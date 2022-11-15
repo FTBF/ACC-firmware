@@ -110,6 +110,23 @@ architecture sim of ACC_main_tb is
   signal debug2         : STD_LOGIC;
   signal debug3         : STD_LOGIC;
   
+  signal jcpll_ctrl_2     : acdc_full_sim.defs.JCPLL_CTRL_TYPE;
+  signal jcpll_lock_2     : STD_LOGIC;
+  signal jcpll_spi_miso_2 : STD_LOGIC;
+  signal LVDS_in_ACDC_2   : STD_LOGIC_VECTOR(2 downto 0);
+  signal LVDS_out_ACDC_2  : STD_LOGIC_VECTOR(3 downto 0);
+  signal PSEC4_in_2       : acdc_full_sim.defs.PSEC4_IN_ARRAY_TYPE;
+  signal PSEC4_out_2      : acdc_full_sim.defs.PSEC4_OUT_ARRAY_TYPE;
+  signal PSEC4_freq_sel_2 : STD_LOGIC;
+  signal PSEC4_trigSign_2 : STD_LOGIC;
+  signal enableV1p2a_2    : STD_LOGIC;
+  signal calEnable_2      : std_logic_vector(14 downto 0);
+  signal DAC_2            : acdc_full_sim.defs.DAC_ARRAY_TYPE;
+  signal SMA_J3_2         : std_logic;
+  signal ledOut_2         : STD_LOGIC_VECTOR(8 downto 0);
+  signal debug2_2         : STD_LOGIC;
+  signal debug3_2         : STD_LOGIC;
+  
   signal fastClk      : std_logic;
   signal reset        : std_logic;				  
   signal prbs         : std_logic_vector(15 downto 0); 
@@ -121,27 +138,8 @@ architecture sim of ACC_main_tb is
   
   type trig_type is array (4 downto 0) of std_logic_vector(5 downto 0);
   signal selftrig : trig_type;
+  signal selftrig_2 : trig_type;
   
-  procedure sendword
-  ( constant word : in std_logic_vector(31 downto 0); 
-    signal word_out : out std_logic_vector(15 downto 0);
-    signal rx_ready : in std_logic;
-	signal SLRD : out std_logic) is
-  begin					
-  	SLRD <= '1';
-	wait until falling_edge(rx_ready);
-	word_out <= word(15 downto 0);
-	SLRD <= '0';
-	wait for 10 ns;
-	
-	SLRD <= '1';
-	wait until falling_edge(rx_ready);
-	word_out <= word(31 downto 16);
-	SLRD <= '0';
-	wait for 10 ns;
-	
-	--word_out <= "ZZZZZZZZZZZZZZZZ";
-  end sendword;
 
   procedure  NextCRC
   (
@@ -347,6 +345,151 @@ architecture sim of ACC_main_tb is
 	--wait for 4*ETH_PERIOD;
   end ethSendCom;
   
+  	procedure ethRecvCom
+  	( constant flags : in std_logic_vector(7 downto 0);
+	  constant numword : in std_logic_vector(7 downto 0);
+	  constant addr : in std_logic_vector(35 downto 0);
+  	  signal tmpEthData : out std_logic_vector(4 downto 0)) is	
+      variable CRC_tmp : std_logic_vector(31 downto 0);
+	  variable CRC : std_logic_vector(31 downto 0);
+	  variable notCRC : std_logic_vector(31 downto 0);
+	  variable CRC_dumb : std_logic_vector(31 downto 0);
+    begin
+		
+		  		  	
+	CRC := X"ffffffff";
+	
+	--preamble
+    ethSend(X"55", tmpEthData, CRC_dumb);
+	ethSend(X"55", tmpEthData, CRC_dumb);
+	ethSend(X"55", tmpEthData, CRC_dumb);
+	ethSend(X"55", tmpEthData, CRC_dumb);
+	ethSend(X"55", tmpEthData, CRC_dumb);
+	ethSend(X"55", tmpEthData, CRC_dumb);
+	ethSend(X"55", tmpEthData, CRC_dumb);
+	
+	--end of preamble
+	ethSend(X"D5", tmpEthData, CRC_dumb);
+	
+	--start of ethernet packet
+	--destination MAC
+    ethSend(X"00", tmpEthData, CRC);
+    ethSend(X"80", tmpEthData, CRC);
+    ethSend(X"55", tmpEthData, CRC);
+    ethSend(X"ec", tmpEthData, CRC);
+    ethSend(X"00", tmpEthData, CRC);
+    ethSend(X"6b", tmpEthData, CRC);
+	
+	--host MAC
+    ethSend(X"d0", tmpEthData, CRC);
+    ethSend(X"8e", tmpEthData, CRC);
+    ethSend(X"79", tmpEthData, CRC);
+    ethSend(X"d7", tmpEthData, CRC);
+    ethSend(X"b5", tmpEthData, CRC);
+    ethSend(X"e0", tmpEthData, CRC);
+	
+	--Ethertype (IPv4)
+    ethSend(X"08", tmpEthData, CRC);
+    ethSend(X"00", tmpEthData, CRC);
+	
+	--start of IP packet
+	--IP version (4) and header length (5) 
+    ethSend(X"45", tmpEthData, CRC);
+	
+	--DSCP/ECN
+    ethSend(X"00", tmpEthData, CRC);
+    
+	--total length of IP packet (including header)
+	ethSend(X"00", tmpEthData, CRC);
+    ethSend(X"2e", tmpEthData, CRC);
+    
+	--Identification 
+	ethSend(X"6e", tmpEthData, CRC);
+    ethSend(X"5e", tmpEthData, CRC);
+    
+	--fragmentation/offset
+	ethSend(X"00", tmpEthData, CRC);
+	ethSend(X"00", tmpEthData, CRC);
+						 
+	--TTL
+    ethSend(X"80", tmpEthData, CRC);
+	
+	--protocol (UDP)
+    ethSend(X"11", tmpEthData, CRC);
+	
+	--IP header checksum 
+    ethSend(X"00", tmpEthData, CRC);
+    ethSend(X"00", tmpEthData, CRC);
+	
+	--source IP
+    ethSend(X"c0", tmpEthData, CRC);
+    ethSend(X"a8", tmpEthData, CRC);
+    ethSend(X"2e", tmpEthData, CRC);
+    ethSend(X"01", tmpEthData, CRC);
+    
+	--destination IP
+	ethSend(X"c0", tmpEthData, CRC);
+    ethSend(X"a8", tmpEthData, CRC);
+    ethSend(X"2e", tmpEthData, CRC);
+    ethSend(X"6b", tmpEthData, CRC);
+    
+	--UDP datagram starts 
+	--source port
+	ethSend(X"df", tmpEthData, CRC);
+    ethSend(X"78", tmpEthData, CRC);
+	
+	--destination port 
+    ethSend(X"07", tmpEthData, CRC);
+    ethSend(X"d7", tmpEthData, CRC);
+	
+	--length
+    ethSend(X"00", tmpEthData, CRC);
+    ethSend(X"1a", tmpEthData, CRC);
+	
+	--UDP checksum 
+    ethSend(X"8b", tmpEthData, CRC);
+    ethSend(X"e9", tmpEthData, CRC);
+	
+	--otsdaq packet
+	--r/w + flags (write)
+	ethSend(flags, tmpEthData, CRC);
+	--data length (number of 64 bit words)
+    ethSend(numword, tmpEthData, CRC);
+	
+	--register address
+	ethSend(addr(7 downto 0),   tmpEthData, CRC);
+    ethSend(addr(15 downto 8),  tmpEthData, CRC);
+    ethSend(addr(23 downto 16), tmpEthData, CRC);
+    ethSend(addr(31 downto 24), tmpEthData, CRC);
+    ethSend(X"0"&addr(35 downto 32), tmpEthData, CRC);
+    ethSend(X"00", tmpEthData, CRC);
+	ethSend(X"00", tmpEthData, CRC);
+	ethSend(X"00", tmpEthData, CRC);
+    
+	--data word(s)
+	--ethSend(word(7 downto 0),   tmpEthData, CRC);
+	--ethSend(word(15 downto 8),  tmpEthData, CRC);
+    --ethSend(word(23 downto 16), tmpEthData, CRC);
+    --ethSend(word(31 downto 24), tmpEthData, CRC);
+    --ethSend(X"00", tmpEthData, CRC);
+    --ethSend(X"00", tmpEthData, CRC);
+    --ethSend(X"00", tmpEthData, CRC);
+    --ethSend(X"00", tmpEthData, CRC);
+	
+	bitFlip : for i in 0 to 31 loop
+  	  notCRC(i) := not CRC(31-i);
+    end loop;
+	
+	--ethernet header 
+    ethSend(notCRC(7 downto 0), tmpEthData, CRC_dumb);
+	ethSend(notCRC(15 downto 8), tmpEthData, CRC_dumb);
+	ethSend(notCRC(23 downto 16), tmpEthData, CRC_dumb);
+	ethSend(notCRC(31 downto 24), tmpEthData, CRC_dumb);
+	tmpEthData <= "0" & X"a";
+	
+	--wait for 4*ETH_PERIOD;
+  end ethRecvCom;
+  
 begin  -- architecture sim
 
   -- component instantiation
@@ -392,11 +535,37 @@ begin  -- architecture sim
 		debug3 => debug3
 	);
 	
+  acdc_inst_2 : acdc_main
+	port map(
+		clockIn => clockIn_ACDC,
+		jcpll_ctrl => jcpll_ctrl_2,
+		jcpll_lock => jcpll_lock_2,
+		jcpll_spi_miso => jcpll_spi_miso_2,
+		LVDS_in => LVDS_in_ACDC_2,
+		LVDS_out => LVDS_out_ACDC_2,
+		PSEC4_in => PSEC4_in_2,
+		PSEC4_out => PSEC4_out_2,
+		PSEC4_freq_sel => PSEC4_freq_sel_2,
+		PSEC4_trigSign => PSEC4_trigSign_2,
+		enableV1p2a => enableV1p2a_2,
+		calEnable => calEnable_2,
+		DAC => DAC_2,
+		SMA_J3 => SMA_J3_2,	
+		ledOut => ledOut_2,
+		debug2 => debug2_2,
+		debug3 => debug3_2
+	);
+	
   LVDS_in_ACDC <= transport LVDS_out(0) after 4 ns;
   LVDS_in(0) <= transport LVDS_out_ACDC(1 downto 0) after 1 ns;
   LVDS_In_hs_p(0) <= LVDS_out_ACDC(3) & not LVDS_out_ACDC(2);
   LVDS_In_hs_n(0) <= not LVDS_out_ACDC(3) & LVDS_out_ACDC(2);
-	  
+
+  LVDS_in_ACDC_2 <= transport LVDS_out(1) after 4 ns;
+  LVDS_in(1) <= transport LVDS_out_ACDC_2(1 downto 0) after 1 ns;
+  LVDS_In_hs_p(1) <= LVDS_out_ACDC_2(3) & not LVDS_out_ACDC_2(2);
+  LVDS_In_hs_n(1) <= not LVDS_out_ACDC_2(3) & LVDS_out_ACDC_2(2);
+  
   prbsGen : prbsGenerator
   Generic map(
     ITERATIONS => 1,
@@ -409,7 +578,7 @@ begin  -- architecture sim
     output => prbs
     );
 	
-  hs_mapping : for i in 2 to 15 generate
+  hs_mapping : for i in 4 to 15 generate
 	LVDS_In_hs_p(i/2)(i mod 2) <= prbs(0);  
 	LVDS_In_hs_n(i/2)(i mod 2) <= not prbs(0);
   end generate;
@@ -493,6 +662,8 @@ begin  -- architecture sim
   fakeData : for i in 0 to 4 generate
 	PSEC4_in(i).trig <= selftrig(i);
 	PSEC4_in(i).overflow <= '0';
+	PSEC4_in_2(i).trig <= selftrig_2(i);
+	PSEC4_in_2(i).overflow <= '0';
 	  
   	PSEC4_process : process(PSEC4_out(i).readClock, reset)
 	  variable partialNumber : std_logic_vector(11 downto 0);
@@ -509,6 +680,22 @@ begin  -- architecture sim
         end if;
       end if;
     end process;
+	
+	PSEC4_process_2 : process(PSEC4_out_2(i).readClock, reset)
+	  variable partialNumber : std_logic_vector(11 downto 0);
+  	begin
+      if reset = '1' then
+        PSEC4_in_2(i).data <= X"fff";
+        --partialNumber := "0000"&X"00";
+      else 
+        if rising_edge(PSEC4_out_2(i).readClock) then
+          if PSEC4_out_2(i).TokDecode /= "101" and PSEC4_out_2(i).TokIn = "00" then
+            --partialNumber := std_logic_vector((unsigned(PSEC4_in(i).data) + 1));
+            PSEC4_in_2(i).data <= std_logic_vector((unsigned(PSEC4_in_2(i).data) + 1));
+          end if;
+        end if;
+      end if;
+    end process;
   end generate;
   
   ETH_in.rx_dat <= transport tmpEthData(3 downto 0) after 6 ns;	
@@ -521,53 +708,70 @@ begin  -- architecture sim
 	DIPswitch <= "00"&x"6b";
 	tmpEthData <= "0" & X"d"; 
 	
-	wait for 120 us;	 
+	wait for 120 us;
 	
-	ethSendCom(X"100000009", X"00000001", tmpEthData);
+	ethSendCom(X"000000001", X"000000ff", tmpEthData);
+	
+--	ethSendCom(X"100000009", X"00000001", tmpEthData);
 	wait for 1 us;
 	ethSendCom(X"000000030", X"00000001", tmpEthData);
 	wait for 1 us;
-	ethSendCom(X"000000031", X"00000001", tmpEthData);
+	ethSendCom(X"000000031", X"00000002", tmpEthData);
 	wait for 1 us;
-	ethSendCom(X"000000032", X"00000001", tmpEthData);
+	ethSendCom(X"000000032", X"00000003", tmpEthData);
 	wait for 1 us;
-	ethSendCom(X"000000033", X"00000001", tmpEthData);
+	ethSendCom(X"000000033", X"00000004", tmpEthData);
 	wait for 1 us;
-	ethSendCom(X"000000034", X"00000001", tmpEthData);
+	ethSendCom(X"000000034", X"00000005", tmpEthData);
 	wait for 1 us;
-	ethSendCom(X"000000035", X"00000001", tmpEthData);
+	ethSendCom(X"000000035", X"00000006", tmpEthData);
 	wait for 1 us;
-	ethSendCom(X"000000036", X"00000001", tmpEthData);
+	ethSendCom(X"000000036", X"00000000", tmpEthData);
 	wait for 1 us;
-	ethSendCom(X"000000037", X"00000001", tmpEthData);
-	wait for 1 us;
-	
-	ethSendCom(X"000000100", X"FFB1003f", tmpEthData);
-	wait for 1 us;
-	ethSendCom(X"000000100", X"FFB2003f", tmpEthData);
+	ethSendCom(X"000000037", X"00000007", tmpEthData);
 	wait for 1 us;
 	
-	ethSendCom(X"000000060", X"00000000", tmpEthData);
-	wait for 30 us;
-	
-	ethSendCom(X"000000100", X"FFB00001", tmpEthData);
-	wait for 1 us;
-	
-	ethSendCom(X"000000100", X"FFF60003", tmpEthData);
 	wait for 10 us;
+	ethRecvCom(X"00", X"08", X"000000030", tmpEthData);
+	wait for 1 us;
 	
-	for v in 0 to 100 loop
-		ethSendCom(X"000000010", X"000000FF", tmpEthData);
-		wait for 25 us;
-	end loop;
+	--ethSendCom(X"00000003f", X"00000003", tmpEthData);
+--	wait for 1 us;
+--	ethSendCom(X"000000040", X"00000002", tmpEthData);
+--	wait for 1 us;
+--	
+--	ethSendCom(X"000000100", X"FFB1003f", tmpEthData);
+--	wait for 1 us;
+--	ethSendCom(X"000000100", X"FFB2003f", tmpEthData);
+--	wait for 1 us;
+--	
+--	ethSendCom(X"000000060", X"00000000", tmpEthData);
+--	wait for 30 us;
+--	
+--	ethSendCom(X"000000100", X"FFB00003", tmpEthData);
+--	wait for 1 us;
+--	
+--	ethSendCom(X"000000100", X"FFF60003", tmpEthData);
+--	wait for 10 us;
+--	
+--	ethSendCom(X"100000009", X"00000001", tmpEthData);
+--	wait for 1 us;
+--	
+--	ethSendCom(X"000000023", X"00000001", tmpEthData);
+--	wait for 1 us;
+--	
+--	for v in 0 to 100 loop
+--		ethSendCom(X"000000010", X"000000FF", tmpEthData);
+--		wait for 25 us;
+--	end loop;
+--	
+--	--ethSendCom(X"000000022", X"00000000", tmpEthData);
+--	wait for 100 us;
+--	
+--	ethSendCom(X"000000010", X"000000FF", tmpEthData);
+--	wait for 400 us;
 	
-	ethSendCom(X"000000022", X"00000000", tmpEthData);
-	wait for 100 us;
-	
-	ethSendCom(X"000000010", X"000000FF", tmpEthData);
-	wait for 400 us;
-	
-	ethSendCom(X"000000022", X"00000000", tmpEthData);
+	--ethSendCom(X"000000022", X"00000000", tmpEthData);
 	
 	--ethSendCom(X"00000100", X"FFF45557", tmpEthData);
 	--wait for 1 us;
@@ -589,9 +793,11 @@ begin  -- architecture sim
 	USB_in.CTL <= "100";
 	USB_bus.FD <= X"0000";
 	SMA_J3 <= '0';
+	SMA_J3_2 <= '0';
 	
 	for i in 0 to 4 loop
 		selftrig(i) <= "000000";
+		selftrig_2(i) <= "000000";
 	end loop;
 	
 	reset <= '0';
@@ -603,74 +809,24 @@ begin  -- architecture sim
 	
 	wait for 50 us;
 	
-	sendword(X"00600000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
-	sendword(X"005200ff", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
-	sendword(X"0051001f", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
-	sendword(X"00500000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
-	sendword(X"0054ffff", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
-	
-	sendword(X"ffA00000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
-	
-	--wait for 10 us;
-	
-	--sendword(X"fff60000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) ); 
-	
 	wait for 5 us;
 
-	sendword(X"fff60003", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
-	wait for 5 us;
-	sendword(X"00300ff1", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
-	--wait for 5 us;
-	--sendword(X"00100000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );	
-	
-	--wait for 5 us;
-	--sendword(X"FFD00000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );	  
-	
-	--wait for 10 us;
-	--sendword(X"00230000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );	
-
-	sendword(X"FFB20040", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
-	sendword(X"FFB1003f", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
-	sendword(X"FFB00003", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) ); 
-	
 	wait for 10 us;
 	
 	selftrig(0) <= "001000";
+	selftrig_2(0) <= "001000";
 	wait for 50 ns;
 	selftrig(0) <= "000000";
+	selftrig_2(0) <= "000000";
 	wait for 500 ns;
-	sendword(X"00100000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
 	
 	wait for 200 us;
 	selftrig(0) <= "001000";
+	selftrig_2(0) <= "001000";
 	wait for 50 ns;
 	selftrig(0) <= "000000";
+	selftrig_2(0) <= "000000";
 	wait for 500 ns;
-	--sendword(X"00100000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
-	--sendword(X"fff60002", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
-	--sendword(X"fff60003", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
-	wait for 200 us;
-	sendword(X"00220000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
-	--sendword(X"00010001", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
-	
-	
---	
---	wait for 5 us;
---	sendword(X"00530000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) ); 
---	sendword(X"00540000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
---	
---	for j in 0 to 15 loop
---		sendword(std_logic_vector(unsigned(X"00550002") + j), USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
---		for i in 0 to j loop
---			sendword(X"00560000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) ); 
---		end loop;
---	end loop;	 
---	
---	sendword(X"00000000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) );
---	
---	wait for 10 us;
-	
-	--sendword(X"FFD00000", USB_bus.FD, usb_out.RDY(0), USB_in.CTL(0) ); 
     
     wait;
   end process WaveGen_Proc;

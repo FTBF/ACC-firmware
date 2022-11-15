@@ -69,6 +69,7 @@ component trigger is
 		pps		: in std_logic;
 		hw_trig	: in std_logic;
 		beamGate_trig: in std_logic;
+        ACDC_triggers   : in std_logic_vector(N-1 downto 0);
 		trig_out		:  out std_logic_vector(7 downto 0);
         self_trig       :  out std_logic
 		);
@@ -144,10 +145,23 @@ component dataHandler is
     b_enable         : in  std_logic;
     dataFIFO_readReq : in  std_logic;
     dataFIFO_chan    : in  natural range 0 to 15;
+    dataFIFO_auto    : in  std_logic;
     data_out         : in  Array_16bit;
     data_occ         : in  Array_16bit;
     data_re          : out std_logic_vector(N-1 downto 0));
 end component dataHandler;
+
+
+component data_readout_auto_controller is
+  port (
+    reset            : in  std_logic;
+    clock            : in  std_logic;
+    dataFIFO_readReq : out std_logic;
+    dataFIFO_chan    : out natural range 0 to 15;
+    dataFIFO_auto    : in  std_logic;
+    data_occ         : in  Array_16bit;
+    data_done        : in  std_logic);
+end component data_readout_auto_controller;
 
 
 component rx_data_ram
