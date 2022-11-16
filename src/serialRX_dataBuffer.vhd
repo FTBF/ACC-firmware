@@ -83,6 +83,8 @@ architecture vhdl of serialRx_dataBuffer is
   signal reset_eth_sync1 : std_logic;
   signal reset_eth_sync2 : std_logic;
 
+  signal trig_out_z   : std_logic_vector(N-1 downto 0);
+
 begin  -- architecture vhdl
 
   data_occ <= data_occ_loc;
@@ -221,12 +223,26 @@ begin  -- architecture vhdl
   begin
     for iLink in 0 to N-1 loop
       if serialRX_deser_10bit_z(2*iLink) = "0001011011" or serialRX_deser_10bit_z(2*iLink) = "1110100100" then --FB k-code for trigger 
-        trig_out(iLink) <= '1';
+        trig_out_z(iLink) <= '1';
       else
-        trig_out(iLink) <= '0';
+        trig_out_z(iLink) <= '0';
       end if;
     end loop;
   end process;
+
+  serial_hs_trigger_buf : for i in 0 to N-1 generate
+  begin
+    pulseSync2_1: entity work.pulseSync2
+      generic map (
+        RESET_VAL => '0')
+      port map (
+        src_clk      => clock.serial125,
+        src_pulse    => trig_out_z(i),
+        src_aresetn  => not resetFast_sync2,
+        dest_clk     => clock.sys,
+        dest_pulse   => trig_out(i),
+        dest_aresetn => not reset.global);
+  end generate;
 
   serial_hs_backpressure_controldecode : process(clock.serial25)
   begin

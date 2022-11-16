@@ -7,7 +7,7 @@ derive_clock_uncertainty -add
 set_false_path -from *signaltap*
 set_false_path -to *signaltap*
 
-create_clock -period "25.0 MHz" [get_ports clockIn.localOsc]
+create_clock -period "125.0 MHz" [get_ports clockIn.localOsc]
 create_clock -period "125.0 MHz" [get_ports ETH_in.rx_clk]
 #create_clock -period "48.0 MHz"  [get_ports clockIn.USB_IFCLK]
 
