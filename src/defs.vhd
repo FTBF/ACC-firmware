@@ -40,7 +40,7 @@ constant firwareVersion: firmwareVersion_type:= (
 	
 	number => 	    x"0506", 
 	year => 		x"2022",	
-	MMDD => 		x"1115"		-- month, date		
+	MMDD => 		x"1116"		-- month, date		
 	
 );
 --
