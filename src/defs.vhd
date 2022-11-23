@@ -38,9 +38,9 @@ end record;
 --
 constant firwareVersion: firmwareVersion_type:= (
 	
-	number => 	    x"0506", 
+	number => 	    x"0507", 
 	year => 		x"2022",	
-	MMDD => 		x"1116"		-- month, date		
+	MMDD => 		x"1123"		-- month, date		
 	
 );
 --
@@ -73,7 +73,7 @@ constant N	:	natural := 8; --number of front-end boards (either 4 or 8, dependin
 constant	transceiver_mem_depth	:	integer := 15; --ram address size
 constant	transceiver_mem_width	:	integer := 16; --data size
 
-constant    EVENT_SIZE : integer := 7696;
+constant    EVENT_SIZE : integer := 5776;
 
 --type definitions
 type rx_ram_data_type is array(N-1 downto 0) of	std_logic_vector(transceiver_mem_width-1 downto 0);

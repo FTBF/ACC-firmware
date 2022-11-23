@@ -196,10 +196,10 @@ begin
           when DATA =>
             if b_enable = '1' then
               --dataBuf(11 + (4 - iChunk)*12 downto 0 + (4 - iChunk)*12) := data_muxed(11 downto 0);
-              dataBuf := dataBuf(51 downto 0) & data_muxed(11 downto 0);
+              dataBuf := dataBuf(47 downto 0) & data_muxed;
               read_skidbuf <= '0';
               
-              if iChunk < 5 - 1 then
+              if iChunk < 4 - 1 then
                 iChunk := iChunk + 1;
               else
                 iChunk := 0;
@@ -209,13 +209,13 @@ begin
               end if;
 
               iWord := iWord + 1;
-              if iWord >= 7680 then
+              if iWord >= 5760 then
                 state <= DONE;
                 if iChunk /= 0 then
                   b_data     <= dataBuf;
                   b_data_we  <= '1';
                 end if;
-              elsif iWord = 7680 - 1 then
+              elsif iWord = 5760 - 1 then
                 data_re_loc(dataFIFO_chan_z) <= '0';
               else
                 data_re_loc(dataFIFO_chan_z) <= '1';

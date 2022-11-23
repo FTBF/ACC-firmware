@@ -716,54 +716,54 @@ begin  -- architecture sim
 	wait for 1 us;
 	ethSendCom(X"000000030", X"00000001", tmpEthData);
 	wait for 1 us;
-	ethSendCom(X"000000031", X"00000002", tmpEthData);
+	ethSendCom(X"000000031", X"00000001", tmpEthData);
 	wait for 1 us;
-	ethSendCom(X"000000032", X"00000003", tmpEthData);
+	ethSendCom(X"000000032", X"00000001", tmpEthData);
 	wait for 1 us;
-	ethSendCom(X"000000033", X"00000004", tmpEthData);
+	ethSendCom(X"000000033", X"00000001", tmpEthData);
 	wait for 1 us;
-	ethSendCom(X"000000034", X"00000005", tmpEthData);
+	ethSendCom(X"000000034", X"00000001", tmpEthData);
 	wait for 1 us;
-	ethSendCom(X"000000035", X"00000006", tmpEthData);
+	ethSendCom(X"000000035", X"00000001", tmpEthData);
 	wait for 1 us;
-	ethSendCom(X"000000036", X"00000000", tmpEthData);
+	ethSendCom(X"000000036", X"00000001", tmpEthData);
 	wait for 1 us;
-	ethSendCom(X"000000037", X"00000007", tmpEthData);
+	ethSendCom(X"000000037", X"00000001", tmpEthData);
 	wait for 1 us;
 	
 	wait for 10 us;
-	ethRecvCom(X"00", X"08", X"000000030", tmpEthData);
+	--ethRecvCom(X"00", X"08", X"000000030", tmpEthData);
 	wait for 1 us;
 	
-	--ethSendCom(X"00000003f", X"00000003", tmpEthData);
---	wait for 1 us;
+	ethSendCom(X"00000003f", X"00000003", tmpEthData);
+	wait for 1 us;
 --	ethSendCom(X"000000040", X"00000002", tmpEthData);
 --	wait for 1 us;
---	
---	ethSendCom(X"000000100", X"FFB1003f", tmpEthData);
---	wait for 1 us;
---	ethSendCom(X"000000100", X"FFB2003f", tmpEthData);
---	wait for 1 us;
---	
---	ethSendCom(X"000000060", X"00000000", tmpEthData);
---	wait for 30 us;
---	
---	ethSendCom(X"000000100", X"FFB00003", tmpEthData);
---	wait for 1 us;
---	
---	ethSendCom(X"000000100", X"FFF60003", tmpEthData);
---	wait for 10 us;
---	
---	ethSendCom(X"100000009", X"00000001", tmpEthData);
---	wait for 1 us;
---	
---	ethSendCom(X"000000023", X"00000001", tmpEthData);
---	wait for 1 us;
---	
---	for v in 0 to 100 loop
---		ethSendCom(X"000000010", X"000000FF", tmpEthData);
---		wait for 25 us;
---	end loop;
+	
+	ethSendCom(X"000000100", X"FFB1003f", tmpEthData);
+	wait for 1 us;
+	ethSendCom(X"000000100", X"FFB2003f", tmpEthData);
+	wait for 1 us;
+	
+	ethSendCom(X"000000060", X"00000000", tmpEthData);
+	wait for 30 us;
+	
+	ethSendCom(X"000000100", X"FFB00001", tmpEthData);
+	wait for 1 us;
+	
+	ethSendCom(X"000000100", X"FFF60003", tmpEthData);
+	wait for 10 us;
+	
+	ethSendCom(X"100000009", X"00000001", tmpEthData);
+	wait for 1 us;
+	
+	ethSendCom(X"000000023", X"00000001", tmpEthData);
+	wait for 1 us;
+	
+	for v in 0 to 100 loop
+		ethSendCom(X"000000010", X"000000FF", tmpEthData);
+		wait for 25 us;
+	end loop;
 --	
 --	--ethSendCom(X"000000022", X"00000000", tmpEthData);
 --	wait for 100 us;
