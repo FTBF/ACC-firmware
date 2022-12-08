@@ -38,9 +38,9 @@ end record;
 --
 constant firwareVersion: firmwareVersion_type:= (
 	
-	number => 	    x"0507", 
+	number => 	    x"0508", 
 	year => 		x"2022",	
-	MMDD => 		x"1123"		-- month, date		
+	MMDD => 		x"1207"		-- month, date		
 	
 );
 --
@@ -82,11 +82,13 @@ type LVDS_inputArray_hs_type is array(N-1 downto 0) of std_logic_vector(1 downto
 type LVDS_outputArray_type is array(N-1 downto 0) of std_logic_vector(2 downto 0);
 type Array_8bit is array(N-1 downto 0) of std_logic_vector(7 downto 0);
 type Array_16bit is array(N-1 downto 0) of std_logic_vector(15 downto 0);
+type Array_32bit is array(N-1 downto 0) of std_logic_vector(31 downto 0);
 type frameData_type is array(31 downto 0) of std_logic_vector(15 downto 0);
 type naturalArray_16bit is array(N-1 downto 0) of natural range 0 to 65535;
 type natArray2 is array(N-1 downto 0) of natural range 0 to 3;	-- 2 bit natural array
 type natArray3 is array(N-1 downto 0) of natural range 0 to 7; -- 3 bit natural array
 type DoubleArray_16bit is array(2*N-1 downto 0) of std_logic_vector(15 downto 0);
+type DoubleArray_32bit is array(2*N-1 downto 0) of std_logic_vector(31 downto 0);
 type serialRx_hs_array is array(2*N-1 downto 0) of std_logic_vector(1 downto 0);
 type serialRx_hs_23bit_array is array(2*N-1 downto 0) of std_logic_vector(22 downto 0);
 type serialRx_hs_10bit_array is array(2*N-1 downto 0) of std_logic_vector(9 downto 0);
@@ -375,6 +377,9 @@ type readback_reg_type is record
   byte_fifo_occ                 : DoubleArray_16bit;
   prbs_error_counts             : DoubleArray_16bit;
   symbol_error_counts           : DoubleArray_16bit;
+  parity_error_counts           : DoubleArray_16bit;
+  selftrig_counts               : Array_32bit;
+  cointrig_counts               : Array_32bit;
   data_occ                      : Array_16bit;
   rxDataLen	                    : Array_16bit;
   serialRX_rx_clock_fail        : std_logic_vector(N-1 downto 0);

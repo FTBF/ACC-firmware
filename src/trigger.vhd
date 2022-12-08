@@ -35,7 +35,7 @@
 
 library IEEE;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+USE ieee.numeric_std.ALL; 
 use work.components.all;
 use work.defs.all;
 use work.LibDG.all;
@@ -53,7 +53,10 @@ entity trigger is
 		beamGate_trig: in std_logic;
         ACDC_triggers   : in std_logic_vector(N-1 downto 0);
 		trig_out		:  out std_logic_vector(7 downto 0);
-        self_trig       :  out std_logic
+        self_trig       :  out std_logic;
+        selftrig_counts : out Array_32bit;
+        cointrig_counts : out Array_32bit
+
 		);
 end trigger;
 
@@ -116,6 +119,24 @@ begin
 	end loop;
 end process;
 
+
+-- trig counters
+trig_counters: process(clock.sys)
+begin
+  if rising_edge(clock.sys) then
+    for i in 0 to N-1 loop
+      if reset = '1' then
+        selftrig_counts(i) <= (others => '0');
+        cointrig_counts(i) <= (others => '0');
+      else
+        if trig.sw(i) then
+          selftrig_counts(i) <= std_logic_vector(unsigned(selftrig_counts(i)) + 1);
+        end if;
+        
+      end if;
+    end loop;
+  end if;
+end process;
 
 -- ACDC confirm logic
 

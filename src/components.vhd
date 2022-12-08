@@ -71,7 +71,9 @@ component trigger is
 		beamGate_trig: in std_logic;
         ACDC_triggers   : in std_logic_vector(N-1 downto 0);
 		trig_out		:  out std_logic_vector(7 downto 0);
-        self_trig       :  out std_logic
+        self_trig       :  out std_logic;
+        selftrig_counts : out Array_32bit;
+        cointrig_counts : out Array_32bit
 		);
 end component;
 
@@ -302,6 +304,7 @@ component serialRx_dataBuffer is
     byte_fifo_occ          : out DoubleArray_16bit;
     prbs_error_counts      : out DoubleArray_16bit;
     symbol_error_counts    : out DoubleArray_16bit;
+    parity_error_counts    : out DoubleArray_16bit;
     backpressure_threshold : in  std_logic_vector(11 downto 0);
     backpressure_out       : out std_logic_vector(N-1 downto 0);
     count_reset            : in  std_logic;

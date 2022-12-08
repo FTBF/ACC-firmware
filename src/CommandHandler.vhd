@@ -367,6 +367,15 @@ begin
       elsif unsigned(rx_addr) < X"00001140" then
         tx_data_z(15 downto 0) <= regs_z.rxDataLen(to_integer(unsigned(rx_addr(2 downto 0))));
 
+      elsif unsigned(rx_addr) < X"00001150" then
+        tx_data_z(15 downto 0) <= regs_z.parity_error_counts(to_integer(unsigned(rx_addr(2 downto 0))));
+
+      elsif unsigned(rx_addr) < X"00001158" then
+        tx_data_z(31 downto 0) <= regs_z.selftrig_counts(to_integer(unsigned(rx_addr(3 downto 0))));
+
+      elsif unsigned(rx_addr) < X"00001160" then
+        tx_data_z(31 downto 0) <= regs_z.cointrig_counts(to_integer(unsigned(rx_addr(2 downto 0))));
+
       end if;
     end if;
   end process;

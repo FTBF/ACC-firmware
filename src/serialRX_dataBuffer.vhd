@@ -33,6 +33,7 @@ entity serialRx_dataBuffer is
     byte_fifo_occ       : out DoubleArray_16bit;
     prbs_error_counts   : out DoubleArray_16bit;
     symbol_error_counts : out DoubleArray_16bit;
+    parity_error_counts : out DoubleArray_16bit;
     backpressure_threshold : in std_logic_vector(11 downto 0);
     backpressure_out    : out std_logic_vector(N-1 downto 0);
     count_reset   : in std_logic;
@@ -48,8 +49,8 @@ entity serialRx_dataBuffer is
 end serialRx_dataBuffer;
 
 architecture vhdl of serialRx_dataBuffer is
-  constant sync_word0: std_logic_vector(9 downto 0):= "0001111100";		-- the symbol for codeword K28.7
-  constant sync_word1: std_logic_vector(9 downto 0):= "0010111100";		-- the symbol for codeword K28.0
+  constant sync_word0: std_logic_vector(9 downto 0):= "0011111000";		-- the symbol for codeword K28.7
+  constant sync_word1: std_logic_vector(9 downto 0):= "0011110100";		-- the symbol for codeword K28.0
 
   signal data_occ_loc        : Array_16bit;
   
@@ -222,7 +223,7 @@ begin  -- architecture vhdl
   serial_hs_trigger_controldecode : process(all)
   begin
     for iLink in 0 to N-1 loop
-      if serialRX_deser_10bit_z(2*iLink) = "0001011011" or serialRX_deser_10bit_z(2*iLink) = "1110100100" then --FB k-code for trigger 
+      if serialRX_deser_10bit_z(2*iLink) = "1101101000" or serialRX_deser_10bit_z(2*iLink) = "0010010111" then --FB k-code for trigger 
         trig_out_z(iLink) <= '1';
       else
         trig_out_z(iLink) <= '0';
@@ -250,9 +251,9 @@ begin  -- architecture vhdl
       if rising_edge(clock.serial25) then
         if reset_sync2 = '1' then
           ACDC_backpressure_out(iLink) <= '0';
-        elsif serialRX_deser_10bit_z(2*iLink) = "1001111100" or serialRX_deser_10bit_z(2*iLink) = "0110000011" then --3C k-code for backpressure enable 
+        elsif serialRX_deser_10bit_z(2*iLink) = "0011111001" or serialRX_deser_10bit_z(2*iLink) = "1100000110" then --3C k-code for backpressure enable 
           ACDC_backpressure_out(iLink) <= '1';
-        elsif serialRX_deser_10bit_z(2*iLink) = "1010111100" or serialRX_deser_10bit_z(2*iLink) = "0101000011" then --5C k-code for backpressure disenable 
+        elsif serialRX_deser_10bit_z(2*iLink) = "0011110101" or serialRX_deser_10bit_z(2*iLink) = "1100001010" then --5C k-code for backpressure disenable 
           ACDC_backpressure_out(iLink) <= '0';
         end if;
       end if;
@@ -269,18 +270,30 @@ begin  -- architecture vhdl
 
   decoder_inst : for iLink in 0 to 2*N-1 generate
     signal symbol_error : std_logic;
+    signal disp_error : std_logic;
   begin
-    decoder_8b10b_inst: decoder_8b10b
+    dec_8b10b_1: dec_8b10b
       port map (
-        clock        => clock.serial25,
-        rd_reset     => reset_sync2,
-        din          => serialRX_deser_10bit(iLink),
-        din_valid    => '1',
-        kout         => serialRX_deser_8bit_kout(iLink),
-        dout         => serialRX_deser_8bit(iLink),
-        dout_valid   => serialRX_deser_8bit_valid(iLink),
-        rd_out       => open,
-        symbol_error => symbol_error);
+        reset    => reset_sync2,
+        clk      => clock.serial25,
+        datain   => serialRX_deser_10bit(iLink),
+        ena      => '1',
+        ko       => serialRX_deser_8bit_kout(iLink),
+        dataout  => serialRX_deser_8bit(iLink),
+        code_err => symbol_error,
+        disp_err => disp_error);
+    serialRX_deser_8bit_valid(iLink) <= '1';
+--    decoder_8b10b_inst: decoder_8b10b
+--      port map (
+--        clock        => clock.serial25,
+--        rd_reset     => reset_sync2,
+--        din          => serialRX_deser_10bit(iLink),
+--        din_valid    => '1',
+--        kout         => serialRX_deser_8bit_kout(iLink),
+--        dout         => serialRX_deser_8bit(iLink),
+--        dout_valid   => serialRX_deser_8bit_valid(iLink),
+--        rd_out       => open,
+--        symbol_error => );
 
     symbol_error_count : process(clock.serial25)
     begin
@@ -294,7 +307,20 @@ begin  -- architecture vhdl
         end if;
       end if;
     end process;
-      
+
+    parity_error_count : process(clock.serial25)
+    begin
+      if rising_edge(clock.serial25) then
+        if(reset_sync2 = '1' or count_reset = '1') then
+          parity_error_counts(iLink) <= X"0000";
+        else
+          if(disp_error = '1' and parity_error_counts(iLink) /= X"ffff") then
+            parity_error_counts(iLink) <= std_logic_vector(unsigned(parity_error_counts(iLink)) + 1);
+          end if;
+        end if;
+      end if;
+    end process;
+
   end generate;
   
   prbsChecker_inst: prbsChecker
@@ -386,7 +412,7 @@ begin  -- architecture vhdl
       end if;
     end process;
     
-    readFifo <= not (empty_lsb or empty_msb);
+    readFifo <= not (empty_lsb or empty_msb);    
     byte_fifo_occ(2*iACDC + 0)(15 downto 4) <= "000000000000";
     byte_fifo_occ(2*iACDC + 1)(15 downto 4) <= "000000000000";
 

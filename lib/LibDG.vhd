@@ -297,6 +297,19 @@ component skid_buffer is
     data_out_valid : out std_logic);
 end component skid_buffer;
 
+
+component dec_8b10b is
+  port (
+    reset    : in  std_logic;
+    clk      : in  std_logic;
+    datain   : in  std_logic_vector(9 downto 0);
+    ena      : in  std_logic;
+    ko       : out std_logic;
+    dataout  : out std_logic_vector(7 downto 0);
+    code_err : out std_logic;
+    disp_err : out std_logic);
+end component dec_8b10b;
+
 end LibDG;
 
 

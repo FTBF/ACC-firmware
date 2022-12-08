@@ -279,12 +279,13 @@ begin
   reg_readback_by16 : for i in 0 to 2*N-1 generate
     param_handshake_countRegs: param_handshake_sync
       generic map (
-        WIDTH => 16*3)
+        WIDTH => 16*4)
       port map (
         src_clk      => clock.serial25,
-        src_params   => reg.byte_fifo_occ(i) & reg.prbs_error_counts(i) & reg.symbol_error_counts(i),
+        src_params   => reg.parity_error_counts(i) & reg.byte_fifo_occ(i) & reg.prbs_error_counts(i) & reg.symbol_error_counts(i),
         src_aresetn  => nreset_sync2,
         dest_clk     => eth_clk,
+        dest_params(63 downto 48) => reg_z.parity_error_counts(i),
         dest_params(47 downto 32) => reg_z.byte_fifo_occ(i),
         dest_params(31 downto 16) => reg_z.prbs_error_counts(i),
         dest_params(15 downto 0)  => reg_z.symbol_error_counts(i),
@@ -297,6 +298,17 @@ begin
     reg_z.data_occ(i)  <= reg.data_occ(i);
     reg_z.rxDataLen(i) <= reg.rxDataLen(i);
 
+    param_handshake_countRegs: param_handshake_sync
+      generic map (
+        WIDTH => 32*2)
+      port map (
+        src_clk      => clock.sys,
+        src_params   => reg.selftrig_counts(i) & reg.cointrig_counts(i),
+        src_aresetn  => nreset,
+        dest_clk     => eth_clk,
+        dest_params(63 downto 32) => reg_z.selftrig_counts(i),
+        dest_params(31 downto 0)  => reg_z.cointrig_counts(i),
+        dest_aresetn => eth_reset);
   end generate;
   
   param_handshake_seriaRX_occ: param_handshake_sync

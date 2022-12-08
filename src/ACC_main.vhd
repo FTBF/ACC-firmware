@@ -78,6 +78,8 @@ architecture vhdl of	ACC_main is
     signal ACDC_backpressure      : std_logic_vector(N-1 downto 0);
     signal rxFIFO_resetReq        : std_logic_vector(N-1 downto 0);
     signal self_trig       :  std_logic;
+    signal selftrig_counts : Array_32bit;
+    signal cointrig_counts : Array_32bit;
 
     signal eth_clk : std_logic;
     signal rx_addr : std_logic_vector (31 downto 0);
@@ -123,8 +125,12 @@ TRIG_MAP: trigger Port map(
 		beamGate_trig => beamgate_trig,
         ACDC_triggers => ACDC_triggers,
 		trig_out	=> trig_out,
-        self_trig   => self_trig
+        self_trig   => self_trig,
+        selftrig_counts => selftrig_counts,
+        cointrig_counts => cointrig_counts
 		);
+regs.selftrig_counts <= selftrig_counts;
+regs.cointrig_counts <= cointrig_counts;
 
 				
 ------------------------------------
@@ -251,6 +257,7 @@ serialRx_dataBuffer_inst: serialRx_dataBuffer
     byte_fifo_occ    => regs.byte_fifo_occ,
     prbs_error_counts     => regs.prbs_error_counts,
     symbol_error_counts   => regs.symbol_error_counts,
+    parity_error_counts   => regs.parity_error_counts,
     backpressure_threshold => config.backpressure_threshold,
     backpressure_out => backpressure_out,
     count_reset      => config.count_reset,

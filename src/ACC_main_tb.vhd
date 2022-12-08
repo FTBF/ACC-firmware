@@ -6,7 +6,7 @@
 -- Author     :   <Pastika@ITID20020501N>
 -- Company    : 
 -- Created    : 2021-10-15
--- Last update: 2022-03-24
+-- Last update: 2022-11-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -558,8 +558,12 @@ begin  -- architecture sim
 	
   LVDS_in_ACDC <= transport LVDS_out(0) after 4 ns;
   LVDS_in(0) <= transport LVDS_out_ACDC(1 downto 0) after 1 ns;
-  LVDS_In_hs_p(0) <= LVDS_out_ACDC(3) & not LVDS_out_ACDC(2);
-  LVDS_In_hs_n(0) <= not LVDS_out_ACDC(3) & LVDS_out_ACDC(2);
+  --LVDS_In_hs_p(0) <= LVDS_out_ACDC(3) & not LVDS_out_ACDC(2);
+  --LVDS_In_hs_n(0) <= not LVDS_out_ACDC(3) & LVDS_out_ACDC(2);
+  LVDS_In_hs_p(0)(0) <= transport not LVDS_out_ACDC(2) after 200 ns;
+  LVDS_In_hs_n(0)(0) <= transport LVDS_out_ACDC(2) after 200 ns;
+  LVDS_In_hs_p(0)(1) <= LVDS_out_ACDC(3);
+  LVDS_In_hs_n(0)(1) <= not LVDS_out_ACDC(3);
 
   LVDS_in_ACDC_2 <= transport LVDS_out(1) after 4 ns;
   LVDS_in(1) <= transport LVDS_out_ACDC_2(1 downto 0) after 1 ns;
@@ -760,7 +764,7 @@ begin  -- architecture sim
 	ethSendCom(X"000000023", X"00000001", tmpEthData);
 	wait for 1 us;
 	
-	for v in 0 to 100 loop
+	for v in 0 to 40 loop
 		ethSendCom(X"000000010", X"000000FF", tmpEthData);
 		wait for 25 us;
 	end loop;
