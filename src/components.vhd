@@ -449,5 +449,20 @@ component rx_data_fifo is
     wrfull  : OUT STD_LOGIC);
 end component rx_data_fifo;
 
+component dcFIFO_dataBuffer is
+  port (
+    aclr    : IN  STD_LOGIC := '0';
+    data    : IN  STD_LOGIC_VECTOR (15 DOWNTO 0);
+    rdclk   : IN  STD_LOGIC;
+    rdreq   : IN  STD_LOGIC;
+    wrclk   : IN  STD_LOGIC;
+    wrreq   : IN  STD_LOGIC;
+    q       : OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
+    rdempty : OUT STD_LOGIC;
+    rdusedw : OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
+    wrfull  : OUT STD_LOGIC;
+    wrusedw : OUT STD_LOGIC_VECTOR (15 DOWNTO 0));
+end component dcFIFO_dataBuffer;
+
 end components;
 

@@ -53,6 +53,7 @@ architecture vhdl of serialRx_dataBuffer is
   constant sync_word1: std_logic_vector(9 downto 0):= "0011110100";		-- the symbol for codeword K28.0
 
   signal data_occ_loc        : Array_16bit;
+  signal data_occ_ser25      : Array_16bit;
   
   attribute PRESERVE          : boolean;
   signal serialRX_hs        : serialRx_hs_array;
@@ -356,6 +357,7 @@ begin  -- architecture vhdl
     signal readFifo : std_logic;
     signal writeBuffer : std_logic;
     signal rxFIFO_resetReq_sync : std_logic;
+    signal rxFIFO_reset : std_logic;
   begin
 
     -- map links into pairs for each ACDC 
@@ -429,25 +431,31 @@ begin  -- architecture vhdl
     serialRX_InterByteAlign_lsb: serialRX_InterByteAlign_fifo
       port map (
         clock => clock.serial25,
-        data  => data_in_lsb_dly,
-        rdreq => readFifo,
         sclr  => reset_sync2 or reset_local or rxFIFO_resetReq_sync,
+
+        data  => data_in_lsb_dly,
         wrreq => data_in_lsb_write,
+
+        q     => data_out_lsb,
+        rdreq => readFifo,
+        
         empty => empty_lsb,
         full  => full_lsb,
-        q     => data_out_lsb,
         usedw => byte_fifo_occ(2*iACDC + 0)(3 downto 0));
 
     serialRX_InterByteAlign_msb: serialRX_InterByteAlign_fifo
       port map (
         clock => clock.serial25,
-        data  => data_in_msb_dly,
-        rdreq => readFifo,
         sclr  => reset_sync2 or reset_local or rxFIFO_resetReq_sync,
+
+        data  => data_in_msb_dly,
         wrreq => data_in_msb_write,
+        
+        q     => data_out_msb,
+        rdreq => readFifo,
+
         empty => empty_msb,
         full  => full_msb,
-        q     => data_out_msb,
         usedw => byte_fifo_occ(2*iACDC + 1)(3 downto 0));
 
     -- error detector circuit - reset interByteAlignment if FIFO overflow
@@ -467,54 +475,71 @@ begin  -- architecture vhdl
       end if;
     end process;
 
+    syncReset: sync_Bits_Altera
+      generic map (
+        BITS       => 1,
+        INIT       => "0",
+        SYNC_DEPTH => 3)
+      port map (
+        Clock     => clock.serial25,
+        Input(0)  => reset.global or rxFIFO_resetReq(iACDC),
+        Output(0) => rxFIFO_reset);
+
+
     -- deep data FIFO storing 16 bit wide words
-	dcfifo_component : dcfifo
-	GENERIC MAP (
-		intended_device_family => "Arria V",
-		lpm_numwords => 65536,
-		lpm_showahead => "OFF",
-		lpm_type => "dcfifo",
-		lpm_width => 16,
-		lpm_widthu => 16,
-		overflow_checking => "ON",
-		rdsync_delaypipe => 4,
-		read_aclr_synch => "OFF",
-		underflow_checking => "ON",
-		use_eab => "ON",
-		write_aclr_synch => "OFF",
-		wrsync_delaypipe => 4
-	)
-	PORT MAP (
-		aclr => reset.global or rxFIFO_resetReq(iACDC),
-		data => data_out_msb & data_out_lsb,
-		rdclk => eth_clk,
-		rdreq => data_re(iACDC),
-		wrclk => clock.serial25,
-		wrreq => writeBuffer,
-		q => data_out(iACDC),
-		rdempty => open,
-		rdusedw => data_occ_loc(iACDC),
-		wrfull => open,
-		wrusedw => open
-	);
---    serialRX_data_buffer: serialRX_data_fifo
---      port map (
---        aclr    => reset_sync2 or rxFIFO_resetReq(iACDC),
---        data    => data_out_msb & data_out_lsb,
---        rdclk   => clock.sys,
---        rdreq   => data_re(iACDC),
---        wrclk   => clock.serial25,
---        wrreq   => writeBuffer,
---        q       => data_out(iACDC),
---        rdempty => open,
---        rdusedw => data_occ_loc(iACDC)(14 downto 0),
---        wrfull  => open);
+    dcFIFO_dataBuffer_inst: dcFIFO_dataBuffer
+      port map (
+        aclr    => rxFIFO_reset,
+
+        wrclk => clock.serial25,
+        wrreq => writeBuffer,
+        data => data_out_msb & data_out_lsb,
+        wrfull => open,
+        wrusedw => data_occ_ser25(iACDC),
+
+        rdclk => eth_clk,
+        rdreq => data_re(iACDC),
+        q => data_out(iACDC),
+        rdempty => open,
+        rdusedw => data_occ_loc(iACDC)
+        );
+    --	dcfifo_component : dcfifo
+--	GENERIC MAP (
+--		intended_device_family => "Arria V",
+--		lpm_numwords => 65536,
+--		lpm_showahead => "OFF",
+--		lpm_type => "dcfifo",
+--		lpm_width => 16,
+--		lpm_widthu => 16,
+--		overflow_checking => "ON",
+--		rdsync_delaypipe => 4,
+--		read_aclr_synch => "OFF",
+--		underflow_checking => "ON",
+--		use_eab => "ON",
+--		write_aclr_synch => "OFF",
+--		wrsync_delaypipe => 4
+--	)
+--	PORT MAP (
+--		aclr => reset.global or rxFIFO_resetReq(iACDC),
+--
+--		wrclk => clock.serial25,
+--		wrreq => writeBuffer,
+--		data => data_out_msb & data_out_lsb,
+--		wrfull => open,
+--		wrusedw => data_occ_ser25(iACDC),
+--
+--		rdclk => eth_clk,
+--		rdreq => data_re(iACDC),
+--		q => data_out(iACDC),
+--		rdempty => open,
+--		rdusedw => data_occ_loc(iACDC)
+--	);
     
     backpressure_gen : process( clock.serial25 )
     begin
       if rising_edge(clock.serial25) then
         -- backpressure signals
-        if to_integer(unsigned(data_occ_loc(iACDC))) >= (unsigned(backpressure_threshold(7 downto 0)) & X"00") then
+        if to_integer(unsigned(data_occ_ser25(iACDC))) >= (unsigned(backpressure_threshold(7 downto 0)) & X"00") then
           backpressure_out(iACDC) <= '1';
         else
           backpressure_out(iACDC) <= '0';

@@ -16,8 +16,8 @@ create_clock -period "125.0 MHz" [get_ports ETH_in.rx_clk]
 
 set_max_delay -from [get_registers *param_handshake_sync*src_params_latch*] -to [get_registers *param_handshake_sync*dest_params*] 25
 
-set_false_path -from [get_clocks {ethernet_adapter:ethernet_adapter_inst|ETH_pll:ETH_pll_inst|ETH_pll_0002:eth_pll_inst|altera_pll:altera_pll_i|outclk_wire[0]}] -to [get_clocks {ClockGenerator:clockGen_map|pll_serial:pll_serial_inst|pll_serial_0002:pll_serial_inst|altera_pll:altera_pll_i|outclk_wire[0]}]
-set_false_path -to [get_clocks {ethernet_adapter:ethernet_adapter_inst|ETH_pll:ETH_pll_inst|ETH_pll_0002:eth_pll_inst|altera_pll:altera_pll_i|outclk_wire[0]}] -from [get_clocks {ClockGenerator:clockGen_map|pll_serial:pll_serial_inst|pll_serial_0002:pll_serial_inst|altera_pll:altera_pll_i|outclk_wire[0]}]
+#set_false_path -from [get_clocks {ethernet_adapter:ethernet_adapter_inst|ETH_pll:ETH_pll_inst|ETH_pll_0002:eth_pll_inst|altera_pll:altera_pll_i|outclk_wire[0]}] -to   [get_clocks {ClockGenerator:clockGen_map|pll_serial:pll_serial_inst|pll_serial_0002:pll_serial_inst|altera_pll:altera_pll_i|outclk_wire[0]}]
+#set_false_path -to   [get_clocks {ethernet_adapter:ethernet_adapter_inst|ETH_pll:ETH_pll_inst|ETH_pll_0002:eth_pll_inst|altera_pll:altera_pll_i|outclk_wire[0]}] -from [get_clocks {ClockGenerator:clockGen_map|pll_serial:pll_serial_inst|pll_serial_0002:pll_serial_inst|altera_pll:altera_pll_i|outclk_wire[0]}]
 
 set_false_path -from {reset.global} -to {serialRx_buffer:\rxBuffer_gen:*:rxBuffer_map|rx_data_fifo:rx_fifo_map|dcfifo:dcfifo_component|*}
 set_false_path -from {reset.global} -to {serialRx_dataBuffer:serialRx_dataBuffer_inst|dcfifo:\link_buffers:*:dcfifo_component|*}

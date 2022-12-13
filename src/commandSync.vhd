@@ -131,7 +131,6 @@ begin
       dest_params  => config.backpressure_threshold,
       dest_aresetn => nreset_sync2);
 
-
   pulseSync2_globalResetReq: pulseSync2
     port map (
       src_clk      => eth_clk,
@@ -140,8 +139,6 @@ begin
       dest_clk     => clock.sys,
       dest_pulse   => config.globalResetReq,
       dest_aresetn => nreset);
-
-  config.rxFIFO_resetReq <= config_z.rxFIFO_resetReq;
 
   param_handshake_coincidentMask: param_handshake_sync
     generic map (
@@ -158,6 +155,16 @@ begin
     signal coincidentDelay_z : std_logic_vector(15 downto 0);
     signal coincidentStretch_z : std_logic_vector(15 downto 0);
   begin
+    pulseSync2_rxFIFOResetReq: pulseSync2
+      port map (
+        src_clk      => eth_clk,
+        src_pulse    => config_z.rxFIFO_resetReq(i),
+        src_aresetn  => eth_reset,
+        dest_clk     => clock.serial25,
+        dest_pulse   => config.rxFIFO_resetReq(i),
+        dest_aresetn => nreset_sync2);
+
+
     param_handshake_coincientDelay: param_handshake_sync
       generic map (
         WIDTH => 16)
