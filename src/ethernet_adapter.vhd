@@ -268,7 +268,7 @@ begin
       user_addr    => user_addr,
       --PHY interface signals 
       MASTER_CLK   => rx_clk,
-      USER_CLK     => rx_clk,-- this is only used externally, no need to mince clocks with clock.serial25,
+      USER_CLK     => clock.serial25,
       PHY_RXD      => rx_dat,
       PHY_RX_DV    => rx_dv,
       PHY_RX_ER    => rx_er,
