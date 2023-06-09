@@ -18,6 +18,7 @@ USE ieee.numeric_std.ALL;
 use ieee.std_logic_misc.all;
 use work.defs.all;
 use work.components.all;
+use work.LibDG.all;
 
 entity dataHandler is
   port (
@@ -35,6 +36,7 @@ entity dataHandler is
     dataFIFO_readReq : in  std_logic;
     dataFIFO_chan    : in  natural range 0 to 15;
     dataFIFO_auto    : in  std_logic;
+	 dataFIFO_reset   : in  std_logic;
     
     data_out         : in  Array_16bit;
     data_occ         : in  Array_16bit;
@@ -48,7 +50,6 @@ architecture vhdl of dataHandler is
   type state_type is (
     IDLE,
     HEADER,
-    HEADER2,
     DATA,
     DONE);
 
@@ -57,6 +58,10 @@ architecture vhdl of dataHandler is
   signal reset_eth_sync0 : std_logic;
   signal reset_eth_sync1 : std_logic;
   signal reset_eth_sync2 : std_logic;
+  
+  signal dataFIFO_reset_eth_sync0 : std_logic;
+  signal dataFIFO_reset_eth_sync1 : std_logic;
+  signal dataFIFO_reset_eth_sync2 : std_logic;
 
   signal data_skidbuf  : std_logic_vector(15 downto 0);
   signal write_skidbuf : std_logic;
@@ -82,12 +87,37 @@ begin
       reset_eth_sync2 <= '1';
     else
       if rising_edge(eth_clk) then
-        reset_eth_sync0 <= reset;
-        reset_eth_sync1 <= reset_eth_sync0;
         reset_eth_sync2 <= reset_eth_sync1;
+        reset_eth_sync1 <= reset_eth_sync0;
+        reset_eth_sync0 <= reset;
       end if;
     end if;
   end process;
+
+  syncReset: sync_Bits_Altera
+    generic map (
+      BITS       => 1,
+      INIT       => "0",
+      SYNC_DEPTH => 3)
+    port map (
+      Clock     => eth_clk,
+      Input(0)  => dataFIFO_reset,
+      Output(0) => dataFIFO_reset_eth_sync2);
+
+  --dataFIFO_reset_eth_sync : process(eth_clk)
+  --begin
+  --  if reset = '1' then
+  --    dataFIFO_reset_eth_sync0 <= '1';
+  --    dataFIFO_reset_eth_sync1 <= '1';
+  --    dataFIFO_reset_eth_sync2 <= '1';
+  --  else
+  --    if rising_edge(eth_clk) then
+  --      dataFIFO_reset_eth_sync2 <= dataFIFO_reset_eth_sync1;
+  --      dataFIFO_reset_eth_sync1 <= dataFIFO_reset_eth_sync0;
+  --      dataFIFO_reset_eth_sync0 <= dataFIFO_reset;
+  --    end if;
+  --  end if;
+  --end process;
 
   data_re <= data_re_loc;
   write_skidbuf <= or_reduce(data_re_loc) and not b_enable;
@@ -105,7 +135,7 @@ begin
 
   data_readout_auto_controller_inst: data_readout_auto_controller
     port map (
-      reset            => reset_eth_sync2,
+      reset            => reset_eth_sync2 or dataFIFO_reset_eth_sync2,
       clock            => ETH_clk,
       dataFIFO_readReq => dataFIFO_readReq_auto,
       dataFIFO_chan    => dataFIFO_chan_auto,
@@ -124,22 +154,25 @@ begin
     end if;
   end process;
 
-  DATA_HANDLER: process(eth_clk, reset_eth_sync2)
+  DATA_HANDLER: process(eth_clk, reset_eth_sync2, dataFIFO_reset_eth_sync2)
     variable iWord : natural;
     variable iChunk : natural;
     variable dataBuf : std_logic_vector(63 downto 0);
   begin
-    if reset_eth_sync2 = '1' then
+    if reset_eth_sync2 = '1' or dataFIFO_reset_eth_sync2 = '1' then
       state <= IDLE;
       iWord := 0;
       iChunk := 0;
       data_re_loc <= X"00";
-      dataBuf := X"0000000000000000";
+      dataBuf := X"1111111111111111";
       read_skidbuf <= '0';
+      b_data       <= X"3333333333333333";
+      b_data_we    <= '0';
+      b_data_force <= '0';
     else
       if rising_edge(eth_clk) then
         state <= state;
-        b_data       <= X"0000000000000000";
+        b_data       <= X"2222222222222222";
         b_data_we    <= '0';
         b_data_force <= '0';
         data_re_loc <= X"00";
@@ -165,32 +198,7 @@ begin
               data_re_loc(dataFIFO_chan_z) <= '1';
               iWord := 0;
               iChunk := 0;
-              state <= HEADER2;
-            end if;
-
-          when HEADER2 =>
-            if b_enable = '1' then
-              --dataBuf(15 + (3 - iChunk)*16 downto 0 + (3 - iChunk)*16) := data_muxed;
-              dataBuf := dataBuf(47 downto 0) & data_muxed;
-              read_skidbuf <= '0';
-              
-              if iChunk < 4 - 1 then
-                iChunk := iChunk + 1;
-              else
-                iChunk := 0;
-                b_data     <= dataBuf;
-                b_data_we  <= '1';
-              end if;
-
-              iWord := iWord + 1;
-              if iWord >= 16 then
-                iWord := 0;
-                iChunk := 0;
-                dataBuf(63 downto 60) := X"0";
-                state <= DATA;
-              end if;
-
-              data_re_loc(dataFIFO_chan_z) <= '1';
+              state <= DATA;
             end if;
 
           when DATA =>
@@ -205,17 +213,17 @@ begin
                 iChunk := 0;
                 b_data     <= dataBuf;
                 b_data_we  <= '1';
-                dataBuf    := X"0000000000000000";
+                --dataBuf    := X"3333333333333333";
               end if;
 
               iWord := iWord + 1;
-              if iWord >= 5760 then
+              if iWord >= EVENT_SIZE then
                 state <= DONE;
-                if iChunk /= 0 then
-                  b_data     <= dataBuf;
-                  b_data_we  <= '1';
-                end if;
-              elsif iWord = 5760 - 1 then
+                --if iChunk /= 0 then
+                --  b_data     <= dataBuf;
+                --  b_data_we  <= '1';
+                --end if;
+              elsif iWord = EVENT_SIZE - 1 then
                 data_re_loc(dataFIFO_chan_z) <= '0';
               else
                 data_re_loc(dataFIFO_chan_z) <= '1';

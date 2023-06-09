@@ -20,7 +20,7 @@ LANGUAGE=VHDL
 REFRESH_FLOW=1
 FLOWTOOLS=NONE
 FAMILY=Intel ArriaV
-fileopenfolder=C:\Users\pastika\TOF\firmware\ACC\ACC-firmware\lib
+fileopenfolder=C:\Users\pastika\TOF\firmware\ACC\ACC-firmware\src\QIPcomponents
 WireDelay=2
 AccessACCB=0
 AccessACCR=0
@@ -55,7 +55,7 @@ IncrementalCompilation=0
 AdditionalOptions=
 
 [HierarchyViewer]
-HierarchyInformation=acc_main_tb|sim|0     
+HierarchyInformation=acc_main_tb|sim|0       
 ShowHide=ShowTopLevel
 Selected=
 
@@ -183,6 +183,7 @@ Count=0
 .\..\..\..\lib\skid_buffer.vhd=VHDL Source Code
 .\..\..\..\src\data_readout_auto_controller.vhd=VHDL Source Code
 .\..\..\..\lib\dec_8b10b.vhd=VHDL Source Code
+.\..\..\..\src\QIPcomponents\dcFIFO_dataBuffer.vhd=VHDL Source Code
 
 [Files]
 /..\..\..\..\src\QIPcomponents\altlvds_rx0.vhd=-1
@@ -279,6 +280,7 @@ Count=0
 /..\..\..\..\lib\manchester_encoder.vhd=-1
 /..\..\..\..\lib\skid_buffer.vhd=-1
 /..\..\..\..\lib\dec_8b10b.vhd=-1
+/..\..\..\..\src\QIPcomponents\dcFIFO_dataBuffer.vhd=-1
 
 [Folders]
 Name0=Event Lists

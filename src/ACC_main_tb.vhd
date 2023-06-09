@@ -664,9 +664,11 @@ begin  -- architecture sim
   end process;
   
   fakeData : for i in 0 to 4 generate
-	PSEC4_in(i).trig <= selftrig(i);
+	PSEC4_in(i).trig <= selftrig(i);  
+	PSEC4_in(i).DLL_clock <= transport clockIn_ACDC.jcpll after 5 ns;
 	PSEC4_in(i).overflow <= '0';
 	PSEC4_in_2(i).trig <= selftrig_2(i);
+	PSEC4_in_2(i).DLL_clock <= transport clockIn_ACDC.jcpll after 5 ns;
 	PSEC4_in_2(i).overflow <= '0';
 	  
   	PSEC4_process : process(PSEC4_out(i).readClock, reset)
@@ -764,7 +766,21 @@ begin  -- architecture sim
 	ethSendCom(X"000000023", X"00000001", tmpEthData);
 	wait for 1 us;
 	
-	for v in 0 to 40 loop
+	for v in 0 to 15 loop
+		ethSendCom(X"000000010", X"000000FF", tmpEthData);
+		wait for 25 us;
+	end loop;
+	ethSendCom(X"100000009", X"00000000", tmpEthData);
+	wait for 1 us;
+	for v in 0 to 10 loop
+		ethSendCom(X"000000010", X"000000FF", tmpEthData);
+		wait for 25 us;
+	end loop;  
+	ethSendCom(X"000000001", X"000000ff", tmpEthData);
+	wait for 1 us;
+	ethSendCom(X"100000009", X"00000001", tmpEthData);
+	wait for 1 us;
+	for v in 0 to 10 loop
 		ethSendCom(X"000000010", X"000000FF", tmpEthData);
 		wait for 25 us;
 	end loop;

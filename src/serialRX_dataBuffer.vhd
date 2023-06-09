@@ -356,8 +356,6 @@ begin  -- architecture vhdl
     signal data_out_msb : std_logic_vector(7 downto 0);
     signal readFifo : std_logic;
     signal writeBuffer : std_logic;
-    signal rxFIFO_resetReq_sync : std_logic;
-    signal rxFIFO_reset : std_logic;
   begin
 
     -- map links into pairs for each ACDC 
@@ -379,7 +377,7 @@ begin  -- architecture vhdl
 
         -- write when inside a packet (after symbol F7 but before 9C or Idle
         -- (1C)) and when data is valid and not a k code
-        if reset_sync2 = '1' or reset_local = '1' then
+        if reset_sync2 = '1' or reset_local = '1' or rxFIFO_resetReq(iACDC) = '1' then
           data_in_lsb_write <= '0';
           data_in_msb_write <= '0';
           data_in_lsb_enable <= '0';
@@ -419,19 +417,19 @@ begin  -- architecture vhdl
     byte_fifo_occ(2*iACDC + 1)(15 downto 4) <= "000000000000";
 
     -- shallow byte alignment FIFOs
-    pulseSync2_rxFIFO_resetReq: pulseSync2
-      port map (
-        src_clk      => eth_clk,
-        src_pulse    => rxFIFO_resetReq(iACDC),
-        src_aresetn  => not reset_eth_sync2,
-        dest_clk     => clock.serial25,
-        dest_pulse   => rxFIFO_resetReq_sync,
-        dest_aresetn => not reset_sync2);
+    --pulseSync2_rxFIFO_resetReq: pulseSync2
+    --  port map (
+    --    src_clk      => eth_clk,
+    --    src_pulse    => rxFIFO_resetReq(iACDC),
+    --    src_aresetn  => not reset_eth_sync2,
+    --    dest_clk     => clock.serial25,
+    --    dest_pulse   => rxFIFO_resetReq_sync,
+    --    dest_aresetn => not reset_sync2);
 
     serialRX_InterByteAlign_lsb: serialRX_InterByteAlign_fifo
       port map (
         clock => clock.serial25,
-        sclr  => reset_sync2 or reset_local or rxFIFO_resetReq_sync,
+        sclr  => reset_sync2 or reset_local or rxFIFO_resetReq(iACDC),
 
         data  => data_in_lsb_dly,
         wrreq => data_in_lsb_write,
@@ -446,7 +444,7 @@ begin  -- architecture vhdl
     serialRX_InterByteAlign_msb: serialRX_InterByteAlign_fifo
       port map (
         clock => clock.serial25,
-        sclr  => reset_sync2 or reset_local or rxFIFO_resetReq_sync,
+        sclr  => reset_sync2 or reset_local or rxFIFO_resetReq(iACDC),
 
         data  => data_in_msb_dly,
         wrreq => data_in_msb_write,
@@ -475,21 +473,11 @@ begin  -- architecture vhdl
       end if;
     end process;
 
-    syncReset: sync_Bits_Altera
-      generic map (
-        BITS       => 1,
-        INIT       => "0",
-        SYNC_DEPTH => 3)
-      port map (
-        Clock     => clock.serial25,
-        Input(0)  => reset.global or rxFIFO_resetReq(iACDC),
-        Output(0) => rxFIFO_reset);
-
 
     -- deep data FIFO storing 16 bit wide words
     dcFIFO_dataBuffer_inst: dcFIFO_dataBuffer
       port map (
-        aclr    => rxFIFO_reset,
+        aclr    => reset_sync2 or rxFIFO_resetReq(iACDC),
 
         wrclk => clock.serial25,
         wrreq => writeBuffer,
@@ -503,37 +491,6 @@ begin  -- architecture vhdl
         rdempty => open,
         rdusedw => data_occ_loc(iACDC)
         );
-    --	dcfifo_component : dcfifo
---	GENERIC MAP (
---		intended_device_family => "Arria V",
---		lpm_numwords => 65536,
---		lpm_showahead => "OFF",
---		lpm_type => "dcfifo",
---		lpm_width => 16,
---		lpm_widthu => 16,
---		overflow_checking => "ON",
---		rdsync_delaypipe => 4,
---		read_aclr_synch => "OFF",
---		underflow_checking => "ON",
---		use_eab => "ON",
---		write_aclr_synch => "OFF",
---		wrsync_delaypipe => 4
---	)
---	PORT MAP (
---		aclr => reset.global or rxFIFO_resetReq(iACDC),
---
---		wrclk => clock.serial25,
---		wrreq => writeBuffer,
---		data => data_out_msb & data_out_lsb,
---		wrfull => open,
---		wrusedw => data_occ_ser25(iACDC),
---
---		rdclk => eth_clk,
---		rdreq => data_re(iACDC),
---		q => data_out(iACDC),
---		rdempty => open,
---		rdusedw => data_occ_loc(iACDC)
---	);
     
     backpressure_gen : process( clock.serial25 )
     begin

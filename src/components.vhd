@@ -148,6 +148,7 @@ component dataHandler is
     dataFIFO_readReq : in  std_logic;
     dataFIFO_chan    : in  natural range 0 to 15;
     dataFIFO_auto    : in  std_logic;
+	 dataFIFO_reset   : in  std_logic;
     data_out         : in  Array_16bit;
     data_occ         : in  Array_16bit;
     data_re          : out std_logic_vector(N-1 downto 0));

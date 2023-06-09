@@ -154,6 +154,8 @@ begin
   loop_gen : for i in 0 to N-1 generate
     signal coincidentDelay_z : std_logic_vector(15 downto 0);
     signal coincidentStretch_z : std_logic_vector(15 downto 0);
+    signal rxFIFO_resetReq : std_logic;
+    signal rxFIFO_resetReq_count : unsigned(4 downto 0);
   begin
     pulseSync2_rxFIFOResetReq: pulseSync2
       port map (
@@ -161,9 +163,27 @@ begin
         src_pulse    => config_z.rxFIFO_resetReq(i),
         src_aresetn  => eth_reset,
         dest_clk     => clock.serial25,
-        dest_pulse   => config.rxFIFO_resetReq(i),
+        dest_pulse   => rxFIFO_resetReq,
         dest_aresetn => nreset_sync2);
 
+    rxFIFO_resetReq_stretch : process(clock.serial25, nreset_sync2, rxFIFO_resetReq)
+    begin
+      if(nreset_sync2 = '0' or rxFIFO_resetReq = '1') then
+        rxFIFO_resetReq_count <= "10000";
+        config.rxFIFO_resetReq(i) <= '1';
+      else
+        if rising_edge(clock.serial25) then
+          if(rxFIFO_resetReq_count > "00000") then
+            config.rxFIFO_resetReq(i) <= '1';
+            rxFIFO_resetReq_count <= rxFIFO_resetReq_count - 1;
+          else
+            rxFIFO_resetReq_count <= "00000";
+            config.rxFIFO_resetReq(i) <= '0';
+          end if;
+        end if;
+      end if;
+    end process;
+    
 
     param_handshake_coincientDelay: param_handshake_sync
       generic map (

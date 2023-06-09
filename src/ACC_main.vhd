@@ -14,7 +14,8 @@
 
 library IEEE; 
 use ieee.std_logic_1164.all;
-USE ieee.numeric_std.ALL; 
+USE ieee.numeric_std.ALL;
+use ieee.std_logic_misc.all;
 use work.defs.all;
 use work.components.all;
 use work.LibDG.all;
@@ -312,6 +313,7 @@ dataHandler_inst: dataHandler
     dataFIFO_readReq => config.dataFIFO_readReq,
     dataFIFO_chan    => config.readChannel,
     dataFIFO_auto    => config.dataFIFO_auto,
+	dataFIFO_reset   => or_reduce(config.rxFIFO_resetReq),
     data_out         => data_out,
     data_occ         => data_occ,
     data_re          => data_re);
