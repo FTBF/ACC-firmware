@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pinplan
+ variation_name="gmii_to_rgmii_adapter_0"
+ megafunction_name="ALTERA_GMII_TO_RGMII_ADAPTER"
+ intended_family="Arria V"
+ specifies="all_ports">
+ <global>
+  <pin name="peri_clock_clk" direction="input" scope="external" />
+  <pin name="peri_reset_reset_n" direction="input" scope="external" />
+  <pin name="hps_gmii_phy_tx_clk_o" direction="input" scope="external" />
+  <pin name="hps_gmii_rst_tx_n" direction="input" scope="external" />
+  <pin name="hps_gmii_rst_rx_n" direction="input" scope="external" />
+  <pin name="hps_gmii_phy_txd_o[7..0]" direction="input" scope="external" />
+  <pin name="hps_gmii_phy_txen_o" direction="input" scope="external" />
+  <pin name="hps_gmii_phy_txer_o" direction="input" scope="external" />
+  <pin
+     name="hps_gmii_phy_mac_speed_o[1..0]"
+     direction="input"
+     scope="external" />
+  <pin name="hps_gmii_phy_tx_clk_i" direction="output" scope="external" />
+  <pin name="hps_gmii_phy_rx_clk_i" direction="output" scope="external" />
+  <pin name="hps_gmii_phy_rxdv_i" direction="output" scope="external" />
+  <pin name="hps_gmii_phy_rxer_i" direction="output" scope="external" />
+  <pin name="hps_gmii_phy_rxd_i[7..0]" direction="output" scope="external" />
+  <pin name="hps_gmii_phy_col_i" direction="output" scope="external" />
+  <pin name="hps_gmii_phy_crs_i" direction="output" scope="external" />
+  <pin name="phy_rgmii_rgmii_rx_clk" direction="input" scope="external" />
+  <pin name="phy_rgmii_rgmii_rxd[3..0]" direction="input" scope="external" />
+  <pin name="phy_rgmii_rgmii_rx_ctl" direction="input" scope="external" />
+  <pin name="phy_rgmii_rgmii_tx_clk" direction="output" scope="external" />
+  <pin name="phy_rgmii_rgmii_txd[3..0]" direction="output" scope="external" />
+  <pin name="phy_rgmii_rgmii_tx_ctl" direction="output" scope="external" />
+  <pin name="pll_25m_clock_clk" direction="input" scope="external" />
+  <pin name="pll_2_5m_clock_clk" direction="input" scope="external" />
+ </global>
+</pinplan>

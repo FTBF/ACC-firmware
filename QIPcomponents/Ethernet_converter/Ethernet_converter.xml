@@ -1,0 +1,508 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deploy
+ date="2022.02.28.17:27:21"
+ outputDirectory="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/">
+ <perimeter>
+  <parameter
+     name="AUTO_GENERATION_ID"
+     type="Integer"
+     defaultValue="0"
+     onHdl="0"
+     affectsHdl="1" />
+  <parameter
+     name="AUTO_UNIQUE_ID"
+     type="String"
+     defaultValue=""
+     onHdl="0"
+     affectsHdl="1" />
+  <parameter
+     name="AUTO_DEVICE_FAMILY"
+     type="String"
+     defaultValue="Arria V"
+     onHdl="0"
+     affectsHdl="1" />
+  <parameter
+     name="AUTO_DEVICE"
+     type="String"
+     defaultValue="5AGXFB5H4F35C4"
+     onHdl="0"
+     affectsHdl="1" />
+  <parameter
+     name="AUTO_DEVICE_SPEEDGRADE"
+     type="String"
+     defaultValue="4_H4"
+     onHdl="0"
+     affectsHdl="1" />
+  <parameter
+     name="AUTO_PERI_CLOCK_CLOCK_RATE"
+     type="Long"
+     defaultValue="-1"
+     onHdl="0"
+     affectsHdl="1" />
+  <parameter
+     name="AUTO_PERI_CLOCK_CLOCK_DOMAIN"
+     type="Integer"
+     defaultValue="-1"
+     onHdl="0"
+     affectsHdl="1" />
+  <parameter
+     name="AUTO_PERI_CLOCK_RESET_DOMAIN"
+     type="Integer"
+     defaultValue="-1"
+     onHdl="0"
+     affectsHdl="1" />
+  <parameter
+     name="AUTO_PLL_25M_CLOCK_CLOCK_RATE"
+     type="Long"
+     defaultValue="-1"
+     onHdl="0"
+     affectsHdl="1" />
+  <parameter
+     name="AUTO_PLL_25M_CLOCK_CLOCK_DOMAIN"
+     type="Integer"
+     defaultValue="-1"
+     onHdl="0"
+     affectsHdl="1" />
+  <parameter
+     name="AUTO_PLL_25M_CLOCK_RESET_DOMAIN"
+     type="Integer"
+     defaultValue="-1"
+     onHdl="0"
+     affectsHdl="1" />
+  <parameter
+     name="AUTO_PLL_2_5M_CLOCK_CLOCK_RATE"
+     type="Long"
+     defaultValue="-1"
+     onHdl="0"
+     affectsHdl="1" />
+  <parameter
+     name="AUTO_PLL_2_5M_CLOCK_CLOCK_DOMAIN"
+     type="Integer"
+     defaultValue="-1"
+     onHdl="0"
+     affectsHdl="1" />
+  <parameter
+     name="AUTO_PLL_2_5M_CLOCK_RESET_DOMAIN"
+     type="Integer"
+     defaultValue="-1"
+     onHdl="0"
+     affectsHdl="1" />
+  <interface name="hps_gmii" kind="conduit" start="0">
+   <property name="associatedClock" value="" />
+   <property name="associatedReset" value="" />
+   <port
+       name="hps_gmii_phy_tx_clk_o"
+       direction="input"
+       role="phy_tx_clk_o"
+       width="1" />
+   <port name="hps_gmii_rst_tx_n" direction="input" role="rst_tx_n" width="1" />
+   <port name="hps_gmii_rst_rx_n" direction="input" role="rst_rx_n" width="1" />
+   <port
+       name="hps_gmii_phy_txd_o"
+       direction="input"
+       role="phy_txd_o"
+       width="8" />
+   <port
+       name="hps_gmii_phy_txen_o"
+       direction="input"
+       role="phy_txen_o"
+       width="1" />
+   <port
+       name="hps_gmii_phy_txer_o"
+       direction="input"
+       role="phy_txer_o"
+       width="1" />
+   <port
+       name="hps_gmii_phy_mac_speed_o"
+       direction="input"
+       role="phy_mac_speed_o"
+       width="2" />
+   <port
+       name="hps_gmii_phy_tx_clk_i"
+       direction="output"
+       role="phy_tx_clk_i"
+       width="1" />
+   <port
+       name="hps_gmii_phy_rx_clk_i"
+       direction="output"
+       role="phy_rx_clk_i"
+       width="1" />
+   <port
+       name="hps_gmii_phy_rxdv_i"
+       direction="output"
+       role="phy_rxdv_i"
+       width="1" />
+   <port
+       name="hps_gmii_phy_rxer_i"
+       direction="output"
+       role="phy_rxer_i"
+       width="1" />
+   <port
+       name="hps_gmii_phy_rxd_i"
+       direction="output"
+       role="phy_rxd_i"
+       width="8" />
+   <port
+       name="hps_gmii_phy_col_i"
+       direction="output"
+       role="phy_col_i"
+       width="1" />
+   <port
+       name="hps_gmii_phy_crs_i"
+       direction="output"
+       role="phy_crs_i"
+       width="1" />
+  </interface>
+  <interface name="peri_clock" kind="clock" start="0">
+   <property name="clockRate" value="0" />
+   <property name="externallyDriven" value="false" />
+   <property name="ptfSchematicName" value="" />
+   <port name="peri_clock_clk" direction="input" role="clk" width="1" />
+  </interface>
+  <interface name="peri_reset" kind="reset" start="0">
+   <property name="associatedClock" value="peri_clock" />
+   <property name="synchronousEdges" value="DEASSERT" />
+   <port name="peri_reset_reset_n" direction="input" role="reset_n" width="1" />
+  </interface>
+  <interface name="phy_rgmii" kind="conduit" start="0">
+   <property name="associatedClock" value="" />
+   <property name="associatedReset" value="" />
+   <port
+       name="phy_rgmii_rgmii_rx_clk"
+       direction="input"
+       role="rgmii_rx_clk"
+       width="1" />
+   <port
+       name="phy_rgmii_rgmii_rxd"
+       direction="input"
+       role="rgmii_rxd"
+       width="4" />
+   <port
+       name="phy_rgmii_rgmii_rx_ctl"
+       direction="input"
+       role="rgmii_rx_ctl"
+       width="1" />
+   <port
+       name="phy_rgmii_rgmii_tx_clk"
+       direction="output"
+       role="rgmii_tx_clk"
+       width="1" />
+   <port
+       name="phy_rgmii_rgmii_txd"
+       direction="output"
+       role="rgmii_txd"
+       width="4" />
+   <port
+       name="phy_rgmii_rgmii_tx_ctl"
+       direction="output"
+       role="rgmii_tx_ctl"
+       width="1" />
+  </interface>
+  <interface name="pll_25m_clock" kind="clock" start="0">
+   <property name="clockRate" value="0" />
+   <property name="externallyDriven" value="false" />
+   <property name="ptfSchematicName" value="" />
+   <port name="pll_25m_clock_clk" direction="input" role="clk" width="1" />
+  </interface>
+  <interface name="pll_2_5m_clock" kind="clock" start="0">
+   <property name="clockRate" value="0" />
+   <property name="externallyDriven" value="false" />
+   <property name="ptfSchematicName" value="" />
+   <port name="pll_2_5m_clock_clk" direction="input" role="clk" width="1" />
+  </interface>
+ </perimeter>
+ <entity
+   path=""
+   parameterizationKey="Ethernet_converter:1.0:AUTO_DEVICE=5AGXFB5H4F35C4,AUTO_DEVICE_FAMILY=Arria V,AUTO_DEVICE_SPEEDGRADE=4_H4,AUTO_GENERATION_ID=1646090840,AUTO_PERI_CLOCK_CLOCK_DOMAIN=-1,AUTO_PERI_CLOCK_CLOCK_RATE=-1,AUTO_PERI_CLOCK_RESET_DOMAIN=-1,AUTO_PLL_25M_CLOCK_CLOCK_DOMAIN=-1,AUTO_PLL_25M_CLOCK_CLOCK_RATE=-1,AUTO_PLL_25M_CLOCK_RESET_DOMAIN=-1,AUTO_PLL_2_5M_CLOCK_CLOCK_DOMAIN=-1,AUTO_PLL_2_5M_CLOCK_CLOCK_RATE=-1,AUTO_PLL_2_5M_CLOCK_RESET_DOMAIN=-1,AUTO_UNIQUE_ID=(altera_gmii_to_rgmii_adapter:19.1:AUTO_DEVICE=5AGXFB5H4F35C4,AUTO_DEVICE_SPEEDGRADE=4_H4,DEVICE_FAMILY=Arria V,RX_PIPELINE_DEPTH=0,TX_PIPELINE_DEPTH=0(altera_gmii_to_rgmii_adapter_core:19.1:DEVICE_FAMILY=Arria V,RX_PIPELINE_DEPTH=0,TX_PIPELINE_DEPTH=0,USE_ALTGPIO=0))"
+   instancePathKey="Ethernet_converter"
+   kind="Ethernet_converter"
+   version="1.0"
+   name="Ethernet_converter">
+  <parameter name="AUTO_PERI_CLOCK_CLOCK_RATE" value="-1" />
+  <parameter name="AUTO_PLL_25M_CLOCK_RESET_DOMAIN" value="-1" />
+  <parameter name="AUTO_PLL_25M_CLOCK_CLOCK_DOMAIN" value="-1" />
+  <parameter name="AUTO_GENERATION_ID" value="1646090840" />
+  <parameter name="AUTO_DEVICE_FAMILY" value="Arria V" />
+  <parameter name="AUTO_UNIQUE_ID" value="" />
+  <parameter name="AUTO_PLL_25M_CLOCK_CLOCK_RATE" value="-1" />
+  <parameter name="AUTO_DEVICE_SPEEDGRADE" value="4_H4" />
+  <parameter name="AUTO_PERI_CLOCK_CLOCK_DOMAIN" value="-1" />
+  <parameter name="AUTO_DEVICE" value="5AGXFB5H4F35C4" />
+  <parameter name="AUTO_PERI_CLOCK_RESET_DOMAIN" value="-1" />
+  <parameter name="AUTO_PLL_2_5M_CLOCK_CLOCK_RATE" value="-1" />
+  <parameter name="AUTO_PLL_2_5M_CLOCK_CLOCK_DOMAIN" value="-1" />
+  <parameter name="AUTO_PLL_2_5M_CLOCK_RESET_DOMAIN" value="-1" />
+  <generatedFiles>
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/Ethernet_converter.vhd"
+       type="VHDL" />
+  </generatedFiles>
+  <childGeneratedFiles>
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/Ethernet_converter_gmii_to_rgmii_adapter_0.v"
+       type="VERILOG" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gmii_to_rgmii_adapter.v"
+       type="VERILOG"
+       attributes="TOP_LEVEL_FILE" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_mac_speed_filter.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_pipeline_stage.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_rgmii_in1.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_rgmii_in4.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_rgmii_module.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_nf_rgmii_module.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_rgmii_out1.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_rgmii_out4.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_clock_mux.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_clock_gate.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_reset_synchronizer.v"
+       type="VERILOG"
+       attributes="" />
+  </childGeneratedFiles>
+  <sourceFiles>
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/Ethernet_converter.qsys" />
+  </sourceFiles>
+  <childSourceFiles>
+   <file
+       path="C:/intelfpga/19.1/ip/altera/altera_gmii_to_rgmii_adapter/altera_gmii_to_rgmii_adapter_wrapper_hw.tcl" />
+   <file
+       path="C:/intelfpga/19.1/ip/altera/altera_gmii_to_rgmii_adapter/altera_gmii_to_rgmii_adapter_hw.tcl" />
+  </childSourceFiles>
+  <messages>
+   <message level="Debug" culprit="Ethernet_converter">queue size: 0 starting:Ethernet_converter "Ethernet_converter"</message>
+   <message level="Progress" culprit="min"></message>
+   <message level="Progress" culprit="max"></message>
+   <message level="Progress" culprit="current"></message>
+   <message level="Debug">Transform: CustomInstructionTransform</message>
+   <message level="Debug">No custom instruction connections, skipping transform </message>
+   <message level="Debug" culprit="merlin_custom_instruction_transform"><![CDATA[After transform: <b>1</b> modules, <b>0</b> connections]]></message>
+   <message level="Debug">Transform: MMTransform</message>
+   <message level="Debug">Transform: InterruptMapperTransform</message>
+   <message level="Debug">Transform: InterruptSyncTransform</message>
+   <message level="Debug">Transform: InterruptFanoutTransform</message>
+   <message level="Debug">Transform: AvalonStreamingTransform</message>
+   <message level="Debug">Transform: ResetAdaptation</message>
+   <message level="Debug" culprit="Ethernet_converter"><![CDATA["<b>Ethernet_converter</b>" reuses <b>altera_gmii_to_rgmii_adapter</b> "<b>submodules/Ethernet_converter_gmii_to_rgmii_adapter_0</b>"]]></message>
+   <message level="Debug" culprit="Ethernet_converter">queue size: 0 starting:altera_gmii_to_rgmii_adapter "submodules/Ethernet_converter_gmii_to_rgmii_adapter_0"</message>
+   <message level="Progress" culprit="min"></message>
+   <message level="Progress" culprit="max"></message>
+   <message level="Progress" culprit="current"></message>
+   <message level="Debug">Transform: CustomInstructionTransform</message>
+   <message level="Debug">No custom instruction connections, skipping transform </message>
+   <message level="Debug" culprit="merlin_custom_instruction_transform"><![CDATA[After transform: <b>1</b> modules, <b>0</b> connections]]></message>
+   <message level="Debug">Transform: MMTransform</message>
+   <message level="Debug">Transform: InterruptMapperTransform</message>
+   <message level="Debug">Transform: InterruptSyncTransform</message>
+   <message level="Debug">Transform: InterruptFanoutTransform</message>
+   <message level="Debug">Transform: AvalonStreamingTransform</message>
+   <message level="Debug">Transform: ResetAdaptation</message>
+   <message level="Debug" culprit="gmii_to_rgmii_adapter_0"><![CDATA["<b>gmii_to_rgmii_adapter_0</b>" reuses <b>altera_gmii_to_rgmii_adapter_core</b> "<b>submodules/altera_gmii_to_rgmii_adapter</b>"]]></message>
+   <message level="Info" culprit="gmii_to_rgmii_adapter_0"><![CDATA["<b>Ethernet_converter</b>" instantiated <b>altera_gmii_to_rgmii_adapter</b> "<b>gmii_to_rgmii_adapter_0</b>"]]></message>
+   <message level="Debug" culprit="Ethernet_converter">queue size: 0 starting:altera_gmii_to_rgmii_adapter_core "submodules/altera_gmii_to_rgmii_adapter"</message>
+   <message level="Info" culprit="u_altera_gmii_to_rgmii_adapter_core"><![CDATA["<b>gmii_to_rgmii_adapter_0</b>" instantiated <b>altera_gmii_to_rgmii_adapter_core</b> "<b>u_altera_gmii_to_rgmii_adapter_core</b>"]]></message>
+  </messages>
+ </entity>
+ <entity
+   path="submodules/"
+   parameterizationKey="altera_gmii_to_rgmii_adapter:19.1:AUTO_DEVICE=5AGXFB5H4F35C4,AUTO_DEVICE_SPEEDGRADE=4_H4,DEVICE_FAMILY=Arria V,RX_PIPELINE_DEPTH=0,TX_PIPELINE_DEPTH=0(altera_gmii_to_rgmii_adapter_core:19.1:DEVICE_FAMILY=Arria V,RX_PIPELINE_DEPTH=0,TX_PIPELINE_DEPTH=0,USE_ALTGPIO=0)"
+   instancePathKey="Ethernet_converter:.:gmii_to_rgmii_adapter_0"
+   kind="altera_gmii_to_rgmii_adapter"
+   version="19.1"
+   name="Ethernet_converter_gmii_to_rgmii_adapter_0">
+  <parameter name="AUTO_DEVICE" value="5AGXFB5H4F35C4" />
+  <parameter name="TX_PIPELINE_DEPTH" value="0" />
+  <parameter name="DEVICE_FAMILY" value="Arria V" />
+  <parameter name="RX_PIPELINE_DEPTH" value="0" />
+  <parameter name="AUTO_DEVICE_SPEEDGRADE" value="4_H4" />
+  <generatedFiles>
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/Ethernet_converter_gmii_to_rgmii_adapter_0.v"
+       type="VERILOG" />
+  </generatedFiles>
+  <childGeneratedFiles>
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gmii_to_rgmii_adapter.v"
+       type="VERILOG"
+       attributes="TOP_LEVEL_FILE" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_mac_speed_filter.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_pipeline_stage.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_rgmii_in1.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_rgmii_in4.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_rgmii_module.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_nf_rgmii_module.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_rgmii_out1.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_rgmii_out4.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_clock_mux.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_clock_gate.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_reset_synchronizer.v"
+       type="VERILOG"
+       attributes="" />
+  </childGeneratedFiles>
+  <sourceFiles>
+   <file
+       path="C:/intelfpga/19.1/ip/altera/altera_gmii_to_rgmii_adapter/altera_gmii_to_rgmii_adapter_wrapper_hw.tcl" />
+  </sourceFiles>
+  <childSourceFiles>
+   <file
+       path="C:/intelfpga/19.1/ip/altera/altera_gmii_to_rgmii_adapter/altera_gmii_to_rgmii_adapter_hw.tcl" />
+  </childSourceFiles>
+  <instantiator instantiator="Ethernet_converter" as="gmii_to_rgmii_adapter_0" />
+  <messages>
+   <message level="Debug" culprit="Ethernet_converter">queue size: 0 starting:altera_gmii_to_rgmii_adapter "submodules/Ethernet_converter_gmii_to_rgmii_adapter_0"</message>
+   <message level="Progress" culprit="min"></message>
+   <message level="Progress" culprit="max"></message>
+   <message level="Progress" culprit="current"></message>
+   <message level="Debug">Transform: CustomInstructionTransform</message>
+   <message level="Debug">No custom instruction connections, skipping transform </message>
+   <message level="Debug" culprit="merlin_custom_instruction_transform"><![CDATA[After transform: <b>1</b> modules, <b>0</b> connections]]></message>
+   <message level="Debug">Transform: MMTransform</message>
+   <message level="Debug">Transform: InterruptMapperTransform</message>
+   <message level="Debug">Transform: InterruptSyncTransform</message>
+   <message level="Debug">Transform: InterruptFanoutTransform</message>
+   <message level="Debug">Transform: AvalonStreamingTransform</message>
+   <message level="Debug">Transform: ResetAdaptation</message>
+   <message level="Debug" culprit="gmii_to_rgmii_adapter_0"><![CDATA["<b>gmii_to_rgmii_adapter_0</b>" reuses <b>altera_gmii_to_rgmii_adapter_core</b> "<b>submodules/altera_gmii_to_rgmii_adapter</b>"]]></message>
+   <message level="Info" culprit="gmii_to_rgmii_adapter_0"><![CDATA["<b>Ethernet_converter</b>" instantiated <b>altera_gmii_to_rgmii_adapter</b> "<b>gmii_to_rgmii_adapter_0</b>"]]></message>
+   <message level="Debug" culprit="Ethernet_converter">queue size: 0 starting:altera_gmii_to_rgmii_adapter_core "submodules/altera_gmii_to_rgmii_adapter"</message>
+   <message level="Info" culprit="u_altera_gmii_to_rgmii_adapter_core"><![CDATA["<b>gmii_to_rgmii_adapter_0</b>" instantiated <b>altera_gmii_to_rgmii_adapter_core</b> "<b>u_altera_gmii_to_rgmii_adapter_core</b>"]]></message>
+  </messages>
+ </entity>
+ <entity
+   path="submodules/"
+   parameterizationKey="altera_gmii_to_rgmii_adapter_core:19.1:DEVICE_FAMILY=Arria V,RX_PIPELINE_DEPTH=0,TX_PIPELINE_DEPTH=0,USE_ALTGPIO=0"
+   instancePathKey="Ethernet_converter:.:gmii_to_rgmii_adapter_0:.:u_altera_gmii_to_rgmii_adapter_core"
+   kind="altera_gmii_to_rgmii_adapter_core"
+   version="19.1"
+   name="altera_gmii_to_rgmii_adapter">
+  <parameter name="TX_PIPELINE_DEPTH" value="0" />
+  <parameter name="USE_ALTGPIO" value="0" />
+  <parameter name="DEVICE_FAMILY" value="Arria V" />
+  <parameter name="RX_PIPELINE_DEPTH" value="0" />
+  <generatedFiles>
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gmii_to_rgmii_adapter.v"
+       type="VERILOG"
+       attributes="TOP_LEVEL_FILE" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_mac_speed_filter.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_pipeline_stage.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_rgmii_in1.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_rgmii_in4.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_rgmii_module.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_nf_rgmii_module.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_rgmii_out1.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_rgmii_out4.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_clock_mux.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_clock_gate.v"
+       type="VERILOG"
+       attributes="" />
+   <file
+       path="C:/Users/pastika/TOF/firmware/ACC/ACC-firmware/QIPcomponents/Ethernet_converter/synthesis/submodules/altera_gtr_reset_synchronizer.v"
+       type="VERILOG"
+       attributes="" />
+  </generatedFiles>
+  <childGeneratedFiles/>
+  <sourceFiles>
+   <file
+       path="C:/intelfpga/19.1/ip/altera/altera_gmii_to_rgmii_adapter/altera_gmii_to_rgmii_adapter_hw.tcl" />
+  </sourceFiles>
+  <childSourceFiles/>
+  <instantiator
+     instantiator="Ethernet_converter_gmii_to_rgmii_adapter_0"
+     as="u_altera_gmii_to_rgmii_adapter_core" />
+  <messages>
+   <message level="Debug" culprit="Ethernet_converter">queue size: 0 starting:altera_gmii_to_rgmii_adapter_core "submodules/altera_gmii_to_rgmii_adapter"</message>
+   <message level="Info" culprit="u_altera_gmii_to_rgmii_adapter_core"><![CDATA["<b>gmii_to_rgmii_adapter_0</b>" instantiated <b>altera_gmii_to_rgmii_adapter_core</b> "<b>u_altera_gmii_to_rgmii_adapter_core</b>"]]></message>
+  </messages>
+ </entity>
+</deploy>

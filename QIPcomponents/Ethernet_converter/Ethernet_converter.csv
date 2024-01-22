@@ -1,0 +1,31 @@
+# system info Ethernet_converter on 2022.02.28.17:27:19
+system_info:
+name,value
+DEVICE,5AGXFB5H4F35C4
+DEVICE_FAMILY,Arria V
+GENERATION_ID,1646090838
+#
+#
+# Files generated for Ethernet_converter on 2022.02.28.17:27:19
+files:
+filepath,kind,attributes,module,is_top
+simulation/Ethernet_converter.vhd,VHDL,,Ethernet_converter,true
+simulation/submodules/Ethernet_converter_gmii_to_rgmii_adapter_0.vhd,VHDL,,Ethernet_converter_gmii_to_rgmii_adapter_0,false
+simulation/submodules/altera_gmii_to_rgmii_adapter.v,VERILOG,,altera_gmii_to_rgmii_adapter,false
+simulation/submodules/altera_gtr_mac_speed_filter.v,VERILOG,,altera_gmii_to_rgmii_adapter,false
+simulation/submodules/altera_gtr_pipeline_stage.v,VERILOG,,altera_gmii_to_rgmii_adapter,false
+simulation/submodules/altera_gtr_rgmii_in1.v,VERILOG,,altera_gmii_to_rgmii_adapter,false
+simulation/submodules/altera_gtr_rgmii_in4.v,VERILOG,,altera_gmii_to_rgmii_adapter,false
+simulation/submodules/altera_gtr_rgmii_module.v,VERILOG,,altera_gmii_to_rgmii_adapter,false
+simulation/submodules/altera_gtr_nf_rgmii_module.v,VERILOG,,altera_gmii_to_rgmii_adapter,false
+simulation/submodules/altera_gtr_rgmii_out1.v,VERILOG,,altera_gmii_to_rgmii_adapter,false
+simulation/submodules/altera_gtr_rgmii_out4.v,VERILOG,,altera_gmii_to_rgmii_adapter,false
+simulation/submodules/altera_gtr_clock_mux.v,VERILOG,,altera_gmii_to_rgmii_adapter,false
+simulation/submodules/altera_gtr_clock_gate.v,VERILOG,,altera_gmii_to_rgmii_adapter,false
+simulation/submodules/altera_gtr_reset_synchronizer.v,VERILOG,,altera_gmii_to_rgmii_adapter,false
+#
+# Map from instance-path to kind of module
+instances:
+instancePath,module
+Ethernet_converter.gmii_to_rgmii_adapter_0,Ethernet_converter_gmii_to_rgmii_adapter_0
+Ethernet_converter.gmii_to_rgmii_adapter_0.u_altera_gmii_to_rgmii_adapter_core,altera_gmii_to_rgmii_adapter

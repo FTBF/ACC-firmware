@@ -1,0 +1,75 @@
+set_global_assignment -entity "Ethernet_converter" -library "Ethernet_converter" -name IP_TOOL_NAME "Qsys"
+set_global_assignment -entity "Ethernet_converter" -library "Ethernet_converter" -name IP_TOOL_VERSION "19.1"
+set_global_assignment -entity "Ethernet_converter" -library "Ethernet_converter" -name IP_TOOL_ENV "Qsys"
+set_global_assignment -library "Ethernet_converter" -name SOPCINFO_FILE [file join $::quartus(qip_path) "../../../Ethernet_converter.sopcinfo"]
+set_global_assignment -entity "Ethernet_converter" -library "Ethernet_converter" -name SLD_INFO "QSYS_NAME Ethernet_converter HAS_SOPCINFO 1 GENERATION_ID 1646090840"
+set_global_assignment -library "Ethernet_converter" -name MISC_FILE [file join $::quartus(qip_path) "../Ethernet_converter.cmp"]
+set_global_assignment -library "Ethernet_converter" -name SLD_FILE [file join $::quartus(qip_path) "Ethernet_converter.debuginfo"]
+set_global_assignment -entity "Ethernet_converter" -library "Ethernet_converter" -name IP_TARGETED_DEVICE_FAMILY "Arria V"
+set_global_assignment -entity "Ethernet_converter" -library "Ethernet_converter" -name IP_GENERATED_DEVICE_FAMILY "{Arria V}"
+set_global_assignment -entity "Ethernet_converter" -library "Ethernet_converter" -name IP_QSYS_MODE "STANDALONE"
+set_global_assignment -name SYNTHESIS_ONLY_QIP ON
+set_global_assignment -library "Ethernet_converter" -name MISC_FILE [file join $::quartus(qip_path) "../../../Ethernet_converter.qsys"]
+set_global_assignment -entity "Ethernet_converter" -library "Ethernet_converter" -name IP_COMPONENT_NAME "RXRoZXJuZXRfY29udmVydGVy"
+set_global_assignment -entity "Ethernet_converter" -library "Ethernet_converter" -name IP_COMPONENT_DISPLAY_NAME "RXRoZXJuZXRfY29udmVydGVy"
+set_global_assignment -entity "Ethernet_converter" -library "Ethernet_converter" -name IP_COMPONENT_REPORT_HIERARCHY "On"
+set_global_assignment -entity "Ethernet_converter" -library "Ethernet_converter" -name IP_COMPONENT_INTERNAL "Off"
+set_global_assignment -entity "Ethernet_converter" -library "Ethernet_converter" -name IP_COMPONENT_VERSION "MS4w"
+set_global_assignment -entity "Ethernet_converter" -library "Ethernet_converter" -name IP_COMPONENT_PARAMETER "QVVUT19HRU5FUkFUSU9OX0lE::MTY0NjA5MDg0MA==::QXV0byBHRU5FUkFUSU9OX0lE"
+set_global_assignment -entity "Ethernet_converter" -library "Ethernet_converter" -name IP_COMPONENT_PARAMETER "QVVUT19ERVZJQ0VfRkFNSUxZ::QXJyaWEgVg==::QXV0byBERVZJQ0VfRkFNSUxZ"
+set_global_assignment -entity "Ethernet_converter" -library "Ethernet_converter" -name IP_COMPONENT_PARAMETER "QVVUT19ERVZJQ0U=::NUFHWEZCNUg0RjM1QzQ=::QXV0byBERVZJQ0U="
+set_global_assignment -entity "Ethernet_converter" -library "Ethernet_converter" -name IP_COMPONENT_PARAMETER "QVVUT19ERVZJQ0VfU1BFRURHUkFERQ==::NF9INA==::QXV0byBERVZJQ0VfU1BFRURHUkFERQ=="
+set_global_assignment -entity "Ethernet_converter" -library "Ethernet_converter" -name IP_COMPONENT_PARAMETER "QVVUT19QRVJJX0NMT0NLX0NMT0NLX1JBVEU=::LTE=::QXV0byBDTE9DS19SQVRF"
+set_global_assignment -entity "Ethernet_converter" -library "Ethernet_converter" -name IP_COMPONENT_PARAMETER "QVVUT19QRVJJX0NMT0NLX0NMT0NLX0RPTUFJTg==::LTE=::QXV0byBDTE9DS19ET01BSU4="
+set_global_assignment -entity "Ethernet_converter" -library "Ethernet_converter" -name IP_COMPONENT_PARAMETER "QVVUT19QRVJJX0NMT0NLX1JFU0VUX0RPTUFJTg==::LTE=::QXV0byBSRVNFVF9ET01BSU4="
+set_global_assignment -entity "Ethernet_converter" -library "Ethernet_converter" -name IP_COMPONENT_PARAMETER "QVVUT19QTExfMjVNX0NMT0NLX0NMT0NLX1JBVEU=::LTE=::QXV0byBDTE9DS19SQVRF"
+set_global_assignment -entity "Ethernet_converter" -library "Ethernet_converter" -name IP_COMPONENT_PARAMETER "QVVUT19QTExfMjVNX0NMT0NLX0NMT0NLX0RPTUFJTg==::LTE=::QXV0byBDTE9DS19ET01BSU4="
+set_global_assignment -entity "Ethernet_converter" -library "Ethernet_converter" -name IP_COMPONENT_PARAMETER "QVVUT19QTExfMjVNX0NMT0NLX1JFU0VUX0RPTUFJTg==::LTE=::QXV0byBSRVNFVF9ET01BSU4="
+set_global_assignment -entity "Ethernet_converter" -library "Ethernet_converter" -name IP_COMPONENT_PARAMETER "QVVUT19QTExfMl81TV9DTE9DS19DTE9DS19SQVRF::LTE=::QXV0byBDTE9DS19SQVRF"
+set_global_assignment -entity "Ethernet_converter" -library "Ethernet_converter" -name IP_COMPONENT_PARAMETER "QVVUT19QTExfMl81TV9DTE9DS19DTE9DS19ET01BSU4=::LTE=::QXV0byBDTE9DS19ET01BSU4="
+set_global_assignment -entity "Ethernet_converter" -library "Ethernet_converter" -name IP_COMPONENT_PARAMETER "QVVUT19QTExfMl81TV9DTE9DS19SRVNFVF9ET01BSU4=::LTE=::QXV0byBSRVNFVF9ET01BSU4="
+set_global_assignment -entity "Ethernet_converter_gmii_to_rgmii_adapter_0" -library "Ethernet_converter" -name IP_COMPONENT_NAME "RXRoZXJuZXRfY29udmVydGVyX2dtaWlfdG9fcmdtaWlfYWRhcHRlcl8w"
+set_global_assignment -entity "Ethernet_converter_gmii_to_rgmii_adapter_0" -library "Ethernet_converter" -name IP_COMPONENT_DISPLAY_NAME "SFBTIEdNSUkgdG8gUkdNSUkgQ29udmVydGVyIEludGVsIEZQR0EgSVA="
+set_global_assignment -entity "Ethernet_converter_gmii_to_rgmii_adapter_0" -library "Ethernet_converter" -name IP_COMPONENT_REPORT_HIERARCHY "Off"
+set_global_assignment -entity "Ethernet_converter_gmii_to_rgmii_adapter_0" -library "Ethernet_converter" -name IP_COMPONENT_INTERNAL "Off"
+set_global_assignment -entity "Ethernet_converter_gmii_to_rgmii_adapter_0" -library "Ethernet_converter" -name IP_COMPONENT_AUTHOR "SW50ZWwgQ29ycG9yYXRpb24="
+set_global_assignment -entity "Ethernet_converter_gmii_to_rgmii_adapter_0" -library "Ethernet_converter" -name IP_COMPONENT_VERSION "MTkuMQ=="
+set_global_assignment -entity "Ethernet_converter_gmii_to_rgmii_adapter_0" -library "Ethernet_converter" -name IP_COMPONENT_DESCRIPTION "SFBTIEdNSUkgdG8gUkdNSUkgQ29udmVydGVy"
+set_global_assignment -entity "Ethernet_converter_gmii_to_rgmii_adapter_0" -library "Ethernet_converter" -name IP_COMPONENT_PARAMETER "VFhfUElQRUxJTkVfREVQVEg=::MA==::VFhfUElQRUxJTkVfREVQVEg="
+set_global_assignment -entity "Ethernet_converter_gmii_to_rgmii_adapter_0" -library "Ethernet_converter" -name IP_COMPONENT_PARAMETER "UlhfUElQRUxJTkVfREVQVEg=::MA==::UlhfUElQRUxJTkVfREVQVEg="
+set_global_assignment -entity "Ethernet_converter_gmii_to_rgmii_adapter_0" -library "Ethernet_converter" -name IP_COMPONENT_PARAMETER "REVWSUNFX0ZBTUlMWQ==::QXJyaWEgVg==::REVWSUNFX0ZBTUlMWQ=="
+set_global_assignment -entity "Ethernet_converter_gmii_to_rgmii_adapter_0" -library "Ethernet_converter" -name IP_COMPONENT_PARAMETER "QVVUT19ERVZJQ0U=::NUFHWEZCNUg0RjM1QzQ=::QXV0byBERVZJQ0U="
+set_global_assignment -entity "Ethernet_converter_gmii_to_rgmii_adapter_0" -library "Ethernet_converter" -name IP_COMPONENT_PARAMETER "QVVUT19ERVZJQ0VfU1BFRURHUkFERQ==::NF9INA==::QXV0byBERVZJQ0VfU1BFRURHUkFERQ=="
+set_global_assignment -entity "altera_gmii_to_rgmii_adapter" -library "Ethernet_converter" -name IP_COMPONENT_NAME "YWx0ZXJhX2dtaWlfdG9fcmdtaWlfYWRhcHRlcg=="
+set_global_assignment -entity "altera_gmii_to_rgmii_adapter" -library "Ethernet_converter" -name IP_COMPONENT_DISPLAY_NAME "SFBTIEdNSUkgdG8gUkdNSUkgQ29udmVydGVyIENvcmUgSW50ZWwgRlBHQSBJUA=="
+set_global_assignment -entity "altera_gmii_to_rgmii_adapter" -library "Ethernet_converter" -name IP_COMPONENT_REPORT_HIERARCHY "Off"
+set_global_assignment -entity "altera_gmii_to_rgmii_adapter" -library "Ethernet_converter" -name IP_COMPONENT_INTERNAL "On"
+set_global_assignment -entity "altera_gmii_to_rgmii_adapter" -library "Ethernet_converter" -name IP_COMPONENT_AUTHOR "SW50ZWwgQ29ycG9yYXRpb24="
+set_global_assignment -entity "altera_gmii_to_rgmii_adapter" -library "Ethernet_converter" -name IP_COMPONENT_VERSION "MTkuMQ=="
+set_global_assignment -entity "altera_gmii_to_rgmii_adapter" -library "Ethernet_converter" -name IP_COMPONENT_DESCRIPTION "SFBTIEdNSUkgdG8gUkdNSUkgQ29udmVydGVyIGNvcmU="
+set_global_assignment -entity "altera_gmii_to_rgmii_adapter" -library "Ethernet_converter" -name IP_COMPONENT_PARAMETER "VFhfUElQRUxJTkVfREVQVEg=::MA==::VFhfUElQRUxJTkVfREVQVEg="
+set_global_assignment -entity "altera_gmii_to_rgmii_adapter" -library "Ethernet_converter" -name IP_COMPONENT_PARAMETER "UlhfUElQRUxJTkVfREVQVEg=::MA==::UlhfUElQRUxJTkVfREVQVEg="
+set_global_assignment -entity "altera_gmii_to_rgmii_adapter" -library "Ethernet_converter" -name IP_COMPONENT_PARAMETER "VVNFX0FMVEdQSU8=::MA==::VVNFX0FMVEdQSU8="
+set_global_assignment -entity "altera_gmii_to_rgmii_adapter" -library "Ethernet_converter" -name IP_COMPONENT_PARAMETER "REVWSUNFX0ZBTUlMWQ==::QXJyaWEgVg==::REVWSUNFX0ZBTUlMWQ=="
+
+set_global_assignment -library "Ethernet_converter" -name VHDL_FILE [file join $::quartus(qip_path) "Ethernet_converter.vhd"]
+set_global_assignment -library "Ethernet_converter" -name VERILOG_FILE [file join $::quartus(qip_path) "submodules/Ethernet_converter_gmii_to_rgmii_adapter_0.v"]
+set_global_assignment -library "Ethernet_converter" -name VERILOG_FILE [file join $::quartus(qip_path) "submodules/altera_gmii_to_rgmii_adapter.v"]
+set_global_assignment -library "Ethernet_converter" -name VERILOG_FILE [file join $::quartus(qip_path) "submodules/altera_gtr_mac_speed_filter.v"]
+set_global_assignment -library "Ethernet_converter" -name VERILOG_FILE [file join $::quartus(qip_path) "submodules/altera_gtr_pipeline_stage.v"]
+set_global_assignment -library "Ethernet_converter" -name VERILOG_FILE [file join $::quartus(qip_path) "submodules/altera_gtr_rgmii_in1.v"]
+set_global_assignment -library "Ethernet_converter" -name VERILOG_FILE [file join $::quartus(qip_path) "submodules/altera_gtr_rgmii_in4.v"]
+set_global_assignment -library "Ethernet_converter" -name VERILOG_FILE [file join $::quartus(qip_path) "submodules/altera_gtr_rgmii_module.v"]
+set_global_assignment -library "Ethernet_converter" -name VERILOG_FILE [file join $::quartus(qip_path) "submodules/altera_gtr_nf_rgmii_module.v"]
+set_global_assignment -library "Ethernet_converter" -name VERILOG_FILE [file join $::quartus(qip_path) "submodules/altera_gtr_rgmii_out1.v"]
+set_global_assignment -library "Ethernet_converter" -name VERILOG_FILE [file join $::quartus(qip_path) "submodules/altera_gtr_rgmii_out4.v"]
+set_global_assignment -library "Ethernet_converter" -name VERILOG_FILE [file join $::quartus(qip_path) "submodules/altera_gtr_clock_mux.v"]
+set_global_assignment -library "Ethernet_converter" -name VERILOG_FILE [file join $::quartus(qip_path) "submodules/altera_gtr_clock_gate.v"]
+set_global_assignment -library "Ethernet_converter" -name VERILOG_FILE [file join $::quartus(qip_path) "submodules/altera_gtr_reset_synchronizer.v"]
+
+set_global_assignment -entity "Ethernet_converter_gmii_to_rgmii_adapter_0" -library "Ethernet_converter" -name IP_TOOL_NAME "altera_gmii_to_rgmii_adapter"
+set_global_assignment -entity "Ethernet_converter_gmii_to_rgmii_adapter_0" -library "Ethernet_converter" -name IP_TOOL_VERSION "19.1"
+set_global_assignment -entity "Ethernet_converter_gmii_to_rgmii_adapter_0" -library "Ethernet_converter" -name IP_TOOL_ENV "Qsys"
+set_global_assignment -entity "altera_gmii_to_rgmii_adapter" -library "Ethernet_converter" -name IP_TOOL_NAME "altera_gmii_to_rgmii_adapter_core"
+set_global_assignment -entity "altera_gmii_to_rgmii_adapter" -library "Ethernet_converter" -name IP_TOOL_VERSION "19.1"
+set_global_assignment -entity "altera_gmii_to_rgmii_adapter" -library "Ethernet_converter" -name IP_TOOL_ENV "Qsys"

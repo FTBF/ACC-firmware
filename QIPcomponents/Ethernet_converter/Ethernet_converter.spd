@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simPackage>
+ <file
+   path="simulation/submodules/altera_gmii_to_rgmii_adapter.v"
+   type="VERILOG"
+   library="u_altera_gmii_to_rgmii_adapter_core" />
+ <file
+   path="simulation/submodules/altera_gtr_mac_speed_filter.v"
+   type="VERILOG"
+   library="u_altera_gmii_to_rgmii_adapter_core" />
+ <file
+   path="simulation/submodules/altera_gtr_pipeline_stage.v"
+   type="VERILOG"
+   library="u_altera_gmii_to_rgmii_adapter_core" />
+ <file
+   path="simulation/submodules/altera_gtr_rgmii_in1.v"
+   type="VERILOG"
+   library="u_altera_gmii_to_rgmii_adapter_core" />
+ <file
+   path="simulation/submodules/altera_gtr_rgmii_in4.v"
+   type="VERILOG"
+   library="u_altera_gmii_to_rgmii_adapter_core" />
+ <file
+   path="simulation/submodules/altera_gtr_rgmii_module.v"
+   type="VERILOG"
+   library="u_altera_gmii_to_rgmii_adapter_core" />
+ <file
+   path="simulation/submodules/altera_gtr_nf_rgmii_module.v"
+   type="VERILOG"
+   library="u_altera_gmii_to_rgmii_adapter_core" />
+ <file
+   path="simulation/submodules/altera_gtr_rgmii_out1.v"
+   type="VERILOG"
+   library="u_altera_gmii_to_rgmii_adapter_core" />
+ <file
+   path="simulation/submodules/altera_gtr_rgmii_out4.v"
+   type="VERILOG"
+   library="u_altera_gmii_to_rgmii_adapter_core" />
+ <file
+   path="simulation/submodules/altera_gtr_clock_mux.v"
+   type="VERILOG"
+   library="u_altera_gmii_to_rgmii_adapter_core" />
+ <file
+   path="simulation/submodules/altera_gtr_clock_gate.v"
+   type="VERILOG"
+   library="u_altera_gmii_to_rgmii_adapter_core" />
+ <file
+   path="simulation/submodules/altera_gtr_reset_synchronizer.v"
+   type="VERILOG"
+   library="u_altera_gmii_to_rgmii_adapter_core" />
+ <file
+   path="simulation/submodules/Ethernet_converter_gmii_to_rgmii_adapter_0.vhd"
+   type="VHDL"
+   library="gmii_to_rgmii_adapter_0" />
+ <file path="simulation/Ethernet_converter.vhd" type="VHDL" />
+ <topLevel name="Ethernet_converter" />
+ <deviceFamily name="arriav" />
+</simPackage>
