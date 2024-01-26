@@ -310,6 +310,15 @@ component dec_8b10b is
     disp_err : out std_logic);
 end component dec_8b10b;
 
+component GrayCounter IS
+  GENERIC (N: integer := 6);
+  PORT (Clk    : IN std_logic;
+        Rst    : IN std_logic;
+        En     : IN std_logic;
+        output : OUT std_logic_vector (N-1 DOWNTO 0));
+END component GrayCounter;
+
+
 end LibDG;
 
 

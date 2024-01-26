@@ -47,7 +47,7 @@ begin  -- architecture vhdl
     end loop;
   end process;
 
-  prbsGen_loop : for i in 0 to 15 generate
+  prbsGen_loop : for i in 0 to 2*N-1 generate
     prbsGen: prbsGenerator
       generic map (
         ITERATIONS => 8,

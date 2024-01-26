@@ -38,9 +38,9 @@ end record;
 --
 constant firwareVersion: firmwareVersion_type:= (
 	
-	number => 	    x"0510", 
+	number => 	    x"0512", 
 	year => 		x"2023",	
-	MMDD => 		x"0605"		-- month, date
+	MMDD => 		x"1220"		-- month, date
 	
 );
 --
@@ -80,13 +80,13 @@ type rx_ram_data_type is array(N-1 downto 0) of	std_logic_vector(transceiver_mem
 type LVDS_inputArray_type is array(N-1 downto 0) of std_logic_vector(1 downto 0);
 type LVDS_inputArray_hs_type is array(N-1 downto 0) of std_logic_vector(1 downto 0);
 type LVDS_outputArray_type is array(N-1 downto 0) of std_logic_vector(2 downto 0);
-type Array_8bit is array(N-1 downto 0) of std_logic_vector(7 downto 0);
-type Array_16bit is array(N-1 downto 0) of std_logic_vector(15 downto 0);
-type Array_32bit is array(N-1 downto 0) of std_logic_vector(31 downto 0);
+type Array_8bit is array(7 downto 0) of std_logic_vector(7 downto 0);
+type Array_16bit is array(7 downto 0) of std_logic_vector(15 downto 0);
+type Array_32bit is array(7 downto 0) of std_logic_vector(31 downto 0);
 type frameData_type is array(31 downto 0) of std_logic_vector(15 downto 0);
-type naturalArray_16bit is array(N-1 downto 0) of natural range 0 to 65535;
+type naturalArray_16bit is array(7 downto 0) of natural range 0 to 65535;
 type natArray2 is array(N-1 downto 0) of natural range 0 to 3;	-- 2 bit natural array
-type natArray3 is array(N-1 downto 0) of natural range 0 to 7; -- 3 bit natural array
+type natArray3 is array(7 downto 0) of natural range 0 to 7; -- 3 bit natural array
 type DoubleArray_16bit is array(2*N-1 downto 0) of std_logic_vector(15 downto 0);
 type DoubleArray_32bit is array(2*N-1 downto 0) of std_logic_vector(31 downto 0);
 type serialRx_hs_array is array(2*N-1 downto 0) of std_logic_vector(1 downto 0);
@@ -198,8 +198,12 @@ type trigSetup_type is record
 	SMA_invert: std_logic;
 	sw:		std_logic_vector(N-1 downto 0);
     coincidentMask : std_logic_vector(N-1 downto 0);
+    coincidentMask_interstation : std_logic_vector(2 downto 0);
     coincidentDelay : naturalArray_16bit;
-    coincidentStretch : naturalArray_16bit;
+    coincidentStretch : natural range 0 to 255;
+    tx_source_sfp0 : std_logic;
+    tx_source_sfp1 : std_logic;
+    remoteTrigMask : std_logic_vector(1 downto 0);
 end record;
 
 
@@ -229,14 +233,14 @@ end record;
 --	SERIAL RX
 ------------------------------------
 type serialRx_type is record
-	serial					:	std_logic_vector(N-1 downto 0);
-	data						:	Array_8bit;
-	kout						:	std_logic_vector(N-1 downto 0);
-	valid						:	std_logic_vector(N-1 downto 0);
-	rx_clock_fail			:	std_logic_vector(N-1 downto 0);
-   symbol_align_error	:	std_logic_vector(N-1 downto 0);
-   symbol_code_error		:	std_logic_vector(N-1 downto 0);
-   disparity_error		:	std_logic_vector(N-1 downto 0);
+  serial             :   std_logic_vector(N-1 downto 0);
+  data               :   Array_8bit;
+  kout               :   std_logic_vector(N-1 downto 0);
+  valid              :   std_logic_vector(N-1 downto 0);
+  rx_clock_fail      :   std_logic_vector(7 downto 0);
+  symbol_align_error :   std_logic_vector(7 downto 0);
+  symbol_code_error  :   std_logic_vector(7 downto 0);
+  disparity_error    :   std_logic_vector(7 downto 0);
 end record;
 
 
@@ -252,12 +256,12 @@ end record;
 ------------------------------------
 type rxBuffer_type is record
 	dataLen    	   : Array_16bit;
-	reset		   : std_logic_vector(N-1 downto 0);
+	reset		   : std_logic_vector(7 downto 0);
 	readReq		   : std_logic;
-	resetReq	   : std_logic_vector(N-1 downto 0);
-	empty		   : std_logic_vector(N-1 downto 0);
-	frame_received : std_logic_vector(N-1 downto 0);
-	fifoReadEn 	   : std_logic_vector(N-1 downto 0);
+	resetReq	   : std_logic_vector(7 downto 0);
+	empty		   : std_logic_vector(7 downto 0);
+	frame_received : std_logic_vector(7 downto 0);
+	fifoReadEn 	   : std_logic_vector(7 downto 0);
 	fifoDataOut	   : Array_16bit;
 end record;
 
@@ -371,6 +375,16 @@ type config_type is record
     train_manchester_links : std_logic;
     backpressure_threshold : std_logic_vector(11 downto 0);
     rxFIFO_resetReq        : std_logic_vector(N-1 downto 0);
+    resync_SFP0            : std_logic;
+    SFP0_resetErrCtr       : std_logic;
+    SFP0_tx_disable        : std_logic;
+    SFP1_tx_disable        : std_logic;
+    SFP0_rs0               : std_logic;
+    SFP0_rs1               : std_logic;        
+    SFP1_rs0               : std_logic;
+    SFP1_rs1               : std_logic;
+    SFP0_cntLoopback       : std_logic;
+    SFP1_cntLoopback       : std_logic;
 end record;
 
 type readback_reg_type is record
@@ -382,13 +396,43 @@ type readback_reg_type is record
   cointrig_counts               : Array_32bit;
   data_occ                      : Array_16bit;
   rxDataLen	                    : Array_16bit;
-  serialRX_rx_clock_fail        : std_logic_vector(N-1 downto 0);
-  serialRX_symbol_align_error   : std_logic_vector(N-1 downto 0);
-  serialRX_symbol_code_error    : std_logic_vector(N-1 downto 0);
-  serialRX_disparity_error      : std_logic_vector(N-1 downto 0);
+  serialRX_rx_clock_fail        : std_logic_vector(7 downto 0);
+  serialRX_symbol_align_error   : std_logic_vector(7 downto 0);
+  serialRX_symbol_code_error    : std_logic_vector(7 downto 0);
+  serialRX_disparity_error      : std_logic_vector(7 downto 0);
   pllLock                       : std_logic_Vector(3 downto 0);
+  sfp0_pllLock                  : std_logic;
+  sfp0_ready                    : std_logic_vector(1 downto 0);
+  sfp0_bitSlipBoundary          : std_logic_vector(4 downto 0);
+  sfp0_latency                  : std_logic_vector(7 downto 0);
+  sfp0_dispErr                  : std_logic_vector(31 downto 0);
+  sfp0_symbolErr                : std_logic_vector(31 downto 0);
+  sfp0_mod_abs                  : std_logic;
+  sfp0_rx_los                   : std_logic;
+  sfp0_tx_fault                 : std_logic;
+  sfp1_pllLock                  : std_logic;
+  sfp1_ready                    : std_logic_vector(1 downto 0);
+  sfp1_bitSlipBoundary          : std_logic_vector(4 downto 0);
+  sfp1_latency                  : std_logic_vector(7 downto 0);
+  sfp1_dispErr                  : std_logic_vector(31 downto 0);
+  sfp1_symbolErr                : std_logic_vector(31 downto 0);
+  sfp1_mod_abs                  : std_logic;
+  sfp1_rx_los                   : std_logic;
+  sfp1_tx_fault                 : std_logic;
 end record;
 
+---- Avalon types
+type Avalon_in_type is record
+  address            : std_logic_vector(8 downto 0);
+  read               : std_logic;
+  write              : std_logic; 
+  writedata          : std_logic_vector(31 downto 0);
+end record;
+
+type Avalon_out_type is record
+  readdata           : std_logic_vector(31 downto 0);
+  waitrequest        : std_logic;
+end record;
 
 end defs;
 

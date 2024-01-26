@@ -12,7 +12,7 @@ entity io_delay_ctrl is
 
     delayCommand       : in std_logic_vector(11 downto 0);
     delayCommandSet    : in std_logic;
-    delayCommandMask   : in std_logic_vector(15 downto 0);
+    delayCommandMask   : in std_logic_vector(15 downto 0) := x"0000";
 
     io_config_clkena : out std_logic_vector(15 downto 0);
     io_config_datain : out std_logic;

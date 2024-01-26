@@ -242,7 +242,11 @@ begin
   calc_deltat : process(tx_clkout_loc)
   begin
     if rising_edge(tx_clkout_loc) then
-      delta_t_trig <= std_logic_vector(unsigned(tx_parallel_data(15 downto 8)) - unsigned(rx_count_txsync));
+      if counter_feedback = '1' then
+        delta_t_trig <= x"00";
+      else
+        delta_t_trig <= std_logic_vector(unsigned(tx_parallel_data(15 downto 8)) - unsigned(rx_count_txsync));
+      end if;
     end if;
   end process;
 

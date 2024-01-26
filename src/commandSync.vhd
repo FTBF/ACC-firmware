@@ -18,12 +18,20 @@ use work.LibDG.all;
 
 entity commandSync is
   port (
-    -- contorl signals
+    -- control signals
     reset		: 	in   	std_logic;
     clock		: 	in		clock_type;
     eth_clk     :   in      std_logic;
     eth_reset   :   in      std_logic;
-
+    sfp0_tx_clk :   in      std_logic;
+    sfp0_rx_clk :   in      std_logic;
+    sfp1_tx_clk :   in      std_logic;
+    sfp1_rx_clk :   in      std_logic;
+    sfp0_tx_ready : in std_logic;
+    sfp0_rx_ready : in std_logic;
+    sfp1_tx_ready : in std_logic;
+    sfp1_rx_ready : in std_logic;
+    
     -- registers
     config_z          : in  config_type;
     config            : out config_type;
@@ -49,6 +57,14 @@ architecture vhdl of commandSync is
 
   signal trigWindow_z :  std_logic_vector(31 downto 0);
   signal trigWindow   :  std_logic_vector(31 downto 0);
+
+  signal SFP0_reset_tx : std_logic;
+  signal SFP0_reset_rx : std_logic;
+  signal SFP1_reset_tx : std_logic;
+  signal SFP1_reset_rx : std_logic;
+
+  signal coincidentStretch_z : std_logic_vector(15 downto 0);
+  
 begin
 
   config.dataFIFO_auto <= config_z.dataFIFO_auto;
@@ -69,6 +85,51 @@ begin
       end if;
     end if;
   end process;
+
+  sfp0_reset_tx_sync : sync_Bits_Altera
+    generic map (
+      BITS       => 1,
+      INIT       => "1",
+      SYNC_DEPTH => 2)
+    port map(
+      Clock     => sfp0_tx_clk,
+      Input(0)  => reset,-- or not sfp0_tx_ready,
+      Output(0) => SFP0_reset_tx
+      );
+
+  sfp0_reset_rx_sync : sync_Bits_Altera
+    generic map (
+      BITS       => 1,
+      INIT       => "1",
+      SYNC_DEPTH => 2)
+    port map(
+      Clock     => sfp0_rx_clk,
+      Input(0)  => reset,-- or not sfp0_rx_ready,
+      Output(0) => SFP0_reset_rx
+      );
+
+  sfp1_reset_tx_sync : sync_Bits_Altera
+    generic map (
+      BITS       => 1,
+      INIT       => "1",
+      SYNC_DEPTH => 2)
+    port map(
+      Clock     => sfp1_tx_clk,
+      Input(0)  => reset,-- or not sfp1_tx_ready,
+      Output(0) => SFP1_reset_tx
+      );
+
+  sfp1_reset_rx_sync : sync_Bits_Altera
+    generic map (
+      BITS       => 1,
+      INIT       => "1",
+      SYNC_DEPTH => 2)
+    port map(
+      Clock     => sfp1_rx_clk,
+      Input(0)  => reset,-- or not sfp1_rx_ready,
+      Output(0) => SFP1_reset_rx
+      );
+
 
   -- sync to serial25 clock
   pulseSync2_delaySet: pulseSync2
@@ -151,9 +212,66 @@ begin
       dest_params  => config.trig.coincidentMask,
       dest_aresetn => nreset);
 
+  param_handshake_coincidentMask_interstation: param_handshake_sync
+    generic map (
+      WIDTH => config_z.trig.coincidentMask_interstation'length)
+    port map (
+      src_clk      => eth_clk,
+      src_params   => config_z.trig.coincidentMask_interstation,
+      src_aresetn  => eth_reset,
+      dest_clk     => sfp0_tx_clk,
+      dest_params  => config.trig.coincidentMask_interstation,
+      dest_aresetn => not SFP0_reset_tx);
+
+  param_handshake_coincidentStretch: param_handshake_sync
+    generic map (
+      WIDTH => 16)
+    port map (
+      src_clk      => eth_clk,
+      src_params   => std_logic_vector(to_unsigned(config_z.trig.coincidentStretch, 16)),
+      src_aresetn  => eth_reset,
+      dest_clk     => sfp0_tx_clk,
+      dest_params  => coincidentStretch_z,
+      dest_aresetn => not SFP0_reset_tx);
+  config.trig.coincidentStretch <= to_integer(unsigned(coincidentStretch_z));
+
+  param_handshake_remoteTrigMask: param_handshake_sync
+    generic map (
+      WIDTH => config_z.trig.remoteTrigMask'length)
+    port map (
+      src_clk      => eth_clk,
+      src_params   => config_z.trig.remoteTrigMask,
+      src_aresetn  => eth_reset,
+      dest_clk     => clock.sys,
+      dest_params  => config.trig.remoteTrigMask,
+      dest_aresetn => nreset);
+  
+
+  param_handshake_sfp0_tx_source: param_handshake_sync
+    generic map (
+      WIDTH => 1)
+    port map (
+      src_clk         => eth_clk,
+      src_params(0)   => config_z.trig.tx_source_sfp0,
+      src_aresetn     => eth_reset,
+      dest_clk        => sfp0_tx_clk,
+      dest_params(0)  => config.trig.tx_source_sfp0,
+      dest_aresetn    => not SFP0_reset_tx);
+
+  param_handshake_sfp1_tx_source: param_handshake_sync
+    generic map (
+      WIDTH => 1)
+    port map (
+      src_clk         => eth_clk,
+      src_params(0)   => config_z.trig.tx_source_sfp1,
+      src_aresetn     => eth_reset,
+      dest_clk        => sfp1_tx_clk,
+      dest_params(0)  => config.trig.tx_source_sfp1,
+      dest_aresetn    => not SFP1_reset_tx);
+
   loop_gen : for i in 0 to N-1 generate
     signal coincidentDelay_z : std_logic_vector(15 downto 0);
-    signal coincidentStretch_z : std_logic_vector(15 downto 0);
+    --signal coincidentStretch_z : std_logic_vector(15 downto 0);
     signal rxFIFO_resetReq : std_logic;
     signal rxFIFO_resetReq_count : unsigned(4 downto 0);
   begin
@@ -196,18 +314,6 @@ begin
         dest_params  => coincidentDelay_z,
         dest_aresetn => nreset);
     config.trig.coincidentDelay(i) <= to_integer(unsigned(coincidentDelay_z));
-
-    param_handshake_coincidentStretch: param_handshake_sync
-      generic map (
-        WIDTH => 16)
-      port map (
-        src_clk      => eth_clk,
-        src_params   => std_logic_vector(to_unsigned(config_z.trig.coincidentStretch(i), 16)),
-        src_aresetn  => eth_reset,
-        dest_clk     => clock.sys,
-        dest_params  => coincidentStretch_z,
-        dest_aresetn => nreset);
-    config.trig.coincidentStretch(i) <= to_integer(unsigned(coincidentStretch_z));
       
     pulseSync2_rxBuffer_resetReq: pulseSync2
       port map (
@@ -301,6 +407,52 @@ begin
       dest_params(31 downto 0) => trigWindow,
       dest_aresetn => nreset);
 
+  pulseSync2_resync_SFP0: pulseSync2
+    port map (
+      src_clk      => eth_clk,
+      src_pulse    => config_z.resync_SFP0,
+      src_aresetn  => eth_reset,
+      dest_clk     => sfp0_tx_clk,
+      dest_pulse   => config.resync_SFP0,
+      dest_aresetn => not SFP0_reset_tx);
+
+  pulseSync2_SFP0_resetErrCtr: pulseSync2
+    port map (
+      src_clk      => eth_clk,
+      src_pulse    => config_z.SFP0_resetErrCtr,
+      src_aresetn  => eth_reset,
+      dest_clk     => sfp0_rx_clk,
+      dest_pulse   => config.SFP0_resetErrCtr,
+      dest_aresetn => not SFP0_reset_rx);
+
+  param_handshake_trigHSSI_SFP0: param_handshake_sync
+    generic map (
+      WIDTH => 1)
+    port map (
+      src_clk       => eth_clk,
+      src_params(0) => config_z.SFP0_cntLoopback,
+      src_aresetn   => eth_reset,
+      dest_clk      => sfp0_tx_clk,
+      dest_params(0)=> config.SFP0_cntLoopback,
+      dest_aresetn  => not SFP0_reset_tx);
+
+  param_handshake_trigHSSI_SFP1: param_handshake_sync
+    generic map (
+      WIDTH => 1)
+    port map (
+      src_clk       => eth_clk,
+      src_params(0) => config_z.SFP1_cntLoopback,
+      src_aresetn   => eth_reset,
+      dest_clk      => sfp1_tx_clk,
+      dest_params(0)=> config.SFP1_cntLoopback,
+      dest_aresetn  => not SFP1_reset_tx);
+
+  config.SFP0_tx_disable <= config_z.SFP0_tx_disable;
+  config.SFP1_tx_disable <= config_z.SFP1_tx_disable;
+  config.SFP0_rs0 <= config_z.SFP0_rs0;
+  config.SFP1_rs0 <= config_z.SFP1_rs0;
+  config.SFP0_rs1 <= config_z.SFP0_rs1;
+  config.SFP1_rs1 <= config_z.SFP1_rs1;
 
   -- readout register syncronization 
   reg_readback_by16 : for i in 0 to 2*N-1 generate
@@ -363,6 +515,89 @@ begin
       dest_params  => reg_z.pllLock,
       dest_aresetn => eth_reset);
 
-  
+  param_handshake_sfp0_pll_ready_bsb_latency: param_handshake_sync
+    generic map (
+      WIDTH => 14)
+    port map (
+      src_clk      => sfp0_rx_clk,
+      src_params   => reg.sfp0_pllLock & reg.sfp0_bitSlipBoundary & reg.sfp0_latency,
+      src_aresetn  => not SFP0_reset_rx,
+      dest_clk     => eth_clk,
+      dest_params(13) => reg_z.sfp0_pllLock,
+      dest_params(12 downto 8) => reg_z.sfp0_bitSlipBoundary,
+      dest_params(7 downto 0) => reg_z.sfp0_latency,
+      dest_aresetn => eth_reset);
+
+  -- already in eth clock domain
+  reg_z.sfp0_ready <= reg.sfp0_ready;
+  -- signals directly from SPF modules
+  reg_z.sfp0_mod_abs <= reg.sfp0_mod_abs;
+  reg_z.sfp0_rx_los <= reg.sfp0_rx_los;
+  reg_z.sfp0_tx_fault <= reg.sfp0_tx_fault;
+    
+  param_handshake_sfp0_dispErr: param_handshake_sync
+    generic map (
+      WIDTH => 32)
+    port map (
+      src_clk      => sfp0_rx_clk,
+      src_params   => reg.sfp0_dispErr,
+      src_aresetn  => not SFP0_reset_rx,
+      dest_clk     => eth_clk,
+      dest_params  => reg_z.sfp0_dispErr,
+      dest_aresetn => eth_reset);
+
+  param_handshake_sfp0_symbolErr: param_handshake_sync
+    generic map (
+      WIDTH => 32)
+    port map (
+      src_clk      => sfp0_rx_clk,
+      src_params   => reg.sfp0_symbolErr,
+      src_aresetn  => not SFP0_reset_rx,
+      dest_clk     => eth_clk,
+      dest_params  => reg_z.sfp0_symbolErr,
+      dest_aresetn => eth_reset);
+
+  param_handshake_sfp1_pll_ready_bsb_latency: param_handshake_sync
+    generic map (
+      WIDTH => 14)
+    port map (
+      src_clk      => sfp1_rx_clk,
+      src_params   => reg.sfp1_pllLock & reg.sfp1_bitSlipBoundary & reg.sfp1_latency,
+      src_aresetn  => not SFP1_reset_rx,
+      dest_clk     => eth_clk,
+      dest_params(13) => reg_z.sfp1_pllLock,
+      dest_params(12 downto 8) => reg_z.sfp1_bitSlipBoundary,
+      dest_params(7 downto 0) => reg_z.sfp1_latency,
+      dest_aresetn => eth_reset);
+
+  -- already in eth clock domain
+  reg_z.sfp1_ready <= reg.sfp1_ready;
+  -- signals directly from SPF modules
+  reg_z.sfp1_mod_abs <= reg.sfp1_mod_abs;
+  reg_z.sfp1_rx_los <= reg.sfp1_rx_los;
+  reg_z.sfp1_tx_fault <= reg.sfp1_tx_fault;
+    
+  param_handshake_sfp1_dispErr: param_handshake_sync
+    generic map (
+      WIDTH => 32)
+    port map (
+      src_clk      => sfp1_rx_clk,
+      src_params   => reg.sfp1_dispErr,
+      src_aresetn  => not SFP1_reset_rx,
+      dest_clk     => eth_clk,
+      dest_params  => reg_z.sfp1_dispErr,
+      dest_aresetn => eth_reset);
+
+  param_handshake_sfp1_symbolErr: param_handshake_sync
+    generic map (
+      WIDTH => 32)
+    port map (
+      src_clk      => sfp1_rx_clk,
+      src_params   => reg.sfp1_symbolErr,
+      src_aresetn  => not SFP1_reset_rx,
+      dest_clk     => eth_clk,
+      dest_params  => reg_z.sfp1_symbolErr,
+      dest_aresetn => eth_reset);
+
 end vhdl;
 

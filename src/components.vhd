@@ -62,19 +62,41 @@ end component txFifo;
 
 		
 component trigger is
-	Port(
-		clock		: in clock_type;
-		reset		: in std_logic;
-		trig	 	: in trigSetup_type;		
-		pps		: in std_logic;
-		hw_trig	: in std_logic;
-		beamGate_trig: in std_logic;
-        ACDC_triggers   : in std_logic_vector(N-1 downto 0);
-		trig_out		:  out std_logic_vector(7 downto 0);
-        self_trig       :  out std_logic;
-        selftrig_counts : out Array_32bit;
-        cointrig_counts : out Array_32bit
-		);
+  Port(
+    clock		: in clock_type;
+    reset		: in std_logic;
+    trig	 	: in trigSetup_type;		
+    pps		: in std_logic;
+    hw_trig	: in std_logic;
+    beamGate_trig: in std_logic;
+    self_trig       :  out std_logic;
+    selftrig_counts : out Array_32bit;
+    cointrig_counts : out Array_32bit;
+
+    trig_out		:  out std_logic_vector(7 downto 0);
+
+    ACDC_triggers   : in std_logic_vector(N-1 downto 0);
+
+    sfp0_tx_clk :   in      std_logic;
+    sfp0_rx_clk :   in      std_logic;
+
+    sfp1_tx_clk :   in      std_logic;
+    sfp1_rx_clk :   in      std_logic;
+
+    sfp0_tx_ready : in std_logic;
+    sfp0_rx_ready : in std_logic;
+
+    sfp1_tx_ready : in std_logic;
+    sfp1_rx_ready : in std_logic;    
+
+    sfp0_tx_triggers  : out std_logic_vector(7 downto 0);
+    sfp0_rx_triggers  : in  std_logic_vector(7 downto 0);
+    sfp0_delta_t_trig : in  std_logic_vector(7 downto 0);
+
+    sfp1_tx_triggers  : out std_logic_vector(7 downto 0);
+    sfp1_rx_triggers  : in  std_logic_vector(7 downto 0);
+    sfp1_delta_t_trig : in  std_logic_vector(7 downto 0)
+    );
 end component;
 
 
@@ -132,7 +154,24 @@ component commandHandler is
     regs          : in  readback_reg_type;
     extCmd        : out extCmd_type;
     serialRX_data : in  Array_16bit;
-    serialRX_rden : out std_logic_vector(N-1 downto 0));
+    serialRX_rden : out std_logic_vector(7 downto 0);
+    -- SFP interfaces
+    sfp0_tx_clk        : in  std_logic;
+    sfp0_rx_clk        : in  std_logic;
+    sfp1_tx_clk        : in  std_logic;
+    sfp1_rx_clk        : in  std_logic;
+    sfp0_tx_ready : in std_logic;
+    sfp0_rx_ready : in std_logic;
+    sfp1_tx_ready : in std_logic;
+    sfp1_rx_ready : in std_logic;
+    sfp0_phy_mgmt_in        : out Avalon_in_type;
+    sfp0_phy_mgmt_out       : in  Avalon_out_type;
+    sfp0_reconfig_mgmt_in   : out Avalon_in_type;
+    sfp0_reconfig_mgmt_out  : in  Avalon_out_type;
+    sfp1_phy_mgmt_in        : out Avalon_in_type;
+    sfp1_phy_mgmt_out       : in  Avalon_out_type;
+    sfp1_reconfig_mgmt_in   : out Avalon_in_type;
+    sfp1_reconfig_mgmt_out  : in  Avalon_out_type);
 end component commandHandler;
 
 
@@ -163,6 +202,7 @@ component data_readout_auto_controller is
     dataFIFO_chan    : out natural range 0 to 15;
     dataFIFO_auto    : in  std_logic;
     data_occ         : in  Array_16bit;
+    b_enable         : in std_logic;
     data_done        : in  std_logic);
 end component data_readout_auto_controller;
 
@@ -429,6 +469,14 @@ component commandSync is
     clock     : in  clock_type;
     eth_clk   : in  std_logic;
     eth_reset : in  std_logic;
+    sfp0_tx_clk :   in std_logic;
+    sfp0_rx_clk :   in std_logic;
+    sfp1_tx_clk :   in std_logic;
+    sfp1_rx_clk :   in std_logic;
+    sfp0_tx_ready : in std_logic;
+    sfp0_rx_ready : in std_logic;
+    sfp1_tx_ready : in std_logic;
+    sfp1_rx_ready : in std_logic;
     config_z  : in  config_type;
     config    : out config_type;
     reg       : in  readback_reg_type;
@@ -464,6 +512,107 @@ component dcFIFO_dataBuffer is
     wrfull  : OUT STD_LOGIC;
     wrusedw : OUT STD_LOGIC_VECTOR (15 DOWNTO 0));
 end component dcFIFO_dataBuffer;
+
+component Trig_phy is
+	port (
+		phy_mgmt_clk                : in  std_logic                      := '0';             --                phy_mgmt_clk.clk
+		phy_mgmt_clk_reset          : in  std_logic                      := '0';             --          phy_mgmt_clk_reset.reset
+		phy_mgmt_address            : in  std_logic_vector(8 downto 0)   := (others => '0'); --                    phy_mgmt.address
+		phy_mgmt_read               : in  std_logic                      := '0';             --                            .read
+		phy_mgmt_readdata           : out std_logic_vector(31 downto 0);                     --                            .readdata
+		phy_mgmt_waitrequest        : out std_logic;                                         --                            .waitrequest
+		phy_mgmt_write              : in  std_logic                      := '0';             --                            .write
+		phy_mgmt_writedata          : in  std_logic_vector(31 downto 0)  := (others => '0'); --                            .writedata
+		tx_ready                    : out std_logic;                                         --                    tx_ready.export
+		rx_ready                    : out std_logic;                                         --                    rx_ready.export
+		pll_ref_clk                 : in  std_logic_vector(0 downto 0)   := (others => '0'); --                 pll_ref_clk.clk
+		tx_serial_data              : out std_logic_vector(0 downto 0);                      --              tx_serial_data.export
+		pll_locked                  : out std_logic_vector(0 downto 0);                      --                  pll_locked.export
+		rx_serial_data              : in  std_logic_vector(0 downto 0)   := (others => '0'); --              rx_serial_data.export
+		rx_runningdisp              : out std_logic_vector(1 downto 0);                      --              rx_runningdisp.export
+		rx_disperr                  : out std_logic_vector(1 downto 0);                      --                  rx_disperr.export
+		rx_errdetect                : out std_logic_vector(1 downto 0);                      --                rx_errdetect.export
+		rx_is_lockedtoref           : out std_logic_vector(0 downto 0);                      --           rx_is_lockedtoref.export
+		rx_is_lockedtodata          : out std_logic_vector(0 downto 0);                      --          rx_is_lockedtodata.export
+		rx_signaldetect             : out std_logic_vector(0 downto 0);                      --             rx_signaldetect.export
+		rx_patterndetect            : out std_logic_vector(1 downto 0);                      --            rx_patterndetect.export
+		rx_syncstatus               : out std_logic_vector(1 downto 0);                      --               rx_syncstatus.export
+		rx_bitslipboundaryselectout : out std_logic_vector(4 downto 0);                      -- rx_bitslipboundaryselectout.export
+		tx_clkout                   : out std_logic_vector(0 downto 0);                      --                   tx_clkout.export
+		rx_clkout                   : out std_logic_vector(0 downto 0);                      --                   rx_clkout.export
+		tx_parallel_data            : in  std_logic_vector(15 downto 0)  := (others => '0'); --            tx_parallel_data.export
+		tx_datak                    : in  std_logic_vector(1 downto 0)   := (others => '0'); --                    tx_datak.export
+		rx_parallel_data            : out std_logic_vector(15 downto 0);                     --            rx_parallel_data.export
+		rx_datak                    : out std_logic_vector(1 downto 0);                      --                    rx_datak.export
+		reconfig_from_xcvr          : out std_logic_vector(91 downto 0);                     --          reconfig_from_xcvr.reconfig_from_xcvr
+		reconfig_to_xcvr            : in  std_logic_vector(139 downto 0) := (others => '0')  --            reconfig_to_xcvr.reconfig_to_xcvr
+	);
+end component Trig_phy;
+
+component trigLinkReconfig is
+	port (
+		reconfig_busy             : out std_logic;                                         --      reconfig_busy.reconfig_busy
+		mgmt_clk_clk              : in  std_logic                      := '0';             --       mgmt_clk_clk.clk
+		mgmt_rst_reset            : in  std_logic                      := '0';             --     mgmt_rst_reset.reset
+		reconfig_mgmt_address     : in  std_logic_vector(6 downto 0)   := (others => '0'); --      reconfig_mgmt.address
+		reconfig_mgmt_read        : in  std_logic                      := '0';             --                   .read
+		reconfig_mgmt_readdata    : out std_logic_vector(31 downto 0);                     --                   .readdata
+		reconfig_mgmt_waitrequest : out std_logic;                                         --                   .waitrequest
+		reconfig_mgmt_write       : in  std_logic                      := '0';             --                   .write
+		reconfig_mgmt_writedata   : in  std_logic_vector(31 downto 0)  := (others => '0'); --                   .writedata
+		reconfig_to_xcvr          : out std_logic_vector(139 downto 0);                    --   reconfig_to_xcvr.reconfig_to_xcvr
+		reconfig_from_xcvr        : in  std_logic_vector(91 downto 0)  := (others => '0')  -- reconfig_from_xcvr.reconfig_from_xcvr
+	);
+end component trigLinkReconfig;
+
+component TrigCounterRam IS
+	PORT
+	(
+		data		: IN STD_LOGIC_VECTOR (7 DOWNTO 0);
+		rdaddress		: IN STD_LOGIC_VECTOR (3 DOWNTO 0);
+		rdclock		: IN STD_LOGIC ;
+		wraddress		: IN STD_LOGIC_VECTOR (3 DOWNTO 0);
+		wrclock		: IN STD_LOGIC  := '1';
+		wren		: IN STD_LOGIC  := '0';
+		q		: OUT STD_LOGIC_VECTOR (7 DOWNTO 0)
+	);
+END component TrigCounterRam;
+
+component Trig_HSSI is
+  port(		
+    tx_serial_data  : out std_logic;
+    rx_serial_data  : in  std_logic;
+    SFP_ref_clk    : in  std_logic;
+
+    tx_clkout       : out std_logic;
+    rx_clkout       : out std_logic;
+
+	reset			: in  reset_type;
+    config          : in  config_type;
+
+    eth_clk         : in  std_logic;
+    eth_resetn      : in  std_logic;
+
+    counter_feedback : in  std_logic;
+
+    pll_locked                  : out std_logic;
+    rx_bitslipboundaryselectout : out std_logic_vector(4 downto 0);
+    delta_t_trig                : out std_logic_vector(7 downto 0);
+    tx_ready                    : out std_logic;
+    rx_ready                    : out std_logic;
+    symbolErrors                : out std_logic_vector(31 downto 0);
+    disparityErrors             : out std_logic_vector(31 downto 0);
+
+    phy_mgmt_in          : in  Avalon_in_type;
+    phy_mgmt_out         : out Avalon_out_type;
+
+    reconfig_mgmt_in     : in  Avalon_in_type;
+    reconfig_mgmt_out    : out Avalon_out_type;
+
+    tx_triggers          : in  std_logic_vector(7 downto 0);
+    rx_triggers          : out std_logic_vector(7 downto 0)
+);
+end component Trig_HSSI;
 
 end components;
 

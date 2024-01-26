@@ -141,6 +141,7 @@ begin
       dataFIFO_chan    => dataFIFO_chan_auto,
       dataFIFO_auto    => dataFIFO_auto,
       data_occ         => data_occ,
+      b_enable         => b_enable,
       data_done        => data_done);
 
   data_done <= b_data_force;
@@ -163,7 +164,7 @@ begin
       state <= IDLE;
       iWord := 0;
       iChunk := 0;
-      data_re_loc <= X"00";
+      data_re_loc <= (others => '0');
       dataBuf := X"1111111111111111";
       read_skidbuf <= '0';
       b_data       <= X"3333333333333333";
@@ -175,7 +176,7 @@ begin
         b_data       <= X"2222222222222222";
         b_data_we    <= '0';
         b_data_force <= '0';
-        data_re_loc <= X"00";
+        data_re_loc <= (others => '0');
 
         if write_skidbuf = '1' then
           data_skidbuf <= data_out(dataFIFO_chan_z);
@@ -203,7 +204,6 @@ begin
 
           when DATA =>
             if b_enable = '1' then
-              --dataBuf(11 + (4 - iChunk)*12 downto 0 + (4 - iChunk)*12) := data_muxed(11 downto 0);
               dataBuf := dataBuf(47 downto 0) & data_muxed;
               read_skidbuf <= '0';
               
@@ -219,10 +219,6 @@ begin
               iWord := iWord + 1;
               if iWord >= EVENT_SIZE then
                 state <= DONE;
-                --if iChunk /= 0 then
-                --  b_data     <= dataBuf;
-                --  b_data_we  <= '1';
-                --end if;
               elsif iWord = EVENT_SIZE - 1 then
                 data_re_loc(dataFIFO_chan_z) <= '0';
               else

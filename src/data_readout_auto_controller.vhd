@@ -15,6 +15,7 @@ entity data_readout_auto_controller is
 
     data_occ         : in  Array_16bit;
 
+    b_enable         : in std_logic;
     data_done        : in std_logic
   );
 end data_readout_auto_controller;
@@ -41,20 +42,25 @@ begin
       else
         case state is
           when IDLE =>
-            if chan < 8-1 then
-              chan <= chan + 1;
-            else
-              chan <= 0;
-            end if;
-            
-            if dataFIFO_auto = '1' then
-              if to_integer(unsigned(data_occ(chan))) >= EVENT_SIZE then
-                dataFIFO_readReq <= '1';
-                dataFIFO_chan <= chan;
-                state <= WAITFIFO;
+            if b_enable = '1' then
+              
+              if chan < 8-1 then
+                chan <= chan + 1;
+              else
+                chan <= 0;
+              end if;
+              
+              if dataFIFO_auto = '1' then
+                if to_integer(unsigned(data_occ(chan))) >= EVENT_SIZE then
+                  dataFIFO_readReq <= '1';
+                  dataFIFO_chan <= chan;
+                  state <= WAITFIFO;
+                end if;
+              else
+                state <= IDLE;  
               end if;
             else
-              state <= IDLE;  
+              state <= IDLE;
             end if;
             
           when WAITFIFO =>

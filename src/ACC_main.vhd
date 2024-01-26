@@ -41,14 +41,24 @@ entity ACC_main is
         ETH_out         : out ETH_out_type;
         ETH_mdc         : inout std_logic;
         ETH_mdio        : inout std_logic;
-		DIPswitch		: in   std_logic_vector (9 downto 0)		-- switch reads as a 10-bit binary number msb left (sw1), lsb right (sw10); switch open = logic 1		
+        tx_serial_data  : out std_logic_vector(1 downto 0);
+        rx_serial_data  : in std_logic_vector(1 downto 0);
+        SFP_ref_clk     : in std_logic_vector(1 downto 0);
+        SFP_tx_disable  : out std_logic_vector(1 downto 0);
+        SFP_rs0         : out std_logic_vector(1 downto 0);
+        SFP_rs1         : out std_logic_vector(1 downto 0);        
+        SFP_mod_abs     : in std_logic_vector(1 downto 0);
+        SFP_rx_los      : in std_logic_vector(1 downto 0);
+        SFP_tx_fault    : in std_logic_vector(1 downto 0);
+		DIPswitch		: in std_logic_vector (9 downto 0)		-- switch reads as a 10-bit binary number msb left (sw1), lsb right (sw10); switch open = logic 1		
 	);
 end ACC_main;
 	
 	
-	
 architecture vhdl of	ACC_main is
 
+    attribute keep : string;
+  
 	signal	clock					: 	clock_type;
 	signal	reset					: 	reset_type;
 	signal	serialTx				:	serialTx_type;
@@ -83,6 +93,7 @@ architecture vhdl of	ACC_main is
     signal cointrig_counts : Array_32bit;
 
     signal eth_clk : std_logic;
+    signal eth_resetn : std_logic;
     signal rx_addr : std_logic_vector (31 downto 0);
     signal rx_data : std_logic_vector (63 downto 0);
     signal rx_wren : std_logic;
@@ -95,7 +106,32 @@ architecture vhdl of	ACC_main is
     signal b_data_we    : std_logic;
     signal b_data_force : std_logic;
     signal b_enable     : std_logic; 
+	 
+    signal sfp0_phy_mgmt_in                 : Avalon_in_type;
+    signal sfp0_phy_mgmt_out                : Avalon_out_type;
+    signal sfp0_tx_clkout                   : std_logic;
+    signal sfp0_rx_clkout                   : std_logic;
+    signal sfp0_reconfig_mgmt_in            : Avalon_in_type;
+    signal sfp0_reconfig_mgmt_out           : Avalon_out_type;
 
+    signal sfp1_phy_mgmt_in                 : Avalon_in_type;
+    signal sfp1_phy_mgmt_out                : Avalon_out_type;
+    signal sfp1_tx_clkout                   : std_logic;
+    signal sfp1_rx_clkout                   : std_logic;
+    signal sfp1_reconfig_mgmt_in            : Avalon_in_type;
+    signal sfp1_reconfig_mgmt_out           : Avalon_out_type;
+
+    signal sfp0_tx_triggers  : std_logic_vector(7 downto 0);
+    signal sfp0_rx_triggers  : std_logic_vector(7 downto 0);
+    signal sfp0_delta_t_trig : std_logic_vector(7 downto 0);
+    signal sfp1_tx_triggers  : std_logic_vector(7 downto 0);
+    signal sfp1_rx_triggers  : std_logic_vector(7 downto 0);
+    signal sfp1_delta_t_trig : std_logic_vector(7 downto 0);
+
+    signal sfp0_tx_ready : std_logic;
+    signal sfp0_rx_ready : std_logic;
+    signal sfp1_tx_ready : std_logic;
+    signal sfp1_rx_ready : std_logic;
 
 begin
 
@@ -128,7 +164,21 @@ TRIG_MAP: trigger Port map(
 		trig_out	=> trig_out,
         self_trig   => self_trig,
         selftrig_counts => selftrig_counts,
-        cointrig_counts => cointrig_counts
+        cointrig_counts => cointrig_counts,
+        sfp0_tx_clk       => sfp0_tx_clkout,
+        sfp0_rx_clk       => sfp0_rx_clkout,
+        sfp1_tx_clk       => sfp1_tx_clkout,
+        sfp1_rx_clk       => sfp1_rx_clkout,
+        sfp0_tx_ready     => sfp0_tx_ready,
+        sfp0_rx_ready     => sfp0_rx_ready,
+        sfp1_tx_ready     => sfp1_tx_ready,
+        sfp1_rx_ready     => sfp1_rx_ready,
+        sfp0_tx_triggers  => sfp0_tx_triggers,
+        sfp0_rx_triggers  => sfp0_rx_triggers,
+        sfp0_delta_t_trig => sfp0_delta_t_trig,
+        sfp1_tx_triggers  => sfp1_tx_triggers,
+        sfp1_rx_triggers  => sfp1_rx_triggers,
+        sfp1_delta_t_trig => sfp1_delta_t_trig
 		);
 regs.selftrig_counts <= selftrig_counts;
 regs.cointrig_counts <= cointrig_counts;
@@ -149,7 +199,6 @@ begin
 	end if;
 end process;
 
-      
 ------------------------------------
 --	CLOCKS
 ------------------------------------
@@ -236,7 +285,7 @@ serialRX_iobuf_inst: serialRX_iobuf
     io_config_clkena => io_config_clkena,
     io_config_datain => io_config_datain,
     io_config_update => io_config_update,
-    dataout          => LVDS_In_hs);
+    dataout(2*N-1 downto 0) => LVDS_In_hs);
 
 
 ------------------------------------
@@ -285,19 +334,46 @@ CMD_HANDLER_MAP: commandHandler
     tx_rden       => tx_rden,
     config        => config,
     extCmd.data   => serialTx.cmd,
-    extCmd.enable => serialTx.enable,
+    extCmd.enable(N-1 downto 0) => serialTx.enable,
     extCmd.valid  => serialTx.cmd_valid,
     regs          => regs,
     serialRX_data => rxBuffer.fifoDataOut,
-    serialRX_rden => rxBuffer.fifoReadEn
+    serialRX_rden => rxBuffer.fifoReadEn,
+    sfp0_tx_clk        => sfp0_tx_clkout,
+    sfp0_rx_clk        => sfp0_rx_clkout,
+    sfp1_tx_clk        => sfp1_tx_clkout,
+    sfp1_rx_clk        => sfp1_rx_clkout,
+    sfp0_tx_ready => sfp0_tx_ready,
+    sfp0_rx_ready => sfp0_rx_ready,
+    sfp1_tx_ready => sfp1_tx_ready,
+    sfp1_rx_ready => sfp1_rx_ready,
+    sfp0_phy_mgmt_in        => sfp0_phy_mgmt_in,
+    sfp0_phy_mgmt_out       => sfp0_phy_mgmt_out,
+    sfp0_reconfig_mgmt_in   => sfp0_reconfig_mgmt_in,
+    sfp0_reconfig_mgmt_out  => sfp0_reconfig_mgmt_out,
+    sfp1_phy_mgmt_in        => sfp1_phy_mgmt_in,
+    sfp1_phy_mgmt_out       => sfp1_phy_mgmt_out,
+    sfp1_reconfig_mgmt_in   => sfp1_reconfig_mgmt_in,
+    sfp1_reconfig_mgmt_out  => sfp1_reconfig_mgmt_out
     );
 
 rxBuffer.resetReq <= config.rxBuffer_resetReq;
 rxBuffer.readReq <= config.rxBuffer_readReq;
 reset.request <= config.globalResetReq;
+SFP_tx_disable(0) <= config.SFP0_tx_disable;
+SFP_tx_disable(1) <= config.SFP1_tx_disable;
+SFP_rs0(0) <= config.SFP0_rs0;
+SFP_rs1(0) <= config.SFP0_rs1; 
+SFP_rs0(1) <= config.SFP1_rs0;
+SFP_rs1(1) <= config.SFP1_rs1; 
+regs.sfp0_mod_abs  <= SFP_mod_abs(0); 
+regs.sfp0_rx_los   <= SFP_rx_los(0);
+regs.sfp0_tx_fault <= SFP_tx_fault(0);
+regs.sfp1_mod_abs  <= SFP_mod_abs(1); 
+regs.sfp1_rx_los   <= SFP_rx_los(1);
+regs.sfp1_tx_fault <= SFP_tx_fault(1);
+
                      
-  
-  
 ------------------------------------
 --	DATA HANDLER
 ------------------------------------
@@ -458,5 +534,84 @@ ethernet_adapter_inst: ethernet_adapter
     b_enable     => b_enable);
 
 
+------------------------------------
+--	External System Trigger
+------------------------------------
+eth_resetn <= ETH_out.resetn;
+SFP0_hssi: Trig_HSSI
+  port map(		
+    tx_serial_data  => tx_serial_data(0),
+    rx_serial_data  => rx_serial_data(0),
+    SFP_ref_clk    => SFP_ref_clk(0),
+
+    tx_clkout       => sfp0_tx_clkout,
+    rx_clkout       => sfp0_rx_clkout,
+
+	reset			=> reset,
+    config          => config,
+
+    counter_feedback => config.SFP0_cntLoopback,
+
+    pll_locked                  => regs.sfp0_pllLock,
+    rx_bitslipboundaryselectout => regs.sfp0_bitSlipBoundary,
+    delta_t_trig                => sfp0_delta_t_trig,
+    tx_ready                    => sfp0_tx_ready,
+    rx_ready                    => sfp0_rx_ready,
+    symbolErrors                => regs.sfp0_symbolErr,
+    disparityErrors             => regs.sfp0_dispErr,
+
+    eth_clk         => eth_clk,
+    eth_resetn      => eth_resetn,
+
+    phy_mgmt_in          => sfp0_phy_mgmt_in,
+    phy_mgmt_out         => sfp0_phy_mgmt_out,
+
+    reconfig_mgmt_in     => sfp0_reconfig_mgmt_in,
+    reconfig_mgmt_out    => sfp0_reconfig_mgmt_out,
+
+    tx_triggers          => sfp0_tx_triggers,
+    rx_triggers          => sfp0_rx_triggers
+    );
+regs.sfp0_latency <= sfp0_delta_t_trig;
+regs.sfp0_ready(1) <= sfp0_tx_ready;
+regs.sfp0_ready(0) <= sfp0_rx_ready;
+  
+SFP1_hssi: Trig_HSSI
+  port map(		
+    tx_serial_data  => tx_serial_data(1),
+    rx_serial_data  => rx_serial_data(1),
+    SFP_ref_clk     => SFP_ref_clk(1),
+
+    tx_clkout       => sfp1_tx_clkout,
+    rx_clkout       => sfp1_rx_clkout,
+
+	reset			=> reset,
+    config          => config,
+
+    counter_feedback => config.SFP1_cntLoopback,
+    
+    pll_locked                  => regs.sfp1_pllLock,
+    rx_bitslipboundaryselectout => regs.sfp1_bitSlipBoundary,
+    delta_t_trig                => sfp1_delta_t_trig,
+    tx_ready                    => sfp1_tx_ready,
+    rx_ready                    => sfp1_rx_ready,
+    symbolErrors                => regs.sfp1_symbolErr,
+    disparityErrors             => regs.sfp1_dispErr,
+
+    eth_clk         => eth_clk,
+    eth_resetn      => eth_resetn,
+
+    phy_mgmt_in          => sfp1_phy_mgmt_in,
+    phy_mgmt_out         => sfp1_phy_mgmt_out,
+
+    reconfig_mgmt_in     => sfp1_reconfig_mgmt_in,
+    reconfig_mgmt_out    => sfp1_reconfig_mgmt_out,
+
+    tx_triggers          => sfp1_tx_triggers,
+    rx_triggers          => sfp1_rx_triggers
+);
+regs.sfp1_latency <= sfp1_delta_t_trig;
+regs.sfp1_ready(1) <= sfp1_tx_ready;
+regs.sfp1_ready(0) <= sfp1_rx_ready;
  
 end vhdl;

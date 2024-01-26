@@ -22,7 +22,7 @@ entity serialRx_dataBuffer is
 
     delayCommand       : in std_logic_vector(11 downto 0);
     delayCommandSet    : in std_logic;
-    delayCommandMask   : in std_logic_vector(2*N-1 downto 0);
+    delayCommandMask   : in std_logic_vector(15 downto 0);
 
     LVDS_In_hs   	: in std_logic_vector(2*N-1 downto 0);
 
@@ -41,7 +41,7 @@ entity serialRx_dataBuffer is
     trig_out         : out std_logic_vector(N-1 downto 0);
     ACDC_backpressure_out : out std_logic_vector(N-1 downto 0);
     
-    io_config_clkena : out std_logic_vector(2*N-1 downto 0);
+    io_config_clkena : out std_logic_vector(15 downto 0);
     io_config_datain : out std_logic;
     io_config_update : out std_logic
 
@@ -334,7 +334,7 @@ begin  -- architecture vhdl
 
   -- data buffer
   -- first stage FIFO, shallow FIFO to ensure bytes are aligned
-  link_buffers : for iACDC in 0 to 7 generate
+  link_buffers : for iACDC in 0 to N-1 generate
     signal data_in_lsb : std_logic_vector(7 downto 0);
     signal data_in_msb : std_logic_vector(7 downto 0);
     signal data_in_lsb_kout : std_logic;

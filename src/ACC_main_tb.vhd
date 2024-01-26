@@ -40,6 +40,7 @@ architecture sim of ACC_main_tb is
 
   	-- Component declaration of the "acdc_main(vhdl)" unit defined in
 	-- file: "../../../../../ACDC-firmware-master_RevC/ACDC-firmware/src/ACDC_main.vhd"
+	
 	component acdc_main
 	port(
 		clockIn : in acdc_full_sim.defs.CLOCKSOURCE_TYPE;
@@ -61,7 +62,6 @@ architecture sim of ACC_main_tb is
 		debug3 : out STD_LOGIC
 	);
 	end component;
-
 
   -- constants 
   constant OSC_PERIOD : time := 8 ns;
@@ -130,6 +130,19 @@ architecture sim of ACC_main_tb is
   signal fastClk      : std_logic;
   signal reset        : std_logic;				  
   signal prbs         : std_logic_vector(15 downto 0); 
+  
+  signal SFP0_ref_clk    : std_logic;
+  signal SFP1_ref_clk    : std_logic;
+  signal tx_serial_data  : std_logic_vector(1 downto 0);
+  signal rx_serial_data  : std_logic_vector(1 downto 0);
+  signal SFP_ref_clk     : std_logic_vector(1 downto 0);
+  signal SFP_tx_disable  : std_logic_vector(1 downto 0);
+  signal SFP_rs0         : std_logic_vector(1 downto 0);
+  signal SFP_rs1         : std_logic_vector(1 downto 0);        
+  signal SFP_mod_abs     : std_logic_vector(1 downto 0);
+  signal SFP_rx_los      : std_logic_vector(1 downto 0);
+  signal SFP_tx_fault    : std_logic_vector(1 downto 0);
+
   
   signal tmpEthData   : std_logic_vector(4 downto 0);
   --signal CRC  : std_logic_vector(31 downto 0);
@@ -491,28 +504,41 @@ architecture sim of ACC_main_tb is
   end ethRecvCom;
   
 begin  -- architecture sim
-
+  	
+	-- loop back SFP1 to SFP0
+	rx_serial_data(0) <= transport tx_serial_data(1) after 200 ns;
+	rx_serial_data(1) <= transport tx_serial_data(0) after 200 ns;
+	
   -- component instantiation
   DUT: entity work.ACC_main
     port map (
-      clockIn      => clockIn,
-      clockCtrl    => clockCtrl,
-      systemIn     => systemIn,
-      systemOut    => systemOut,
-      LVDS_In      => LVDS_In,
-      LVDS_In_hs_p => LVDS_In_hs_p,
-      LVDS_In_Hs_n => LVDS_In_Hs_n,
-      LVDS_Out     => LVDS_Out,
-      led          => led,
-      SMA          => SMA,
-      USB_in       => USB_in,
-      USB_out      => USB_out,
-      USB_bus      => USB_bus,
-	  ETH_in       => ETH_in,
-	  ETH_out      => ETH_out,
-      ETH_mdc  	   => ETH_mdc,
-	  ETH_mdio 	   => ETH_mdio,
-	  DIPswitch    => DIPswitch);
+      clockIn        => clockIn,
+      clockCtrl      => clockCtrl,
+      systemIn       => systemIn,
+      systemOut      => systemOut,
+      LVDS_In        => LVDS_In,
+      LVDS_In_hs_p   => LVDS_In_hs_p,
+      LVDS_In_Hs_n   => LVDS_In_Hs_n,
+      LVDS_Out       => LVDS_Out,
+      led            => led,
+      SMA            => SMA,
+      USB_in         => USB_in,
+      USB_out        => USB_out,
+      USB_bus        => USB_bus,
+	  ETH_in         => ETH_in,
+	  ETH_out        => ETH_out,
+      ETH_mdc  	     => ETH_mdc,
+	  ETH_mdio 	     => ETH_mdio,
+      tx_serial_data => tx_serial_data,
+      rx_serial_data => rx_serial_data, 
+      SFP_ref_clk    => SFP1_ref_clk & SFP0_ref_clk,   
+      SFP_tx_disable => SFP_tx_disable,
+      SFP_rs0        => SFP_rs0,       
+      SFP_rs1        => SFP_rs1,               
+      SFP_mod_abs    => SFP_mod_abs,   
+      SFP_rx_los     => SFP_rx_los,    
+      SFP_tx_fault   => SFP_tx_fault,  
+	  DIPswitch      => DIPswitch);
 	  
   acdc_inst : acdc_main
 	port map(
@@ -655,8 +681,12 @@ begin  -- architecture sim
   begin
     if ENDSIM = false then
       ETH_in.rx_clk <= '0';
+	  SFP0_ref_clk <= '1';
+	  SFP1_ref_clk <= '0';
       wait for ETH_PERIOD / 2;
       ETH_in.rx_clk <= '1';
+	  SFP0_ref_clk <= '0';
+	  SFP1_ref_clk <= '1';
       wait for ETH_PERIOD / 2;
     else 
       wait;
@@ -714,27 +744,62 @@ begin  -- architecture sim
 	DIPswitch <= "00"&x"6b";
 	tmpEthData <= "0" & X"d"; 
 	
-	wait for 120 us;
+	wait for 50 us;
+	
+	ethSendCom(X"000000200", X"00000001", tmpEthData); 
+	
+	wait for 5 us;
+											   
+    ethSendCom(X"000000200", X"00000001", tmpEthData);	
+	
+	wait for 10 us;
+	
+	ethSendCom(X"000000201", X"00000001", tmpEthData);
+	
+	wait for 1 us;
+	
+	ethSendCom(X"000000214", X"00000001", tmpEthData);
+	
+	wait for 10 us;
+	
+	ethSendCom(X"030000021", X"000000FF", tmpEthData);
+	
+	wait for 10 us;
+	
+	ethSendCom(X"020000001", X"00000000", tmpEthData); 
+	
+	wait for 1 us;
+	ethSendCom(X"000000048", X"00000003", tmpEthData);
+	wait for 1 us;
+	ethSendCom(X"000000049", X"00000005", tmpEthData);
+	wait for 1 us;
+	ethSendCom(X"00000004a", X"00000001", tmpEthData);
+	wait for 1 us;
+	ethSendCom(X"00000004b", X"00000000", tmpEthData); 
+	wait for 1 us;
+	ethSendCom(X"00000004c", X"00000001", tmpEthData);
+	
+	wait for 40 us;
 	
 	ethSendCom(X"000000001", X"000000ff", tmpEthData);
 	
 --	ethSendCom(X"100000009", X"00000001", tmpEthData);
 	wait for 1 us;
-	ethSendCom(X"000000030", X"00000001", tmpEthData);
+	ethSendCom(X"000000030", X"00000005", tmpEthData);
 	wait for 1 us;
-	ethSendCom(X"000000031", X"00000001", tmpEthData);
+	ethSendCom(X"000000031", X"00000005", tmpEthData);
 	wait for 1 us;
-	ethSendCom(X"000000032", X"00000001", tmpEthData);
+	ethSendCom(X"000000032", X"00000005", tmpEthData);
 	wait for 1 us;
-	ethSendCom(X"000000033", X"00000001", tmpEthData);
+	ethSendCom(X"000000033", X"00000005", tmpEthData);
 	wait for 1 us;
-	ethSendCom(X"000000034", X"00000001", tmpEthData);
+	ethSendCom(X"000000034", X"00000005", tmpEthData);
 	wait for 1 us;
-	ethSendCom(X"000000035", X"00000001", tmpEthData);
+	ethSendCom(X"000000035", X"00000005", tmpEthData);
 	wait for 1 us;
-	ethSendCom(X"000000036", X"00000001", tmpEthData);
+	ethSendCom(X"000000036", X"00000005", tmpEthData);
 	wait for 1 us;
-	ethSendCom(X"000000037", X"00000001", tmpEthData);
+	ethSendCom(X"000000037", X"00000005", tmpEthData);
 	wait for 1 us;
 	
 	wait for 10 us;
@@ -754,7 +819,7 @@ begin  -- architecture sim
 	ethSendCom(X"000000060", X"00000000", tmpEthData);
 	wait for 30 us;
 	
-	ethSendCom(X"000000100", X"FFB00001", tmpEthData);
+	ethSendCom(X"000000100", X"FFB00003", tmpEthData);
 	wait for 1 us;
 	
 	ethSendCom(X"000000100", X"FFF60003", tmpEthData);
@@ -770,15 +835,15 @@ begin  -- architecture sim
 		ethSendCom(X"000000010", X"000000FF", tmpEthData);
 		wait for 25 us;
 	end loop;
-	ethSendCom(X"100000009", X"00000000", tmpEthData);
-	wait for 1 us;
-	for v in 0 to 10 loop
-		ethSendCom(X"000000010", X"000000FF", tmpEthData);
-		wait for 25 us;
-	end loop;  
-	ethSendCom(X"000000001", X"000000ff", tmpEthData);
-	wait for 1 us;
-	ethSendCom(X"100000009", X"00000001", tmpEthData);
+	--ethSendCom(X"100000009", X"00000000", tmpEthData);
+	--wait for 1 us;
+	--for v in 0 to 10 loop
+	--	ethSendCom(X"000000010", X"000000FF", tmpEthData);
+	--	wait for 25 us;
+	--end loop;  
+	--ethSendCom(X"000000001", X"000000ff", tmpEthData);
+	--wait for 1 us;
+	--ethSendCom(X"100000009", X"00000001", tmpEthData);
 	wait for 1 us;
 	for v in 0 to 10 loop
 		ethSendCom(X"000000010", X"000000FF", tmpEthData);
