@@ -234,7 +234,7 @@ begin  -- architecture vhdl
 
   serial_hs_trigger_buf : for i in 0 to N-1 generate
   begin
-    pulseSync2_1: entity work.pulseSync2
+    pulseSync2_1: entity work.pulseSync2_lowlatency
       generic map (
         RESET_VAL => '0')
       port map (

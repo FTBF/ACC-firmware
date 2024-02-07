@@ -299,7 +299,11 @@ begin
             when x"0000004a" =>  config_z.trig.tx_source_sfp0              <= rx_data(0);
             when x"0000004b" =>  config_z.trig.tx_source_sfp1              <= rx_data(0);
             when x"0000004c" =>  config_z.trig.remoteTrigMask              <= rx_data(1 downto 0);
-                                 
+            when x"0000004d" =>
+              config_z.trig.localMask  <= rx_data( 7 downto  0);
+              config_z.trig.sfp0RxMask <= rx_data(15 downto  8);
+              config_z.trig.sfp1RxMask <= rx_data(23 downto 16);
+              
             -- serialRx high speed controls
             when x"00000050" => config_z.delayCommandSet <= '1';
             when x"00000051" => config_z.delayCommand <= rx_data(11 downto 0);

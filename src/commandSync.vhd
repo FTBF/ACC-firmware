@@ -246,7 +246,19 @@ begin
       dest_params  => config.trig.remoteTrigMask,
       dest_aresetn => nreset);
   
-
+  param_handshake_coincidentTrigMasks: param_handshake_sync
+    generic map (
+      WIDTH => 24)
+    port map (
+      src_clk      => eth_clk,
+      src_params   => config_z.trig.sfp1RxMask & config_z.trig.sfp0RxMask & config_z.trig.localMask,
+      src_aresetn  => eth_reset,
+      dest_clk     => sfp0_tx_clk,
+      dest_params(7 downto 0)   => config.trig.localMask,
+      dest_params(15 downto 8)  => config.trig.sfp0RxMask,
+      dest_params(23 downto 16) => config.trig.sfp1RxMask,
+      dest_aresetn => not SFP0_reset_tx);
+  
   param_handshake_sfp0_tx_source: param_handshake_sync
     generic map (
       WIDTH => 1)

@@ -40,7 +40,7 @@ constant firwareVersion: firmwareVersion_type:= (
 	
 	number => 	    x"0512", 
 	year => 		x"2024",	
-	MMDD => 		x"0126"		-- month, date
+	MMDD => 		x"0207"		-- month, date
 	
 );
 --
@@ -204,6 +204,9 @@ type trigSetup_type is record
     tx_source_sfp0 : std_logic;
     tx_source_sfp1 : std_logic;
     remoteTrigMask : std_logic_vector(1 downto 0);
+    localMask  : std_logic_vector(7 downto 0);
+    sfp0RxMask : std_logic_vector(7 downto 0);
+    sfp1RxMask : std_logic_vector(7 downto 0);
 end record;
 
 

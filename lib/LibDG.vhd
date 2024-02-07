@@ -318,6 +318,19 @@ component GrayCounter IS
         output : OUT std_logic_vector (N-1 DOWNTO 0));
 END component GrayCounter;
 
+component pulseSync2_lowlatency is
+  Generic(
+    RESET_VAL : std_logic := '0'
+    );
+  Port(
+    src_clk     : in std_logic;
+    src_pulse   : in std_logic;
+    src_aresetn : in std_logic;
+
+    dest_clk     : in std_logic;
+    dest_pulse   : out std_logic;
+    dest_aresetn : in std_logic);
+end component pulseSync2_lowlatency;
 
 end LibDG;
 

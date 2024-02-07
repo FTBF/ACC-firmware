@@ -172,7 +172,97 @@ begin
   
   
 end vhdl;
+
+
+
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+use work.defs.all;
+use work.components.all;
+
+
+entity pulseSync2_lowlatency is
+  Generic(
+    RESET_VAL : std_logic := '0'
+    );
+  Port(
+    src_clk     : in std_logic;
+    src_pulse   : in std_logic;
+    src_aresetn : in std_logic;
+
+    dest_clk     : in std_logic;
+    dest_pulse   : out std_logic;
+    dest_aresetn : in std_logic);
+end pulseSync2_lowlatency;
+
+architecture vhdl of pulseSync2_lowlatency is
+  attribute PRESERVE          : boolean;
+  attribute ALTERA_ATTRIBUTE  : string;
+
+  -- Apply a SDC constraint to meta stable flip flop
+  attribute ALTERA_ATTRIBUTE of vhdl        : architecture is "-name SDC_STATEMENT ""set_false_path -to [get_registers {*pulseSync2_lowlatency:*dest_sync_1}] """;
+
+  signal src_pulse_1 : std_logic;
+  signal src_pulse_2 : std_logic_vector(0 downto 0);
+
+  signal dest_sync_1 : std_logic;
+  signal dest_sync_2 : std_logic;
   
+  signal dest_pulse_2 : std_logic;  
+
+  -- preserve both registers (no optimization, shift register extraction, ...)
+  attribute PRESERVE of dest_sync_1            : signal is TRUE;
+  attribute PRESERVE of dest_sync_2            : signal is TRUE;
+  -- Notify the synthesizer / timing analysator to identity a synchronizer circuit
+  attribute ALTERA_ATTRIBUTE of dest_sync_1    : signal is "-name SYNCHRONIZER_IDENTIFICATION ""FORCED IF ASYNCHRONOUS""";
+begin
+  
+  -- src clock domain edge detection
+  src_clk_domain : process(src_clk, src_aresetn)
+  begin
+    if src_aresetn = '0' then
+      src_pulse_1 <= '0';
+      src_pulse_2 <= "0";
+    else
+      if rising_Edge(src_clk) then
+        src_pulse_1 <= src_pulse;
+        src_pulse_2(0) <= (src_pulse and not src_pulse_1) xor src_pulse_2(0);
+      end if;
+    end if;
+  end process;
+
+  cdc_sync : process(dest_clk, dest_aresetn)
+  begin
+    if dest_aresetn = '0' then
+      dest_sync_1 <= RESET_VAL;
+      dest_sync_2 <= RESET_VAL;
+    else      
+      if rising_Edge(dest_clk) then
+        dest_sync_1 <= src_pulse_2(0);
+        dest_sync_2 <= dest_sync_1;
+      end if;
+    end if;
+  end process;
+    
+  dest_clk_domain : process(dest_clk, dest_aresetn)
+  begin
+    if dest_aresetn = '0' then
+      dest_pulse_2 <= RESET_VAL;
+    else
+      if rising_Edge(dest_clk) then
+        dest_pulse_2 <= dest_sync_2;
+      end if;
+    end if;
+  end process;
+  
+  dest_pulse <= dest_sync_2 xor dest_pulse_2;
+  
+end vhdl;
+
 
 
 

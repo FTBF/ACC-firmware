@@ -582,19 +582,19 @@ begin  -- architecture sim
 		debug3 => debug3_2
 	);
 	
-  LVDS_in_ACDC <= transport LVDS_out(0) after 4 ns;
-  LVDS_in(0) <= transport LVDS_out_ACDC(1 downto 0) after 1 ns;
+  LVDS_in_ACDC <= transport LVDS_out(0) after 30 ns;
+  LVDS_in(0) <= transport LVDS_out_ACDC(1 downto 0) after 30 ns;
   --LVDS_In_hs_p(0) <= LVDS_out_ACDC(3) & not LVDS_out_ACDC(2);
   --LVDS_In_hs_n(0) <= not LVDS_out_ACDC(3) & LVDS_out_ACDC(2);
-  LVDS_In_hs_p(0)(0) <= transport not LVDS_out_ACDC(2) after 200 ns;
-  LVDS_In_hs_n(0)(0) <= transport LVDS_out_ACDC(2) after 200 ns;
-  LVDS_In_hs_p(0)(1) <= LVDS_out_ACDC(3);
-  LVDS_In_hs_n(0)(1) <= not LVDS_out_ACDC(3);
+  LVDS_In_hs_p(0)(0) <= transport not LVDS_out_ACDC(2) after 30 ns;
+  LVDS_In_hs_n(0)(0) <= transport LVDS_out_ACDC(2) after 30 ns;
+  LVDS_In_hs_p(0)(1) <= transport LVDS_out_ACDC(3) after 30 ns;
+  LVDS_In_hs_n(0)(1) <= transport not LVDS_out_ACDC(3) after 30 ns;
 
-  LVDS_in_ACDC_2 <= transport LVDS_out(1) after 4 ns;
-  LVDS_in(1) <= transport LVDS_out_ACDC_2(1 downto 0) after 1 ns;
-  LVDS_In_hs_p(1) <= LVDS_out_ACDC_2(3) & not LVDS_out_ACDC_2(2);
-  LVDS_In_hs_n(1) <= not LVDS_out_ACDC_2(3) & LVDS_out_ACDC_2(2);
+  LVDS_in_ACDC_2 <= transport LVDS_out(1) after 30 ns;
+  LVDS_in(1) <= transport LVDS_out_ACDC_2(1 downto 0) after 30 ns;
+  LVDS_In_hs_p(1) <= transport LVDS_out_ACDC_2(3) & not LVDS_out_ACDC_2(2) after 30 ns;
+  LVDS_In_hs_n(1) <= transport not LVDS_out_ACDC_2(3) & LVDS_out_ACDC_2(2) after 30 ns;
   
   prbsGen : prbsGenerator
   Generic map(
@@ -777,9 +777,11 @@ begin  -- architecture sim
 	wait for 1 us;
 	ethSendCom(X"00000004b", X"00000000", tmpEthData); 
 	wait for 1 us;
-	ethSendCom(X"00000004c", X"00000001", tmpEthData);
+	ethSendCom(X"00000004c", X"00000002", tmpEthData);
+	wait for 1 us;
+	ethSendCom(X"00000004d", X"00000303", tmpEthData);
 	
-	wait for 40 us;
+	wait for 10 us;
 	
 	ethSendCom(X"000000001", X"000000ff", tmpEthData);
 	
@@ -845,10 +847,10 @@ begin  -- architecture sim
 	--wait for 1 us;
 	--ethSendCom(X"100000009", X"00000001", tmpEthData);
 	wait for 1 us;
-	for v in 0 to 10 loop
-		ethSendCom(X"000000010", X"000000FF", tmpEthData);
-		wait for 25 us;
-	end loop;
+	--for v in 0 to 10 loop
+	--	ethSendCom(X"000000010", X"000000FF", tmpEthData);
+	--	wait for 25 us;
+	--end loop;
 --	
 --	--ethSendCom(X"000000022", X"00000000", tmpEthData);
 --	wait for 100 us;
@@ -906,6 +908,14 @@ begin  -- architecture sim
 	wait for 500 ns;
 	
 	wait for 200 us;
+	selftrig(0) <= "001000";
+	selftrig_2(0) <= "001000";
+	wait for 50 ns;
+	selftrig(0) <= "000000";
+	selftrig_2(0) <= "000000";
+	wait for 500 ns;
+	
+	wait for 100 us;
 	selftrig(0) <= "001000";
 	selftrig_2(0) <= "001000";
 	wait for 50 ns;

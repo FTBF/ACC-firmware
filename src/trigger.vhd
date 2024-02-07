@@ -89,6 +89,7 @@ architecture vhdl of trigger is
   signal pulseDelay_sr          : Array_16bit;
   signal coincident_trig_local  : std_logic;
   signal coincident_trig        : std_logic;
+  signal coincident_trig_sys    : std_logic;
 
   signal delaySyncCtr           : std_logic_vector(3 downto 0);
   signal delaySyncCtr_sync      : std_logic_vector(3 downto 0);
@@ -213,7 +214,7 @@ begin
         when 1 => trig_out(i) <= trig.sw(i);		-- software trigger
         when 2 => trig_out(i) <= hw_trig;		    -- hardware trigger
         when 3 => trig_out(i) <= coincident_trig_local; -- local ACC coincident
-        when 4 => trig_out(i) <= coincident_trig;   -- inter-ACC coincident
+        when 4 => trig_out(i) <= coincident_trig_sys;   -- inter-ACC coincident
         when 5 => trig_out(i) <= remote_trigger;    -- trigger from remote ACC 
         when others => trig_out(i) <= '0';
       end case;
@@ -325,7 +326,7 @@ end process;
 
 -- sync all triggers to same clock domain for coincident trigger processing
 trig_sync : for i in 0 to 7 generate
-  sfp0_trigSync : pulseSync2
+  sfp0_trigSync : pulseSync2_lowlatency
     port map(
       src_clk      => sfp0_rx_clk,
       src_pulse    => sfp0_rx_triggers(i),
@@ -335,7 +336,7 @@ trig_sync : for i in 0 to 7 generate
       dest_pulse   => sfp0_trig_sync(i),
       dest_aresetn => not sfp0_reset_tx_clk);
 
-  sfp1_trigSync : pulseSync2
+  sfp1_trigSync : pulseSync2_lowlatency
     port map(
       src_clk      => sfp1_rx_clk,
       src_pulse    => sfp1_rx_triggers(i),
@@ -345,7 +346,7 @@ trig_sync : for i in 0 to 7 generate
       dest_pulse   => sfp1_trig_sync(i),
       dest_aresetn => not sfp0_reset_tx_clk);
 
-  local_trigSync : pulseSync2
+  local_trigSync : pulseSync2_lowlatency
     port map(
       src_clk      => clock.sys,
       src_pulse    => local_trig(i),
@@ -360,56 +361,58 @@ end generate trig_sync;
 interACCDelay : process(sfp0_tx_clk)
 begin
   if rising_edge(sfp0_tx_clk) then
-    if(reset = '1') then
+    if(sfp0_reset_tx_clk = '1') then
       for i in 0 to 7 loop
         sfp0_dly_ctr(i) <= 0;
         sfp1_dly_ctr(i) <= 0;
         local_dly_ctr(i) <= 0;
       end loop;
-      sfp0_trig_dly <= x"00";
-      sfp1_trig_dly <= x"00";
-      local_trig_dly <= x"00";
     else
       for i in 0 to 7 loop
         if sfp0_dly_ctr(i) > 0 then
           sfp0_dly_ctr(i) <= sfp0_dly_ctr(i) - 1;
         elsif sfp0_trig_sync(i) = '1' then
-          sfp0_dly_ctr(i) <= to_integer(unsigned(sfp0_wait)) + trig.coincidentStretch + 1;
+          sfp0_dly_ctr(i) <= to_integer(unsigned(sfp0_wait)) + trig.coincidentStretch;
         end if;
 
         if sfp1_dly_ctr(i) > 0 then
           sfp1_dly_ctr(i) <= sfp1_dly_ctr(i) - 1;
         elsif sfp1_trig_sync(i) = '1' then
-          sfp1_dly_ctr(i) <= to_integer(unsigned(sfp1_wait)) + trig.coincidentStretch + 1;
+          sfp1_dly_ctr(i) <= to_integer(unsigned(sfp1_wait)) + trig.coincidentStretch;
         end if;
         
         if local_dly_ctr(i) > 0 then
           local_dly_ctr(i) <= local_dly_ctr(i) - 1;
         elsif local_trig_sync(i) = '1' then
-          local_dly_ctr(i) <= to_integer(unsigned(local_wait)) + 2 + trig.coincidentStretch + 1;
+          local_dly_ctr(i) <= to_integer(unsigned(local_wait)) + 1 + trig.coincidentStretch;
         end if;
 
-        if sfp0_dly_ctr(i) >= 1 and sfp0_dly_ctr(i) < trig.coincidentStretch then
-          sfp0_trig_dly(i) <= '1';
-        else
-          sfp0_trig_dly(i) <= '0';
-        end if;
-
-        if sfp1_dly_ctr(i) >= 1 and sfp1_dly_ctr(i) < trig.coincidentStretch then
-          sfp1_trig_dly(i) <= '1';
-        else
-          sfp1_trig_dly(i) <= '0';
-        end if;
-
-        if local_dly_ctr(i) >= 1 and local_dly_ctr(i) < trig.coincidentStretch then
-          local_trig_dly(i) <= '1';
-        else
-          local_trig_dly(i) <= '0';
-        end if;
-        
       end loop;      
     end if;
   end if;
+end process;
+
+stretch_mux : process(all)
+begin
+  for i in 0 to 7 loop
+    if sfp0_dly_ctr(i) >= 1 and sfp0_dly_ctr(i) <= trig.coincidentStretch then
+      sfp0_trig_dly(i) <= '1';
+    else
+      sfp0_trig_dly(i) <= '0';
+    end if;
+
+    if sfp1_dly_ctr(i) >= 1 and sfp1_dly_ctr(i) <= trig.coincidentStretch then
+      sfp1_trig_dly(i) <= '1';
+    else
+      sfp1_trig_dly(i) <= '0';
+    end if;
+
+    if local_dly_ctr(i) >= 1 and local_dly_ctr(i) <= trig.coincidentStretch then
+      local_trig_dly(i) <= '1';
+    else
+      local_trig_dly(i) <= '0';
+    end if;
+  end loop;
 end process;
 
 -- coincident logic
@@ -464,9 +467,21 @@ end process;
 coincident_trig_logic: process(all)
   variable trigs : std_logic_vector(2 downto 0);
 begin
-  trigs(0) := '1' when or_reduce(sfp0_trig_dly)  else '0';
-  trigs(1) := '1' when or_reduce(sfp1_trig_dly)  else '0';
-  trigs(2) := '1' when or_reduce(local_trig_dly) else '0';
+  if or_reduce(trig.sfp0RxMask and sfp0_trig_dly) then
+    trigs(0) := '1';
+  else
+    trigs(0) := '0';
+  end if;
+  if or_reduce(trig.sfp1RxMask and sfp1_trig_dly) then
+    trigs(1) := '1';
+  else
+    trigs(1) := '0';
+  end if;
+  if or_reduce(trig.localMask  and local_trig_dly) then
+    trigs(2) := '1';
+  else
+    trigs(2) := '0';
+  end if;
   
   if (coincidentTimeoutCnt = 0) and (and_reduce((not trig.coincidentMask_interstation) or trigs) = '1') then
     coincident_trig <= '1';
@@ -477,7 +492,7 @@ end process;
 
 coincident_trig_local <= '1' when (and_reduce((not trig.coincidentMask) or local_trig)) else '0';
 
-sfp0_trigSync_remoteTrig : pulseSync2
+sfp0_trigSync_remoteTrig : pulseSync2_lowlatency
   port map(
     src_clk      => sfp0_tx_clk,
     src_pulse    => coincident_trig,
@@ -487,7 +502,7 @@ sfp0_trigSync_remoteTrig : pulseSync2
     dest_pulse   => sfp0_remote_trigger,
     dest_aresetn => not sfp0_reset_tx_clk);
 
-sfp1_trigSync_remoteTrig : pulseSync2
+sfp1_trigSync_remoteTrig : pulseSync2_lowlatency
   port map(
     src_clk      => sfp0_tx_clk,
     src_pulse    => coincident_trig,
@@ -497,8 +512,19 @@ sfp1_trigSync_remoteTrig : pulseSync2
     dest_pulse   => sfp1_remote_trigger,
     dest_aresetn => not sfp1_reset_tx_clk);
 
+local_trigSync_remoteTrig : pulseSync2_lowlatency
+  port map(
+    src_clk      => sfp0_tx_clk,
+    src_pulse    => coincident_trig,
+    src_aresetn  => not sfp0_reset_tx_clk,
+
+    dest_clk     => clock.sys,
+    dest_pulse   => coincident_trig_sys,
+    dest_aresetn => not reset);
+
+
 -- sync input triggers to clock.sys for remote trigger signal 
-sfp0_trigSync_sys : pulseSync2
+sfp0_trigSync_sys : pulseSync2_lowlatency
   port map(
     src_clk      => sfp0_tx_clk,
     src_pulse    => sfp0_rx_triggers(0),
@@ -508,7 +534,7 @@ sfp0_trigSync_sys : pulseSync2
     dest_pulse   => sfp0_trig_0_sys,
     dest_aresetn => not reset);
 
-sfp1_trigSync_sys : pulseSync2
+sfp1_trigSync_sys : pulseSync2_lowlatency
   port map(
     src_clk      => sfp1_tx_clk,
     src_pulse    => sfp1_rx_triggers(0),
@@ -522,7 +548,7 @@ remote_trigger <= (trig.remoteTrigMask(0) and sfp0_trig_0_sys) or (trig.remoteTr
 
 -- sync trigger signals to output SFP clocks 
 trigSync_ext: for i in 0 to 7 generate
-  sfp0_trigSync_Ext : pulseSync2
+  sfp0_trigSync_Ext : pulseSync2_lowlatency
     port map(
       src_clk      => clock.sys,
       src_pulse    => local_trig(i),
@@ -532,7 +558,7 @@ trigSync_ext: for i in 0 to 7 generate
       dest_pulse   => sfp0_local_trig_out(i),
       dest_aresetn => not sfp0_reset_tx_clk);
 
-  sfp1_trigSync_Ext : pulseSync2
+  sfp1_trigSync_Ext : pulseSync2_lowlatency
     port map(
       src_clk      => clock.sys,
       src_pulse    => local_trig(i),
